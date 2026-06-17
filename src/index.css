@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+
+/* === for remove user-agent stylesheet === */
+
+button,
+input,
+select,
+textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #000; /* text color */
+  -webkit-box-shadow: 0 0 0px 1000px white inset; /* background fix */
+  transition: background-color 9999s ease-out 0s; /* prevents flash */
+}
+
+
+body {
+  font-family: "Inter";
+}
