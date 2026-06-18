@@ -446,6 +446,22 @@ export default function TrplReg24() {
             <div className="m-0 p-0 flex flex-col">
                 <div className="bg-red-100 w-full h-fit flex flex-col overflow-hidden my-2 p-7">
 
+                    <p className="text-xs p-2 m-2">
+                        <pre>
+                        todo:<br/>
+                        1.  jam hari viewed bisa custom ubah2<br/>
+                        2.  copy jadwal: perday, perweek, pertask+tugas<br/>
+                        3.  gabung modal biar satu file, but interchangeable mau buka modal apa like return table<br/>
+                        4.  tabel jadwal bisa lebih dari satu task? (w fit/full)<br/>
+                        5.  tabel jadwal kategori like reguler ganti, lebih dari satu jadwal? kategorisasi untuk siapa<br/>
+                        6.  BUAT ORANG SET TO WHOM TASK<br/>
+                        7.  filter everything<br/>
+                        8.  fix css nama variabel everything -: sehingga butuh redesign firestore structure<br/>
+                        9.  ...<br/>
+                        10. ...<br/>
+                        </pre>
+                    </p>
+
                    
 
                     <div className="card-content-header">
