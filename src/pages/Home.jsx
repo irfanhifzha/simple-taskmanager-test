@@ -32,14 +32,14 @@ import { db } from "../firebase";
 
 const initialSchedule = {
   id: undefined,
-  program: "TRPL",
+  program: "",
   semester: 0,
   dayIndex: 0,
   slots: [],
   course: "",
   room: "",
   lecturers: [],
-  type: "teori",
+  type: "",
 
   note: "",
 
@@ -87,6 +87,15 @@ export default function TrplReg24() {
 
     const days = [1, 2, 3, 4, 5];
     const hours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+
+    const statusStyles = {
+        "blue-bg": "bg-blue-600",
+        "red-bg": "bg-red-600",
+        "green-bg": "bg-green-600",
+        "orange-bg": "bg-orange-600",
+        "purple-bg": "bg-purple-500",
+    };
 
 
     // new live
@@ -169,12 +178,12 @@ export default function TrplReg24() {
     };
 
     const renderTable = (title, data) => (
-        <div className="m-5 flex flex-col h-fit w-fit rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
+        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
             <p className="text-black text-md font-bold">{title}</p>
 
             <div className="flex gap-3 mb-[10px]" style={{animation:"fadeUp 0.5s ease-out"}}>
 
-                <button className="px-3 py-2 border border-gray-200 outline-none select-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95"
+                <button className="px-3 py-2 border border-gray-200 outline-none select-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
                 onClick={() => setTugasVisibility(prev => !prev)}>
                     {tugasVisibility ? "👀 Hide Tugas" : "🔍 Show Tugas"}
                 </button>
@@ -188,10 +197,11 @@ export default function TrplReg24() {
             
 
             <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200">
-                <table className="jadwal-table">
+                <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 
+                [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px]">
                     <thead>
-                        <tr>
-                            <th className="jam">Jam</th>
+                        <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
+                            <th className="sticky z-5 top-0 left-0 bg-white shadow-lg w-[60px] text-gray-400 font-[IBM_Plex_Sans]">Jam</th>
                             <th>Senin</th>
                             <th>Selasa</th>
                             <th>Rabu</th>
@@ -203,7 +213,7 @@ export default function TrplReg24() {
                     <tbody>
                         {hours.map(hour => (
                             <tr key={hour}>
-                                <td className="jam">{hour}:00</td>
+                                <td className="sticky z-5 top-0 left-0 bg-white shadow-lg text-center text-gray-400 font-[IBM_Plex_Sans] font-semibold">{hour}:00</td>
 
                                 {days.map(day => {
                                     const s = getSession(data, day, hour);
@@ -212,12 +222,23 @@ export default function TrplReg24() {
                                         <td key={day}>
                                             {s && (
                                                 
-                                                <div className={`jadwal-container add-hover ${s.type}`}>
+                                                <div className={`relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 px-2 py-3 hover:-translate-y-1 transition duration-200 ease
+                                                    active:-translate-y-1 wrap-break-word text-[10px]
+                                                    
+                                                
+                                                ${s.type === "teori"
+                                                    ? "border border-green-200 bg-green-100 text-green-700"
+                                                    : s.type === "praktek"
+                                                    ? "border border-blue-200 bg-blue-100 text-blue-800"
+                                                    : s.type === "tambahan"
+                                                    ? "border border-gray-200 bg-gray-100 text-gray-600"
+                                                    : "border border-white bg-white"
+                                                }`}>
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
                                                     {liveMatkul && liveMatkul.id === s.id && (
-                                                        <div className="live-jadwal">
-                                                            <div className="circle-blink green-bg"></div>
+                                                        <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit">
+                                                            <div className="inline-block w-2 h-2 me-[3px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                             <span> Kelas Live | Segera Absen</span>
                                                         </div>
                                                     )}
@@ -227,49 +248,69 @@ export default function TrplReg24() {
                                                     
 
                                                     {/* CONTENT (UNCHANGED) */}
-                                                    <h1>{s.course}</h1>
-                                                    <h2>{s.room}</h2>
-                                                    <h3 style={{color:"var(--blue-color)"}}>
+                                                    <p className="font-semibold text-sm wrap-break-word mt-2 me-10">{s.course}</p>
+                                                    <p>{s.room}</p>
+                                                    <p className="text-blue-700">
                                                         {s.lecturers.join(", ")}
-                                                    </h3>
+                                                    </p>
 
-                                                    {s.note && <h4>{s.note}</h4>}
+                                                    {s.note && <p className="text-gray-500 mb-2">{s.note}</p>}
 
                                                     {/* TUGAS */}
                                                     {tugasVisibility && (
                                                         <>
                                                             {s.titleTugas && (
-                                                                <div className="card-content-body bg-invert-new" style={{display:"block"}}>
+                                                                <div className="bg-white px-3 py-2 rounded-lg text-black" 
+                                                                style={{display:"block"}}>
 
                                                                     {/* adain lagi crud for tugas */}
                                                            
                                                                     
-                                                                    <h1>
-                                                                        <div className={`circle ${s.statusTugas}`}></div>
+                                                                    <p className="mb-2 font-bold text-xs">
+                                                                        <div className={`
+                                                                            w-[10px] h-[10px] rounded-[100%] inline-block m-1 align-middle
+
+                                                                            bg-blue-600
+                                                                            
+                                                                            ${statusStyles[s.statusTugas] || "bg-gray-200"}
+                                                                            
+                                                                            
+                                                                            
+                                                                            `}></div>
                                                                         {s.titleTugas}
-                                                                    </h1>
-                                                                    <h2><b>{s.h1Tugas}</b></h2>
-                                                                    <h2>{s.note1Tugas}</h2>
-                                                                    <h2>{s.note2Tugas}</h2>
+                                                                    </p>
+                                                                    <p className="font-bold mb-2">{s.h1Tugas}</p>
+                                                                    <p className="mb-2">{s.note1Tugas}</p>
+                                                                    <p className="mb-2">{s.note2Tugas}</p>
                                                                 </div>
                                                             )}
 
                                                             {s.titleTugasAgain && (
-                                                                <div className="card-content-body bg-invert-new" style={{display:"block"}}>
+                                                                <div className="bg-white px-3 py-2 rounded-lg text-black" 
+                                                                style={{display:"block"}}>
 
-                                                                     {/* adain lagi crud for tugas */}
-                                                                  
+                                                                    {/* adain lagi crud for tugas */}
+                                                           
+                                                                    
+                                                                    <p className="mb-2 font-bold text-xs">
+                                                                        <div className={`
+                                                                            w-[10px] h-[10px] rounded-[100%] inline-block m-1 align-middle
 
-
-                                                                    <h1>
-                                                                        <div className={`circle ${s.statusTugasAgain}`}></div>
+                                                                            bg-blue-600
+                                                                            
+                                                                            ${statusStyles[s.statusTugas] || "bg-gray-200"}
+                                                                            
+                                                                            
+                                                                            
+                                                                            `}></div>
                                                                         {s.titleTugasAgain}
-                                                                    </h1>
-                                                                    <h2><b>{s.h1TugasAgain}</b></h2>
-                                                                    <h2>{s.note1TugasAgain}</h2>
-                                                                    <h2>{s.note2TugasAgain}</h2>
+                                                                    </p>
+                                                                    <p className="font-bold mb-2">{s.h1TugasAgain}</p>
+                                                                    <p className="mb-2">{s.note1TugasAgain}</p>
+                                                                    <p className="mb-2">{s.note2TugasAgain}</p>
                                                                 </div>
                                                             )}
+
                                                         </>
                                                     )}
 
@@ -295,8 +336,8 @@ export default function TrplReg24() {
         <>
 
 
-            <div className="main-flex">
-                <div className="card-container">
+            <div className="m-0 p-0 flex flex-col">
+                <div className="bg-red-100 w-full h-fit flex flex-col overflow-hidden my-2 p-7">
 
                     <div className="card-content-header">
                         <h1>Dashboard Jadwal Kuliah - TRPL REG 24</h1>
