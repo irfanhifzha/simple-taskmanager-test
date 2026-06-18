@@ -24,8 +24,10 @@ export default function AuthButton() {
         return () => unsub();
     }, []);
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
         
+        e.preventDefault(); 
+
         setLoading(true);
 
         try {
@@ -66,6 +68,7 @@ export default function AuthButton() {
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <h2>Login</h2>
 
+                            <form onSubmit={handleLogin}>
                             <label>Email</label>
                             <div style={{ display:"flex", position: "relative", width:"100%" }}>
                                 <input
@@ -78,7 +81,7 @@ export default function AuthButton() {
                             </div>
 
                             <label>Password</label>
-                            <div style={{ display:"flex", position: "relative", width:"100%" }}>
+                            <div className="flex items-center relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="password"
@@ -88,23 +91,16 @@ export default function AuthButton() {
                                 />
 
                                 <span
-                                    className="material-symbols-rounded"
+                                    className="material-symbols-rounded cursor-pointer select-none text-[20px] absolute right-0 p-1 rounded-lg me-3 text-[20px]! -translate-y-1 text-blue-500 hover:-translate-y-1.5 active:scale-95 active:text-blue-300 transition duration-200 ease"
                                     onClick={() => setShowPassword((prev) => !prev)}
-                                    style={{
-                                        cursor: "pointer",
-                                        userSelect: "none",
-                                        fontSize: "20px",
-                                        position: "absolute",
-                                        right: "8px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)"
-                                    }}
                                 >
                                     {showPassword ? "visibility_off" : "visibility"}
                                 </span>
+                                
                             </div>
 
                             <button
+                                type="submit"
                                 onClick={handleLogin}
                                 disabled={loading}
                                 style={{
@@ -115,6 +111,7 @@ export default function AuthButton() {
                             >
                                 {loading ? ("Loading...") : ("Login")}
                             </button>
+                            </form>
             
                         </div>
                     </Modal>
