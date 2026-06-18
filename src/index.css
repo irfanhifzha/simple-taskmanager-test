@@ -9,7 +9,10 @@ select,
 textarea {
   appearance: none;
   -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
   -moz-appearance: none;
+  outline: none;
+  user-select: none;
 }
 
 input:-webkit-autofill,
@@ -28,3 +31,103 @@ html, body {
   overflow-x: hidden;
   font-family: "Inter";
 }
+
+
+/* input css */
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+
+
+
+
+/* Base style for input & select */
+input,
+select {
+  display: flex;
+  margin: 3px 0 10px 0;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+
+  color: #222;
+  background-color: #ffffff;
+
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+
+  outline: none;
+  transition: all 0.2s ease-in-out;
+
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+/* Hover state */
+input:hover,
+select:hover {
+  border-color: #b8c0cc;
+}
+
+/* Focus state (the “white + glow thingy”) */
+input:focus,
+select:focus {
+  border-color: #4c8dff;
+  box-shadow: 0 0 0 4px rgba(76, 141, 255, 0.15);
+  background-color: #ffffff;
+}
+
+/* Disabled state */
+input:disabled,
+select:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+textarea {
+  display: flex;
+  min-height: 60px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  
+  margin: 3px 0 10px 0;
+  color: #222;
+  background-color: #ffffff;
+
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+
+  outline: none;
+  flex-shrink: 0;
+  resize: vertical;
+
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+
+
+/* Optional: nicer select arrow spacing */
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #888 50%),
+                    linear-gradient(135deg, #888 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(1em + 2px),
+                       calc(100% - 13px) calc(1em + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+
+
+
+
+

@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from "react";
 import {
     collection,
@@ -7,28 +5,30 @@ import {
     getDoc,
     doc
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+
+// COMPONENTS
+import Navbar from "../components/Navbar";
 
 // MODALS (UNCHANGED)
-// import AddScheduleModal from "../components/AddScheduleModal";
-// import EditScheduleModal from "../components/EditScheduleModal";
-// import DeleteScheduleModal from "../components/DeleteScheduleModal";
+import AddScheduleModal from "../components/AddScheduleModal";
+import EditScheduleModal from "../components/EditScheduleModal";
+import DeleteScheduleModal from "../components/DeleteScheduleModal";
 
-// import AddTugasModal from "../components/AddTugasModal";
-// import EditTugasModal from "../components/EditTugasModal";
-// import DeleteTugasModal from "../components/DeleteTugasModal";
+import AddTugasModal from "../components/AddTugasModal";
+import EditTugasModal from "../components/EditTugasModal";
+import DeleteTugasModal from "../components/DeleteTugasModal";
 
-// import AddTugasModalAgain from "../components/AddTugasModalAgain";
-// import EditTugasModalAgain from "../components/EditTugasModalAgain";
-// import DeleteTugasModalAgain from "../components/DeleteTugasModalAgain";
-// import Dashboard from "../components/Dashboard";
+import AddTugasModalAgain from "../components/AddTugasModalAgain";
+import EditTugasModalAgain from "../components/EditTugasModalAgain";
+import DeleteTugasModalAgain from "../components/DeleteTugasModalAgain";
+import Dashboard from "../components/Dashboard";
 
 // MODALS UNTUK CALENDAR
 // import AddRencanaModal from "../components/AddRencanaModal";
 // import ViewRencanaModal from "../components/ViewRencanaModal";
 
-
-// import fotokurikulum from "../assets/kurikulumTRPL.png"
 
 const initialSchedule = {
   id: undefined,
@@ -64,7 +64,7 @@ export default function TrplReg24() {
     }, []);
 
 
-
+    const [user, setUser] = useState(null);
     const [schedule, setSchedule] = useState([]);
 
     const [editMode, setEditMode] = useState(false);
@@ -128,7 +128,13 @@ export default function TrplReg24() {
     );
 
     // end of live
+    
 
+    // auth
+    useEffect(() => {
+        const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+        return () => unsub();
+    }, []);
 
 
     // fetch data semester
@@ -183,10 +189,24 @@ export default function TrplReg24() {
 
             <div className="flex gap-3 mb-[10px]" style={{animation:"fadeUp 0.5s ease-out"}}>
 
-                <button className="px-3 py-2 border border-gray-200 outline-none select-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
                 onClick={() => setTugasVisibility(prev => !prev)}>
                     {tugasVisibility ? "👀 Hide Tugas" : "🔍 Show Tugas"}
                 </button>
+
+                  {user && (
+                    <>
+                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold" 
+                        onClick={() => setOpenAdd(true)}>
+                            + Tambah Jadwal
+                        </button>
+
+                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold" 
+                        onClick={() => setEditMode(prev => !prev)}>
+                            {editMode ? "🔒 Exit Edit Mode" : "✏️ Update Data"}
+                        </button>
+                    </>
+                )}
 
             
 
@@ -222,10 +242,8 @@ export default function TrplReg24() {
                                         <td key={day}>
                                             {s && (
                                                 
-                                                <div className={`relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 px-2 py-3 hover:-translate-y-1 transition duration-200 ease
-                                                    active:-translate-y-1 wrap-break-word text-[10px]
-                                                    
-                                                
+                                                // sini task mau fit(bisa banyak) atau full(satu doang full)?
+                                                <div className={`relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 px-2 py-3 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
                                                 ${s.type === "teori"
                                                     ? "border border-green-200 bg-green-100 text-green-700"
                                                     : s.type === "praktek"
@@ -237,15 +255,69 @@ export default function TrplReg24() {
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
                                                     {liveMatkul && liveMatkul.id === s.id && (
-                                                        <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit">
-                                                            <div className="inline-block w-2 h-2 me-[3px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
-                                                            <span> Kelas Live | Segera Absen</span>
+                                                        <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none">
+                                                            <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
+                                                            <span> Live {currentHour}.00 | Jam {s.slots.at(0)}.00 - {s.slots.at(-1)}.00</span>
                                                         </div>
                                                     )}
                                                     
 
                                                     {/* CRUD BUTTONS (UNCHANGED) */}
-                                                    
+                                                    {user && editMode && (
+                                                        <div className="flex gap-2 mt-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelected(s);
+                                                                    setOpenEdit(true);
+                                                                }}
+                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                            >
+                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                    edit</span>
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelected(s);
+                                                                    setOpenDelete(true);
+                                                                }}
+                                                                className="crud-button-icon material-symbols-rounded blue-text"className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  outline-none active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                            >
+                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                    delete</span>
+                                                            </button>
+
+                                                            {s.titleTugas ? (
+                                                                s.titleTugasAgain ? (
+                                                                    <button disabled
+                                                                    className="crud-button-icon material-symbols-rounded blue-text"className="bg-white p-0 shadow-md hover:shadow-lg text-gray-400 rounded-md w-[25px] h-[25px] border border-gray-200"
+                                                                    >
+                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">warning</span>
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setSelected(s);
+                                                                            setOpenTugasAddAgain(true);
+                                                                        }}
+                                                                        className="crud-button-icon material-symbols-rounded blue-text"className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                    >
+                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">playlist_add</span>
+                                                                    </button>
+                                                                )
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelected(s);
+                                                                        setOpenTugasAdd(true);
+                                                                    }}
+                                                                    className="crud-button-icon material-symbols-rounded blue-text"className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                >
+                                                                    <span className="material-symbols-rounded text-[17px]/[1.5]!">add</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
 
                                                     {/* CONTENT (UNCHANGED) */}
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10">{s.course}</p>
@@ -254,31 +326,48 @@ export default function TrplReg24() {
                                                         {s.lecturers.join(", ")}
                                                     </p>
 
-                                                    {s.note && <p className="text-gray-500 mb-2">{s.note}</p>}
+                                                    {s.note && <p className="text-gray-500">{s.note}</p>}
 
                                                     {/* TUGAS */}
                                                     {tugasVisibility && (
                                                         <>
                                                             {s.titleTugas && (
-                                                                <div className="bg-white px-3 py-2 rounded-lg text-black" 
+                                                                <div className="bg-white px-3 py-2 mt-2 rounded-lg text-black" 
                                                                 style={{display:"block"}}>
 
                                                                     {/* adain lagi crud for tugas */}
+                                                                    {user && editMode && (
+                                                                        <div className="flex gap-2 mb-3">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                    setSelected(s);
+                                                                                    setOpenTugasEdit(true);
+                                                                                }}
+                                                                            className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">edit</span>
+                                                                            </button>
+                                                                        
+
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                    setSelected(s);
+                                                                                    setOpenTugasDelete(true);
+                                                                                }}
+                                                                            className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">delete</span>
+                                                                            </button>
+
+                                                                        </div>
+                                                                    )}
                                                            
                                                                     
-                                                                    <p className="mb-2 font-bold text-xs">
+                                                                    <div className="flex mb-2 font-bold text-xs items-center">
                                                                         <div className={`
-                                                                            w-[10px] h-[10px] rounded-[100%] inline-block m-1 align-middle
-
-                                                                            bg-blue-600
-                                                                            
+                                                                            w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle
                                                                             ${statusStyles[s.statusTugas] || "bg-gray-200"}
-                                                                            
-                                                                            
-                                                                            
                                                                             `}></div>
-                                                                        {s.titleTugas}
-                                                                    </p>
+                                                                        <div>{s.titleTugas}</div>
+                                                                    </div>
                                                                     <p className="font-bold mb-2">{s.h1Tugas}</p>
                                                                     <p className="mb-2">{s.note1Tugas}</p>
                                                                     <p className="mb-2">{s.note2Tugas}</p>
@@ -290,21 +379,37 @@ export default function TrplReg24() {
                                                                 style={{display:"block"}}>
 
                                                                     {/* adain lagi crud for tugas */}
+                                                                    {user && editMode && (
+                                                                        <div className="flex gap-2 mb-3">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                    setSelected(s);
+                                                                                    setOpenTugasEdit(true);
+                                                                                }}
+                                                                            className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">edit</span>
+                                                                                </button>
+                                                                        
+
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                    setSelected(s);
+                                                                                    setOpenTugasDelete(true);
+                                                                                }}
+                                                                            className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">delete</span></button>
+
+                                                                        </div>
+                                                                    )}
                                                            
                                                                     
-                                                                    <p className="mb-2 font-bold text-xs">
+                                                                    <div className="flex mb-2 font-bold text-xs items-center">
                                                                         <div className={`
-                                                                            w-[10px] h-[10px] rounded-[100%] inline-block m-1 align-middle
-
-                                                                            bg-blue-600
-                                                                            
-                                                                            ${statusStyles[s.statusTugas] || "bg-gray-200"}
-                                                                            
-                                                                            
-                                                                            
+                                                                            w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle
+                                                                            ${statusStyles[s.statusTugasAgain] || "bg-gray-200"}
                                                                             `}></div>
-                                                                        {s.titleTugasAgain}
-                                                                    </p>
+                                                                        <div>{s.titleTugasAgain}</div>
+                                                                    </div>
                                                                     <p className="font-bold mb-2">{s.h1TugasAgain}</p>
                                                                     <p className="mb-2">{s.note1TugasAgain}</p>
                                                                     <p className="mb-2">{s.note2TugasAgain}</p>
@@ -335,12 +440,16 @@ export default function TrplReg24() {
     return (
         <>
 
+            
+             <Navbar />
 
             <div className="m-0 p-0 flex flex-col">
                 <div className="bg-red-100 w-full h-fit flex flex-col overflow-hidden my-2 p-7">
 
+                   
+
                     <div className="card-content-header">
-                        <h1>Dashboard Jadwal Kuliah - TRPL REG 24</h1>
+                        <h1>Dashboard Jadwal Kuliah - TRPL REG 24 // jam-hari bisa custom nanti</h1>
                     </div>
                     
                    
@@ -356,7 +465,7 @@ export default function TrplReg24() {
             </div>
 
             {/* MODALS (UNCHANGED) */}
-            {/* <AddScheduleModal open={openAdd} onClose={() => setOpenAdd(false)} onSuccess={fetchSchedules} />
+            <AddScheduleModal open={openAdd} onClose={() => setOpenAdd(false)} onSuccess={fetchSchedules} />
             <EditScheduleModal open={openEdit} onClose={() => setOpenEdit(false)} data={selected} onSuccess={fetchSchedules} />
             <DeleteScheduleModal open={openDelete} onClose={() => setOpenDelete(false)} data={selected} onSuccess={fetchSchedules} />
 
@@ -367,7 +476,7 @@ export default function TrplReg24() {
             <AddTugasModalAgain open={openTugasAddAgain} data={selected} onClose={() => setOpenTugasAddAgain(false)} onSuccess={fetchSchedules} />
             <EditTugasModalAgain open={openTugasEditAgain} data={selected} onClose={() => setOpenTugasEditAgain(false)} onSuccess={fetchSchedules} />
             <DeleteTugasModalAgain open={openTugasDeleteAgain} data={selected} onClose={() => setOpenTugasDeleteAgain(false)} onSuccess={fetchSchedules} />
- */}
+
 
        
 
