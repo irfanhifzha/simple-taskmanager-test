@@ -187,7 +187,7 @@ export default function TrplReg24() {
         <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
             <p className="text-black text-md font-bold">{title}</p>
 
-            <div className="flex gap-3 mb-[10px]" style={{animation:"fadeUp 0.5s ease-out"}}>
+            <div className="flex gap-3 mb-[10px]">
 
                 <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
                 onClick={() => setTugasVisibility(prev => !prev)}>
@@ -216,7 +216,7 @@ export default function TrplReg24() {
 
             
 
-            <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200">
+            <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
                 <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 
                 [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px]">
                     <thead>
@@ -243,7 +243,7 @@ export default function TrplReg24() {
                                             {s && (
                                                 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
-                                                <div className={`relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 px-2 py-3 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
+                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-3 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
                                                 ${s.type === "teori"
                                                     ? "border border-green-200 bg-green-100 text-green-700"
                                                     : s.type === "praktek"
@@ -437,6 +437,420 @@ export default function TrplReg24() {
 
 
 
+
+
+
+
+
+
+    // NEW CALENDAR
+
+    const Calendar = {
+        id: undefined,
+
+        program: "",
+        semester: 0,
+
+        tahun: 0,
+
+        bulan: 0,
+        tanggal: [],
+
+        task: "",
+        type: "",
+        content: "",
+    };
+
+    // firestore calendar data
+    const [calendar, setCalendar] = useState([]);
+
+    // current displayed month
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    // FETCH FIRESTORE
+    const fetchCalendar = async () => {
+
+        const snap_calendar = await getDocs(
+            collection(db, "calendar")
+        );
+
+        const data_calendar = snap_calendar.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        setCalendar(
+            data_calendar.filter(
+                d =>
+                    d.program === "TRPL" &&
+                    d.semester === semester
+            )
+        );
+    };
+
+    useEffect(() => {
+        fetchCalendar();
+    }, [semester]);
+
+    // FIND EVENT FOR SPECIFIC DATE
+    const getCalendar = (data, bulan, tgl) => {
+    return data.filter(
+        (s) =>
+        s.bulan === bulan &&
+        Array.isArray(s.tanggal) &&
+        s.tanggal.includes(tgl)
+    );
+    };
+
+    // BUILD CALENDAR MATRIX
+    const buildCalendar = (
+        year,
+        month
+    ) => {
+
+        const firstDay = new Date(
+            year,
+            month,
+            1
+        ).getDay();
+
+        const daysInMonth = new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
+
+        const weeks = [];
+
+        let week =
+            new Array(7).fill(null);
+
+        let day = 1;
+
+        // first week
+        for (let i = firstDay; i < 7; i++) {
+            week[i] = day++;
+        }
+
+        weeks.push(week);
+
+        // remaining weeks
+        while (day <= daysInMonth) {
+
+            week = new Array(7).fill(null);
+
+            for (
+                let i = 0;
+                i < 7 && day <= daysInMonth;
+                i++
+            ) {
+                week[i] = day++;
+            }
+
+            weeks.push(week);
+        }
+
+        return weeks;
+    };
+
+    // CURRENT YEAR + MONTH
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const weeks = buildCalendar(year, month);
+
+    const daysHeader = [
+        "Min",
+        "Sen",
+        "Sel",
+        "Rab",
+        "Kam",
+        "Jum",
+        "Sab"
+    ];
+
+    
+
+    // new const for button crud
+
+    const [selected_cal, setSelected_cal] = useState(null);
+
+    const [openAddRencana, setOpenAddRencana] = useState(false);
+    // const [openDeleteRencana, setOpenDeleteRencana] = useState(false);
+    const [openViewRencana, setOpenViewRencana] = useState(false);
+
+    
+
+    const renderCalendar = () => {
+        return (
+        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
+            
+
+
+            {/* TITLE */}
+            <p className="text-black text-md font-bold">
+                TRPL REG 24 - Timeline Kegiatan {" "}
+                {
+                    currentDate.toLocaleString(
+                        "default",
+                        { month: "long" }
+                    )
+                } {year}
+            </p>
+
+            {/* BUTTONS */}
+            <div className="flex gap-3 mb-[10px]">
+
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    onClick={() =>
+                        setCurrentDate(
+                            new Date(
+                                year,
+                                month - 1,
+                                1
+                            )
+                        )
+                    }
+                >
+                    Prev
+                </button>
+
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    onClick={() =>
+                        setCurrentDate(
+                            new Date(
+                                year,
+                                month + 1,
+                                1
+                            )
+                        )
+                    }
+                >
+                    Next
+                </button>
+
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    onClick={() =>
+                        setCurrentDate(
+                            new Date()
+                        )
+                    }
+                >
+                    Today
+                </button>
+
+                {user && (
+                    <>
+                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                        onClick={() => setOpenAddRencana(true)}>
+                            + Tambah Rencana
+                        </button>
+                    </>
+                )}
+
+            </div>
+
+            {/* CALENDAR */}
+            <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
+
+                <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px] [&_td]:h-[100px]">
+
+                    <thead>
+                        <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
+                            {daysHeader.map(day => (
+                                <th key={day}>
+                                    {day}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {weeks.map((week, i) => (
+
+                            <tr key={i}>
+
+                                {week.map((day, j) => {
+
+                                    const events =
+                                        day !== null
+                                            ? getCalendar(
+                                                calendar,
+                                                month + 1,
+                                                day
+                                            )
+                                            : [];
+
+                                    const isToday = day === new Date().getDate() &&
+                                        month === new Date().getMonth() &&
+                                        year === new Date().getFullYear();
+
+                                    return (
+
+                                        <td
+                                            key={j}
+                                            className={
+                                                day !== null
+                                                    ? "day-cell"
+                                                    : "empty-cell"
+                                            }
+                                        >
+
+                                            <div className="calendar-container">
+
+                                                {/* DATE */}
+                                                <div className="tanggal-title">
+                                                    {day ? (
+                                                        <div style={{display:"flex", width:"100%",justifyContent:"center"}}>
+                                                            <div className={`tanggal-title ${isToday ? "live " : ""}`}>
+                                                            {day}
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+
+                                                {/* TASKS */}
+                                                {events.map((item, idx) => (
+                                                    item.tanggal.length === 1 ? (
+
+                                                        /* SHORT TASK */
+                                                        <div
+                                                            key={idx}
+                                                            className="short-task"
+                                                        >
+                                                            <div style={{display:"flex", width:"100%",justifyContent:"center"}}>
+                                                            {user ? ( 
+                                                                <div onClick={() => {
+                                                                                    setSelected_cal(item);
+                                                                                    setOpenViewRencana(true);
+                                                                                }}
+                                                                className={`short-banner-selectable add-hover ${item.type}`}></div>
+                                                             ) : (
+                                                                // <div className={`short-banner ${item.type}`}></div>
+                                                                <div onClick={() => {
+                                                                                    setSelected_cal(item);
+                                                                                    setOpenViewRencana(true);
+                                                                                }}
+                                                                className={`short-banner-selectable add-hover ${item.type}`}></div>
+                                                            )}
+                                                            </div>
+
+                                                            <div className="short-task-title">
+                                                                {item.task}
+                                                            </div>
+                                                        </div>
+
+                                                    ) : (
+
+                                                        /* LONG TASK */
+                                                        <div
+                                                            key={idx}
+                                                            className="long-task add-hover"
+                                                        >
+
+                                                            {/* SHOW TASK ONLY ON FIRST tanggal */}
+                                                            {item.tanggal[0] === day ? (
+                                                                <>
+
+                                                               
+                                                                    
+                                                                <div className="long-task-title">
+
+                                                                     <button
+                                                                        onClick={() => {
+                                                                               setSelected_cal(item);
+                                                                                setOpenViewRencana(true);
+                                                                            }}
+                                                                        className="task-visibility-btn material-symbols-rounded ">
+                                                                            visibility
+                                                                    </button>
+
+
+                                                                    {item.task}
+                                                                </div>
+                                                                                                                                
+                                                                </>
+
+                                                            ) : (
+
+                                                                <div className="long-task-title hide">
+                                                                    {item.task}
+                                                                </div>
+
+                                                            )}
+                                                            
+
+                                                            {/* SHOW BANNER */}
+                                                            <div
+                                                                className={`long-banner ${item.type}`}
+                                                            ></div>
+
+                                                          
+                                                                   
+                                                                   
+
+                                                        </div>
+
+                                                    )
+
+                                                ))}
+
+                                            </div>
+
+                                        </td>
+                                    );
+                                })}
+
+                            </tr>
+                        ))}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    );
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return (
         <>
 
@@ -447,7 +861,7 @@ export default function TrplReg24() {
                 <div className="bg-red-100 w-full h-fit flex flex-col overflow-hidden my-2 p-7">
 
                     <p className="text-xs p-2 m-2">
-                        <pre>
+                        
                         todo:<br/>
                         1.  jam hari viewed bisa custom ubah2<br/>
                         2.  copy jadwal: perday, perweek, pertask+tugas<br/>
@@ -459,7 +873,7 @@ export default function TrplReg24() {
                         8.  fix css nama variabel everything -: sehingga butuh redesign firestore structure<br/>
                         9.  ...<br/>
                         10. ...<br/>
-                        </pre>
+                        
                     </p>
 
                    
@@ -469,6 +883,10 @@ export default function TrplReg24() {
                     </div>
                     
                    
+
+                    
+
+                    {renderCalendar()}
 
                     {renderTable(`TRPL REG 24 - Semester ${semester} (${kategori}) / SKS ${sks_semesterini}`, schedule)}
 

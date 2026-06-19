@@ -137,17 +137,18 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
   return (
     <Modal open={open} onClose={handleClose}>
       <h2>Tambah Jadwal</h2>
-
-      <label>Program Studi</label>
-      <select value={program} onChange={(e) => setProgram(e.target.value)}>
+      
+      <form onSubmit={handleSubmit}>
+      <label htmlFor="programstudi">Program Studi</label>
+      <select id="programstudi" value={program} onChange={(e) => setProgram(e.target.value)}>
         <option value="" disabled>Pilih Program Studi</option>
         <option value="TRPL">TRPL</option>
         <option value="BISDIG">BISDIG-Reguler</option>
         <option value="BISDIGeks">BISDIG-Eksekutif</option>
       </select>
 
-      <label>Semester</label>
-      <select value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
+      <label htmlFor="semester">Semester</label>
+      <select id="semester" value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
         <option value={0} disabled>Pilih Semester</option>
         <option value={1}>1</option>
         <option value={2}>2</option>
@@ -161,38 +162,42 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
       
 
-      <label>Mata Kuliah</label>
+      <label htmlFor="matakuliah">Mata Kuliah</label>
       <input
+        id="matakuliah"
         placeholder="Mata Kuliah"
         value={course}
         onChange={(e) => setCourse(e.target.value)}
       />
 
 
-      <label>Ruangan</label>
+      <label htmlFor="ruangan">Ruangan</label>
       <input
+        id="ruangan"
         placeholder="Ruangan"
         value={room}
         onChange={(e) => setRoom(e.target.value)}
       />
 
-      <label>Dosen</label>
+      <label htmlFor="person">Dosen</label>
       <input
+        id="person"
         placeholder="Dosen (dipisah dengan koma)"
         value={lecturers}
         onChange={(e) => setLecturers(e.target.value)}
       />
 
-      <label>Tipe</label>
-      <select value={type} onChange={(e) => setType(e.target.value)}>
+      <label htmlFor="tipe">Tipe</label>
+      <select id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
         <option value="" disabled>Pilih Tipe</option>
         <option value="teori">Teori</option>
         <option value="praktek">Praktek</option>
         <option value="tambahan">Matkul Tambahan</option>
       </select>
 
-      <label>Hari</label>
+      <label htmlFor="hari">Hari</label>
       <select
+        id="hari"
         value={dayIndex}
         onChange={(e) => setDayIndex(Number(e.target.value))}
       >
@@ -217,7 +222,6 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
       )}
 
         <label>Jam</label>
-
         <div style={{ display: "flex", width:"100%", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10}}>
           {slotOptions.map((slot) => {
             const key = `${program}-${semester}-${dayIndex}-${slot}`;
@@ -238,8 +242,9 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
           })}
         </div>
 
-      <label>Note</label>
+      <label htmlFor="note">Note</label>
       <input
+        id="note"
         placeholder="Note (Optional)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
@@ -256,6 +261,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
       >
         {loading ? ("Loading...") : ("Simpan")}
       </button>
+      </form>
     </Modal>
   );
 }

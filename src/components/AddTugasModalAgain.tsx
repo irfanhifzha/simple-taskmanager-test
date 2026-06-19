@@ -65,11 +65,17 @@ export default function AddTugasModalAgain({
       <h2>Tambah Tugas Lagi</h2>
 
 
-      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Menambah tugas ke {data?.course || "notfound"} - Hari {dayLabels[data?.dayIndex-1] || "harinotfound"}
+      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13}}>
+        Menambah tugas lagi: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.slots?.length > 1
+            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
+            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+          }
+        ]
       </p>
 
-
+      <form onSubmit={handleSubmit}>  
       <label>Status</label>
       <select value={statusTugasAgain} onChange={(e) => setStatus(e.target.value)}>
         <option value="" disabled hidden>
@@ -132,6 +138,8 @@ export default function AddTugasModalAgain({
       >
         {loading ? ("Loading...") : ("Simpan")}
       </button>
+      </form>
     </Modal>
+    
   );
 }

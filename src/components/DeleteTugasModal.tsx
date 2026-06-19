@@ -3,6 +3,8 @@ import { updateDoc, doc, deleteField } from "firebase/firestore";
 import { db } from "../firebase";
 import { useState } from "react";
 
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+
 export default function DeleteTugasModal({ open, onClose, data, onSuccess }: any) {
     const [loading, setLoading] = useState(false);
     const handleDelete = async () => {
@@ -25,9 +27,16 @@ export default function DeleteTugasModal({ open, onClose, data, onSuccess }: any
     return (
         <Modal open={open} onClose={onClose}>
             <h2>Yakin mau hapus tugas?</h2>
-            <p>"{data?.h1Tugas}"</p>
+            <p>"{data?.h1Tugas}" dari {data?.course || "null"} [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.slots?.length > 1
+            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
+            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+          }
+        ]</p>
 
             <button
+                className="border-red-500! text-red-700"
                 onClick={handleDelete}
                 disabled={loading}
                 style={{

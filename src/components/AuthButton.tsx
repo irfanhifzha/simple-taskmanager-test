@@ -24,10 +24,8 @@ export default function AuthButton() {
         return () => unsub();
     }, []);
 
-    const handleLogin = async (e) => {
-        
-        e.preventDefault(); 
-
+    const handleLogin = async () => {
+    
         setLoading(true);
 
         try {

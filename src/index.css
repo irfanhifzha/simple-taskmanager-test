@@ -33,6 +33,15 @@ html, body {
 }
 
 
+
+/* FORM STYLE BASE */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
 /* input css */
 label {
   display: flex;
@@ -41,10 +50,6 @@ label {
   font-size: 0.875rem;
   color: #6b7280;
 }
-
-
-
-
 
 /* Base style for input & select */
 input,
@@ -113,8 +118,6 @@ textarea {
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
 }
 
-
-
 /* Optional: nicer select arrow spacing */
 select {
   appearance: none;
@@ -129,5 +132,75 @@ select {
 
 
 
+/* HOUR SELECT BUTTON ON MODAL FORM */
+/* BUTTON FOR TOGGLE JAM */
 
+.button-jam {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;          /* consistent rectangle width */
+  height: 40px;              /* consistent height */
+
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+
+  transition: all 0.2s ease;
+  user-select: none;
+
+  box-sizing: border-box;
+}
+
+/* base hover (applies to enabled + selected only) */
+.button-jam.enabled:hover,
+.button-jam.selected:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.10);
+}
+
+/* ENABLED */
+.button-jam.enabled {
+  cursor: pointer;
+  background: #ffffff;
+  color: #111827;
+}
+
+/* SELECTED */
+.button-jam.selected {
+  background: var(--blue-color, #2563eb);
+  color: #ffffff;
+  border-color: var(--blue-color, #2563eb);
+}
+
+/* BLOCKED */
+.button-jam.blocked {
+  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  opacity: 0.7;
+}
+
+/* optional: remove hover effect from blocked */
+.button-jam.blocked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 

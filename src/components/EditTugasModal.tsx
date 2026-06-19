@@ -3,6 +3,7 @@ import Modal from "./Modal";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../firebase";
 
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
 export default function EditTugasModal({
   open,
@@ -70,7 +71,17 @@ export default function EditTugasModal({
   return (
     <Modal open={open} onClose={onClose}>
       <h2>Edit Tugas</h2>
+      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13}}>
+        Mengedit tugas: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.slots?.length > 1
+            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
+            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+          }
+        ] 
+      </p>
 
+      <form onSubmit={handleUpdate}>
       <label>Status</label>
       <select value={statusTugas} onChange={(e) => setStatus(e.target.value)}>
         <option value="orange-bg">Oranye</option>
@@ -135,6 +146,7 @@ export default function EditTugasModal({
       >
         {loading ? ("Loading...") : ("Simpan")}
       </button>
+      </form>
     </Modal>
   );
 }

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Modal from "./Modal";
 import { updateDoc, doc, getDocs, collection } from "firebase/firestore";
 import { db } from "../firebase";
 
 const slotOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
 const days = [
   { label: "Senin", value: 1 },
@@ -30,20 +32,25 @@ export default function EditScheduleModal({
   const [note, setNote] = useState("");
 
   const [showInvalid, setShowInvalid] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const isInitialLoad = useRef(true);
+  
 
 
   // ✅ load existing data
-  useEffect(() => {
-    if (open && data) {
-      setCourse(data.course || "");
-      setRoom(data.room || "");
-      setLecturers((data.lecturers || []).join(", "));
-      setType(data.type || "teori");
-      setDayIndex(data.dayIndex || 1);
-      setSlots(data.slots || []);
-      setNote(data.note || "");
-    }
-  }, [open, data]);
+useEffect(() => {
+  if (open && data) {
+    setCourse(data.course || "");
+    setRoom(data.room || "");
+    setLecturers((data.lecturers || []).join(", "));
+    setType(data.type || "teori");
+    setDayIndex(data.dayIndex || 1);
+    setSlots(data.slots || []);
+    setNote(data.note || "");
+
+    isInitialLoad.current = true; // mark initial load
+  }
+}, [open, data]);
 
   // 🔥 FIXED: include program + semester + exclude self
   const loadConflicts = async () => {
@@ -77,9 +84,15 @@ export default function EditScheduleModal({
       loadConflicts();
       setShowInvalid(false);
     }
-  }, [open, dayIndex]);
+  }, [open, dayIndex, data?.id]);
 
   useEffect(() => {
+    if (isInitialLoad.current) {
+      // skip reset on first load
+      isInitialLoad.current = false;
+      return;
+    }
+
     setSlots([]);
   }, [dayIndex]);
 
@@ -105,7 +118,7 @@ export default function EditScheduleModal({
     !lecturers.trim() ||
     slots.length === 0;
 
-  const [loading, setLoading] = useState(false);
+ 
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -137,7 +150,18 @@ export default function EditScheduleModal({
   return (
     <Modal open={open} onClose={onClose}>
       <h2>Edit Jadwal</h2>
+      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+        Mengedit data: {data?.course || "notfound"}{" "}
+        [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.slots?.length > 1
+            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
+            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+          }
+        ]
+      </p>
 
+      <form onSubmit={handleUpdate}>  
       <label>Program Studi</label>
       <input value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Mata Kuliah" />
 
@@ -221,6 +245,7 @@ export default function EditScheduleModal({
       >
         {loading ? ("Loading...") : ("Simpan")}
       </button>
+      </form>
     </Modal>
   );
 }
