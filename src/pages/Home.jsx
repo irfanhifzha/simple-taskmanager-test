@@ -184,10 +184,10 @@ export default function TrplReg24() {
     };
 
     const renderTable = (title, data) => (
-        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
+        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
             <p className="text-black text-md font-bold">{title}</p>
 
-            <div className="flex gap-3 mb-[10px]">
+            <div className="flex gap-3 mb-[10px] flex-wrap">
 
                 <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
                 onClick={() => setTugasVisibility(prev => !prev)}>
@@ -583,7 +583,7 @@ export default function TrplReg24() {
 
     const renderCalendar = () => {
         return (
-        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white">
+        <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
             
 
 
@@ -599,9 +599,9 @@ export default function TrplReg24() {
             </p>
 
             {/* BUTTONS */}
-            <div className="flex gap-3 mb-[10px]">
+            <div className="flex gap-3 mb-[10px] flex-wrap">
 
-                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                <button className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
                     onClick={() =>
                         setCurrentDate(
                             new Date(
@@ -653,7 +653,7 @@ export default function TrplReg24() {
             {/* CALENDAR */}
             <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
 
-                <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px] [&_td]:h-[100px]">
+                <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px] [&_td]:h-[150px]">
 
                     <thead>
                         <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
@@ -692,8 +692,8 @@ export default function TrplReg24() {
                                             key={j}
                                             className={
                                                 day !== null
-                                                    ? "day-cell"
-                                                    : "empty-cell"
+                                                    ? "bg=white"
+                                                    : "bg-gray-200"
                                             }
                                         >
 
@@ -857,8 +857,8 @@ export default function TrplReg24() {
             
              <Navbar />
 
-            <div className="m-0 p-0 flex flex-col">
-                <div className="bg-red-100 w-full h-fit flex flex-col overflow-hidden my-2 p-7">
+            <div className="m-0 p-0 flex flex-col bg-orange-100">
+                <div className="mt-3 flex flex-col h-fit rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 overflow-hidden mx-5 bg-white">
 
                     <p className="text-xs p-2 m-2">
                         
@@ -878,8 +878,10 @@ export default function TrplReg24() {
 
                    
 
-                    <div className="card-content-header">
-                        <h1>Dashboard Jadwal Kuliah - TRPL REG 24 // jam-hari bisa custom nanti</h1>
+                    <div>
+                        <p className="font-bold text-lg uppercase">
+                            Dashboard Jadwal Kuliah - TRPL REG 24 // jam-hari bisa custom nanti
+                        </p>
                     </div>
                     
                    
