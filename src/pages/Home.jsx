@@ -730,7 +730,7 @@ export default function TrplReg24() {
                                                                         setSelected_cal(item);
                                                                         setOpenViewRencana(true);
                                                                     }}
-                                                                        className={`mt-1 w-5 h-5 rounded-full ${statusStyles[item.type] || "bg-gray-500"}`}></div>
+                                                                        className={`mt-1 w-5 h-5 rounded-full cursor-pointer ${statusStyles[item.type] || "bg-gray-500"}`}></div>
                                                                 </div>
 
                                                                 <div className="text-black text-xs m-1 text-center">
@@ -743,23 +743,20 @@ export default function TrplReg24() {
                                                             /* LONG TASK */
                                                             <div
                                                                 key={idx}
-                                                                className="relative flex flex-col m-0 z-1 justify-center"
+                                                                className="relative flex flex-col -mx-4 z-1"
                                                             >
 
                                                                 {/* SHOW TASK ONLY ON FIRST tanggal */}
                                                                 {item.tanggal[0] === day ? (
                                                                     <>
-                                                                        <div className={`
-                                                                            absolute top-0 right-0 z-10
-                                                                            flex whitespace-nowrap overflow-auto items-center
-                                                                            w-fit h-7 absolute top-0 left-0 rounded-lg text-white ${statusStyles[item.type] || "bg-gray-500"}`}>
+                                                                        <div className="z-5 overflow-auto text-white whitespace-nowrap flex items-center h-7 px-2">
 
                                                                             <button
                                                                                 onClick={() => {
                                                                                     setSelected_cal(item);
                                                                                     setOpenViewRencana(true);
                                                                                 }}
-                                                                                className="text-[20px]! mx-2 material-symbols-rounded">
+                                                                                className="text-[15px]! mx-2 material-symbols-rounded cursor-pointer">
                                                                                 visibility
                                                                             </button>
                                                                             {item.task}
@@ -769,7 +766,7 @@ export default function TrplReg24() {
 
                                                                 ) : (
 
-                                                                    <div className={`w-full h-7 absolute z-2 top-0 left-0 rounded-lg text-white opacity-60 z-1 ${statusStyles[item.type] || "bg-gray-500"}`}>
+                                                                    <div className={`w-full h-7 rounded-lg text-white opacity-60 z-1 ${statusStyles[item.type] || "bg-gray-500"}`}>
 
                                                                     </div>
 
@@ -777,9 +774,9 @@ export default function TrplReg24() {
 
 
                                                                 {/* SHOW BANNER */}
-                                                                {/* <div
+                                                                <div
                                                                     className={`w-full h-7 absolute top-0 left-0 rounded-lg text-white ${statusStyles[item.type] || "bg-gray-500"}`}
-                                                                ></div> */}
+                                                                ></div>
 
 
 
