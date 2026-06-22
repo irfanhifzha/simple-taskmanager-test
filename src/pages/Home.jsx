@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     collection,
     getDocs,
@@ -569,6 +569,50 @@ export default function TrplReg24() {
         "Sab"
     ];
 
+    const calendarDays = weeks.flat();
+
+    const longEvents = [];
+
+    const rowLevels = {};
+
+    calendar
+        .filter(
+            item =>
+                item.bulan === month + 1 &&
+                item.tanggal.length > 1
+        )
+        .forEach(item => {
+
+            const startDay = item.tanggal[0];
+
+            const startIndex = calendarDays.findIndex(
+                d => d === startDay
+            );
+
+            const endDay =
+                item.tanggal[item.tanggal.length - 1];
+
+            const row = Math.floor(startIndex / 7);
+
+            if (!rowLevels[row]) {
+                rowLevels[row] = 0;
+            }
+
+            longEvents.push({
+                ...item,
+
+                row,
+
+                col: startIndex % 7,
+
+                span: endDay - startDay + 1,
+
+                stackLevel: rowLevels[row]
+            });
+
+            rowLevels[row]++;
+        });
+
 
 
     // new const for button crud
@@ -651,155 +695,189 @@ export default function TrplReg24() {
                 </div>
 
                 {/* CALENDAR */}
-                <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
+                <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
 
-                    <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px] [&_td]:h-[150px]">
+                    <div
+                        className="relative min-w-[960px]"
+                    >
 
-                        <thead>
-                            <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
-                                {daysHeader.map(day => (
-                                    <th key={day}>
-                                        {day}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
+                        {/* HEADER */}
+                        <div className="grid grid-cols-7">
 
-                        <tbody>
+                            {daysHeader.map(day => (
 
-                            {weeks.map((week, i) => (
+                                <div
+                                    key={day}
+                                    className="
+                        h-10
+                        border-r
+                        border-b
+                        border-gray-200
+                        flex
+                        items-center
+                        justify-center
+                        font-semibold
+                        bg-white
+                    "
+                                >
+                                    {day}
+                                </div>
 
-                                <tr key={i}>
+                            ))}
 
-                                    {week.map((day, j) => {
+                        </div>
 
-                                        const events =
-                                            day !== null
-                                                ? getCalendar(
-                                                    calendar,
-                                                    month + 1,
-                                                    day
-                                                )
-                                                : [];
+                        {/* BODY */}
+                        <div
+                            className="
+                relative
+                grid
+                grid-cols-7
+                auto-rows-[150px]
+            "
+                        >
 
-                                        const isToday = day === new Date().getDate() &&
-                                            month === new Date().getMonth() &&
-                                            year === new Date().getFullYear();
+                            {calendarDays.map((day, idx) => {
 
-                                        return (
+                                const shortEvents =
+                                    day !== null
+                                        ? getCalendar(
+                                            calendar,
+                                            month + 1,
+                                            day
+                                        ).filter(
+                                            e => e.tanggal.length === 1
+                                        )
+                                        : [];
 
-                                            <td
-                                                key={j}
-                                                className={
-                                                    day !== null
-                                                        ? "bg=white"
-                                                        : "bg-gray-200"
-                                                }
-                                            >
+                                const isToday =
+                                    day === new Date().getDate() &&
+                                    month === new Date().getMonth() &&
+                                    year === new Date().getFullYear();
 
-                                                <div className="flex flex-col gap-2 h-full">
+                                return (
 
-                                                    {/* DATE */}
-                                                    <div className="h-5 w-full text-xs relative flex items-center justify-center font-semibold">
-                                                        {day ? (
-                                                            <div
-                                                                className={
-                                                                    isToday
-                                                                        ? "w-7 h-7 bg-blue-100 border border-blue-300 text-blue-700 rounded-full flex items-center justify-center"
-                                                                        : "w-7 h-7 flex items-center justify-center"
-                                                                }
-                                                            >
-                                                                {day}
-                                                            </div>
-                                                        ) : null}
+                                    <div
+                                        key={idx}
+                                        className={`relative border-r border-b border-gray-200 p-2 overflow-hidden ${day === null
+                                                ? "bg-gray-100"
+                                                : "bg-white"}
+                        `}
+                                    >
+
+                                        {day && (
+
+                                            <>
+                                                {/* DATE */}
+                                                <div className="flex justify-center mb-2">
+
+                                                    <div
+                                                        className={
+                                                            isToday
+                                                                ? "w-7 h-7 rounded-full bg-blue-100 border border-blue-300 text-blue-700 flex items-center justify-center font-semibold"
+                                                                : "w-7 h-7 flex items-center justify-center font-semibold"
+                                                        }
+                                                    >
+                                                        {day}
                                                     </div>
 
+                                                </div>
 
-                                                    {/* TASKS */}
-                                                    {events.map((item, idx) => (
-                                                        item.tanggal.length === 1 ? (
+                                                {/* SHORT EVENTS */}
+                                                <div className="space-y-2">
 
-                                                            /* SHORT TASK */
+                                                    {shortEvents.map((item) => (
+
+                                                        <div
+                                                            key={item.id}
+                                                            onClick={() => {
+                                                                setSelected_cal(item);
+                                                                setOpenViewRencana(true);
+                                                            }}
+                                                            className="cursor-pointer border border-gray-300 rounded-lg p-2">
                                                             <div
-                                                                key={idx}
-                                                                className="relative flex flex-col my-1 items-center justify-center rounded-lg border border-gray-300"
-                                                            >
-                                                                <div>
+                                                                className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
+/>
 
-                                                                    <div onClick={() => {
-                                                                        setSelected_cal(item);
-                                                                        setOpenViewRencana(true);
-                                                                    }}
-                                                                        className={`mt-1 w-5 h-5 rounded-full cursor-pointer ${statusStyles[item.type] || "bg-gray-500"}`}></div>
-                                                                </div>
-
-                                                                <div className="text-black text-xs m-1 text-center">
-                                                                    {item.task}
-                                                                </div>
+                                                            <div className="text-xs text-center">
+                                                                {item.task}
                                                             </div>
 
-                                                        ) : (
-
-                                                            /* LONG TASK */
-                                                            <div
-                                                                key={idx}
-                                                                className="relative flex flex-col -mx-4 z-1"
-                                                            >
-
-                                                                {/* SHOW TASK ONLY ON FIRST tanggal */}
-                                                                {item.tanggal[0] === day ? (
-                                                                    <>
-                                                                        <div className="z-5 overflow-auto text-white whitespace-nowrap flex items-center h-7 px-2">
-
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelected_cal(item);
-                                                                                    setOpenViewRencana(true);
-                                                                                }}
-                                                                                className="text-[15px]! mx-2 material-symbols-rounded cursor-pointer">
-                                                                                visibility
-                                                                            </button>
-                                                                            {item.task}
-                                                                        </div>
-
-                                                                    </>
-
-                                                                ) : (
-
-                                                                    <div className={`w-full h-7 rounded-lg text-white opacity-60 z-1 ${statusStyles[item.type] || "bg-gray-500"}`}>
-
-                                                                    </div>
-
-                                                                )}
-
-
-                                                                {/* SHOW BANNER */}
-                                                                <div
-                                                                    className={`w-full h-7 absolute top-0 left-0 rounded-lg text-white ${statusStyles[item.type] || "bg-gray-500"}`}
-                                                                ></div>
-
-
-
-
-
-                                                            </div>
-
-                                                        )
+                                                        </div>
 
                                                     ))}
 
                                                 </div>
 
-                                            </td>
-                                        );
-                                    })}
+                                            </>
 
-                                </tr>
-                            ))}
+                                        )}
 
-                        </tbody>
+                                    </div>
 
-                    </table>
+                                );
+                            })}
+
+                            {/* LONG EVENT LAYER */}
+
+                            <div className="absolute inset-0 pointer-events-none">
+
+                                {longEvents.map((item) => {
+
+                                    const cellWidth = 100 / 7;
+
+                                    return (
+
+                                        <div
+                                            key={item.id}
+                                            className={`
+                                absolute
+                                h-7
+                                rounded-lg
+                                px-2
+                                flex
+                                items-center
+                                text-white
+                                shadow
+                                pointer-events-auto
+                                ${statusStyles[item.type]}
+                            `}
+                                            style={{
+                                                top: `${item.row * 150 + 48 + item.stackLevel * 32}px`,
+                                                left: `${item.col * cellWidth}%`,
+                                                width: `${item.span * cellWidth}%`
+                                            }}
+                                        >
+
+                                            <button
+                                                onClick={() => {
+                                                    setSelected_cal(item);
+                                                    setOpenViewRencana(true);
+                                                }}
+                                                className="
+                                    material-symbols-rounded
+                                    text-sm
+                                    mr-2
+                                    cursor-pointer
+                                "
+                                            >
+                                                visibility
+                                            </button>
+
+                                            <span className="truncate text-xs">
+                                                {item.task}
+                                            </span>
+
+                                        </div>
+
+                                    );
+                                })}
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
