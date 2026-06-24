@@ -243,7 +243,7 @@ export default function TrplReg24() {
                                             {s && (
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
-                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-3 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
+                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
                                                 ${s.type === "teori"
                                                         ? "border border-green-200 bg-green-100 text-green-700"
                                                         : s.type === "praktek"
@@ -560,19 +560,19 @@ export default function TrplReg24() {
     const weeks = buildCalendar(year, month);
 
     const daysHeader = [
-        "Min",
-        "Sen",
-        "Sel",
-        "Rab",
-        "Kam",
-        "Jum",
-        "Sab"
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
     ];
 
     const calendarDays = weeks.flat();
 
-    const longEvents = [];
 
+    const longEvents = [];
     const rowLevels = {};
 
     calendar
@@ -583,34 +583,47 @@ export default function TrplReg24() {
         )
         .forEach(item => {
 
-            const startDay = item.tanggal[0];
+            const sortedDates = [...item.tanggal].sort((a, b) => a - b);
+            const startDay = sortedDates[0];
+            const endDay = sortedDates[sortedDates.length - 1];
 
-            const startIndex = calendarDays.findIndex(
-                d => d === startDay
-            );
+            const startIndex = calendarDays.findIndex(d => d === startDay);
+            const endIndex = calendarDays.findIndex(d => d === endDay);
 
-            const endDay =
-                item.tanggal[item.tanggal.length - 1];
+            if (startIndex === -1 || endIndex === -1) return;
 
-            const row = Math.floor(startIndex / 7);
+            const startRow = Math.floor(startIndex / 7);
+            const endRow = Math.floor(endIndex / 7);
 
-            if (!rowLevels[row]) {
-                rowLevels[row] = 0;
+            // pick one stack level shared across every week this event spans,
+            // so the bar stays at the same vertical position as it continues
+            let stackLevel = 0;
+            for (let r = startRow; r <= endRow; r++) {
+                stackLevel = Math.max(stackLevel, rowLevels[r] || 0);
+            }
+            for (let r = startRow; r <= endRow; r++) {
+                rowLevels[r] = stackLevel + 1;
             }
 
-            longEvents.push({
-                ...item,
+            // create one bar SEGMENT per week row it passes through
+            for (let row = startRow; row <= endRow; row++) {
 
-                row,
+                const rowStartIndex = row * 7;
+                const rowEndIndex = rowStartIndex + 6;
 
-                col: startIndex % 7,
+                const segStartIndex = Math.max(startIndex, rowStartIndex);
+                const segEndIndex = Math.min(endIndex, rowEndIndex);
 
-                span: endDay - startDay + 1,
-
-                stackLevel: rowLevels[row]
-            });
-
-            rowLevels[row]++;
+                longEvents.push({
+                    ...item,
+                    row,
+                    col: segStartIndex - rowStartIndex,
+                    span: segEndIndex - segStartIndex + 1,
+                    stackLevel,
+                    isStart: row === startRow,
+                    isEnd: row === endRow,
+                });
+            }
         });
 
 
@@ -708,18 +721,7 @@ export default function TrplReg24() {
 
                                 <div
                                     key={day}
-                                    className="
-                        h-10
-                        border-r
-                        border-b
-                        border-gray-200
-                        flex
-                        items-center
-                        justify-center
-                        font-semibold
-                        bg-white
-                    "
-                                >
+                                    className="h-10 border-r border-b border-gray-200 flex items-center justify-center font-semibold bg-white text-xs">
                                     {day}
                                 </div>
 
@@ -727,153 +729,140 @@ export default function TrplReg24() {
 
                         </div>
 
-                        {/* BODY */}
-                        <div
-                            className="
-                relative
-                grid
-                grid-cols-7
-                auto-rows-[150px]
-            "
-                        >
+                        {/* BODY — rendered per-week so each row auto-fits its own content */}
+                        <div className="relative flex flex-col">
 
-                            {calendarDays.map((day, idx) => {
+                            {weeks.map((week, weekIdx) => {
 
-                                const shortEvents =
-                                    day !== null
-                                        ? getCalendar(
-                                            calendar,
-                                            month + 1,
-                                            day
-                                        ).filter(
-                                            e => e.tanggal.length === 1
-                                        )
-                                        : [];
+                                const weekLongEvents = longEvents.filter(
+                                    (e) => e.row === weekIdx
+                                );
 
-                                const isToday =
-                                    day === new Date().getDate() &&
-                                    month === new Date().getMonth() &&
-                                    year === new Date().getFullYear();
+                                const stackCount = weekLongEvents.length > 0
+                                    ? Math.max(...weekLongEvents.map((e) => e.stackLevel)) + 1
+                                    : 0;
+
+                                const longEventsAreaHeight = stackCount * 32;
+                                const cellWidth = 100 / 7;
+
+                                // fixed height reserved for the date number row — date is NEVER
+                                // pushed down, only the content below it is
+                                const DATE_AREA_HEIGHT = 44;
 
                                 return (
-
                                     <div
-                                        key={idx}
-                                        className={`relative border-r border-b border-gray-200 p-2 overflow-hidden ${day === null
-                                                ? "bg-gray-100"
-                                                : "bg-white"}
-                        `}
+                                        key={weekIdx}
+                                        className="relative grid grid-cols-7 border-b border-gray-200"
                                     >
+                                        {/* DAY CELLS */}
+                                        {week.map((day, dayIdx) => {
 
-                                        {day && (
+                                            const shortEvents =
+                                                day !== null
+                                                    ? getCalendar(
+                                                        calendar,
+                                                        month + 1,
+                                                        day
+                                                    ).filter(
+                                                        (e) => e.tanggal.length === 1
+                                                    )
+                                                    : [];
 
-                                            <>
-                                                {/* DATE */}
-                                                <div className="flex justify-center mb-2">
+                                            const isToday =
+                                                day === new Date().getDate() &&
+                                                month === new Date().getMonth() &&
+                                                year === new Date().getFullYear();
 
-                                                    <div
-                                                        className={
-                                                            isToday
-                                                                ? "w-7 h-7 rounded-full bg-blue-100 border border-blue-300 text-blue-700 flex items-center justify-center font-semibold"
-                                                                : "w-7 h-7 flex items-center justify-center font-semibold"
-                                                        }
-                                                    >
-                                                        {day}
-                                                    </div>
+                                            return (
+                                                <div
+                                                    key={dayIdx}
+                                                    className={`relative border-r border-gray-200 px-2 pb-2 min-h-[110px] ${day === null ? "bg-gray-100" : "bg-white"
+                                                        }`}
+                                                >
+                                                    {day && (
+                                                        <>
+                                                            {/* DATE — fixed at the very top, always */}
+                                                            <div className="flex justify-center pt-2 mb-2 text-xs">
+                                                                <div
+                                                                    className={
+                                                                        isToday
+                                                                            ? "w-7 h-7 rounded-full bg-blue-100 border border-blue-300 text-blue-700 flex items-center justify-center font-semibold"
+                                                                            : "w-7 h-7 flex items-center justify-center font-semibold"
+                                                                    }
+                                                                >
+                                                                    {day}
+                                                                </div>
+                                                            </div>
 
+                                                            {/* SPACER — only this gets pushed down to clear the banners */}
+                                                            {longEventsAreaHeight > 0 && (
+                                                                <div style={{ height: longEventsAreaHeight }} />
+                                                            )}
+
+                                                            {/* SHORT EVENTS — free to grow, no clipping */}
+                                                            <div className="space-y-2">
+                                                                {shortEvents.map((item) => (
+                                                                    <div
+                                                                        key={item.id}
+                                                                        onClick={() => {
+                                                                            setSelected_cal(item);
+                                                                            setOpenViewRencana(true);
+                                                                        }}
+                                                                        className="cursor-pointer border border-gray-300 rounded-lg p-2"
+                                                                    >
+                                                                        <div
+                                                                            className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
+                                                                        />
+                                                                        <div className="text-xs text-center">
+                                                                            {item.task}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
+                                            );
+                                        })}
 
-                                                {/* SHORT EVENTS */}
-                                                <div className="space-y-2">
-
-                                                    {shortEvents.map((item) => (
-
-                                                        <div
-                                                            key={item.id}
-                                                            onClick={() => {
+                                        {/* LONG EVENT LAYER — scoped to THIS week, sits below the date row */}
+                                        <div className="absolute inset-0 pointer-events-none">
+                                            {weekLongEvents.map((item, i) => (
+                                                <div
+                                                    key={`${item.id}-${item.row}-${i}`}
+                                                    onClick={() => {
+                                                        setSelected_cal(item);
+                                                        setOpenViewRencana(true);
+                                                    }}
+                                                    className={`absolute h-7 px-2 flex items-center text-white shadow pointer-events-auto cursor-pointer ${statusStyles[item.type]} ${item.isStart ? "rounded-l-lg" : ""
+                                                        } ${item.isEnd ? "rounded-r-lg" : ""}`}
+                                                    style={{
+                                                        top: `${DATE_AREA_HEIGHT + item.stackLevel * 32}px`,
+                                                        left: `${item.col * cellWidth}%`,
+                                                        width: `${item.span * cellWidth}%`
+                                                    }}
+                                                >
+                                                    {item.isStart && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
                                                                 setSelected_cal(item);
                                                                 setOpenViewRencana(true);
                                                             }}
-                                                            className="cursor-pointer border border-gray-300 rounded-lg p-2">
-                                                            <div
-                                                                className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
-/>
-
-                                                            <div className="text-xs text-center">
-                                                                {item.task}
-                                                            </div>
-
-                                                        </div>
-
-                                                    ))}
-
+                                                            className="material-symbols-rounded text-sm mr-2 cursor-pointer"
+                                                        >
+                                                            visibility
+                                                        </button>
+                                                    )}
+                                                    <span className="truncate text-xs">
+                                                        {item.task}
+                                                    </span>
                                                 </div>
-
-                                            </>
-
-                                        )}
-
+                                            ))}
+                                        </div>
                                     </div>
-
                                 );
                             })}
-
-                            {/* LONG EVENT LAYER */}
-
-                            <div className="absolute inset-0 pointer-events-none">
-
-                                {longEvents.map((item) => {
-
-                                    const cellWidth = 100 / 7;
-
-                                    return (
-
-                                        <div
-                                            key={item.id}
-                                            className={`
-                                absolute
-                                h-7
-                                rounded-lg
-                                px-2
-                                flex
-                                items-center
-                                text-white
-                                shadow
-                                pointer-events-auto
-                                ${statusStyles[item.type]}
-                            `}
-                                            style={{
-                                                top: `${item.row * 150 + 48 + item.stackLevel * 32}px`,
-                                                left: `${item.col * cellWidth}%`,
-                                                width: `${item.span * cellWidth}%`
-                                            }}
-                                        >
-
-                                            <button
-                                                onClick={() => {
-                                                    setSelected_cal(item);
-                                                    setOpenViewRencana(true);
-                                                }}
-                                                className="
-                                    material-symbols-rounded
-                                    text-sm
-                                    mr-2
-                                    cursor-pointer
-                                "
-                                            >
-                                                visibility
-                                            </button>
-
-                                            <span className="truncate text-xs">
-                                                {item.task}
-                                            </span>
-
-                                        </div>
-
-                                    );
-                                })}
-
-                            </div>
 
                         </div>
 
