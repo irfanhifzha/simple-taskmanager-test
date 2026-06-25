@@ -320,13 +320,13 @@ export default function TrplReg24() {
                                                     )}
 
                                                     {/* CONTENT (UNCHANGED) */}
-                                                    <p className="font-semibold text-sm wrap-break-word mt-2 me-10">{s.course}</p>
+                                                    <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
                                                     <p>{s.room}</p>
                                                     <p className="text-blue-700">
                                                         {s.lecturers.join(", ")}
                                                     </p>
 
-                                                    {s.note && <p className="text-gray-500">{s.note}</p>}
+                                                    {s.note && <p className="text-gray-500 whitespace-pre-line">{s.note}</p>}
 
                                                     {/* TUGAS */}
                                                     {tugasVisibility && (
@@ -368,9 +368,9 @@ export default function TrplReg24() {
                                                                             `}></div>
                                                                         <div>{s.titleTugas}</div>
                                                                     </div>
-                                                                    <p className="font-bold mb-2">{s.h1Tugas}</p>
-                                                                    <p className="mb-2">{s.note1Tugas}</p>
-                                                                    <p className="mb-2">{s.note2Tugas}</p>
+                                                                    <p className="font-bold mb-2 whitespace-pre-line">{s.h1Tugas}</p>
+                                                                    <p className="mb-2 whitespace-pre-line">{s.note1Tugas}</p>
+                                                                    <p className="mb-2 whitespace-pre-line">{s.note2Tugas}</p>
                                                                 </div>
                                                             )}
 
@@ -384,7 +384,7 @@ export default function TrplReg24() {
                                                                             <button
                                                                                 onClick={() => {
                                                                                     setSelected(s);
-                                                                                    setOpenTugasEdit(true);
+                                                                                    setOpenTugasEditAgain(true);
                                                                                 }}
                                                                                 className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
                                                                                 <span className="material-symbols-rounded text-[17px]/[1.5]!">edit</span>
@@ -394,7 +394,7 @@ export default function TrplReg24() {
                                                                             <button
                                                                                 onClick={() => {
                                                                                     setSelected(s);
-                                                                                    setOpenTugasDelete(true);
+                                                                                    setOpenTugasDeleteAgain(true);
                                                                                 }}
                                                                                 className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
                                                                                 <span className="material-symbols-rounded text-[17px]/[1.5]!">delete</span></button>
@@ -410,9 +410,9 @@ export default function TrplReg24() {
                                                                             `}></div>
                                                                         <div>{s.titleTugasAgain}</div>
                                                                     </div>
-                                                                    <p className="font-bold mb-2">{s.h1TugasAgain}</p>
-                                                                    <p className="mb-2">{s.note1TugasAgain}</p>
-                                                                    <p className="mb-2">{s.note2TugasAgain}</p>
+                                                                    <p className="font-bold mb-2 whitespace-pre-line">{s.h1TugasAgain}</p>
+                                                                    <p className="mb-2 whitespace-pre-line">{s.note1TugasAgain}</p>
+                                                                    <p className="mb-2 whitespace-pre-line">{s.note2TugasAgain}</p>
                                                                 </div>
                                                             )}
 
@@ -483,14 +483,15 @@ export default function TrplReg24() {
             data_calendar.filter(
                 d =>
                     d.program === "TRPL" &&
-                    d.semester === semester
+                    d.semester === semester &&
+                    d.tahun === currentDate.getFullYear()
             )
         );
     };
 
     useEffect(() => {
         fetchCalendar();
-    }, [semester]);
+    }, [semester, currentDate.getFullYear()]);
 
     // FIND EVENT FOR SPECIFIC DATE
     const getCalendar = (data, bulan, tgl) => {
@@ -578,6 +579,7 @@ export default function TrplReg24() {
     calendar
         .filter(
             item =>
+                item.tahun === year &&
                 item.bulan === month + 1 &&
                 item.tanggal.length > 1
         )
@@ -646,7 +648,7 @@ export default function TrplReg24() {
 
                 {/* TITLE */}
                 <p className="text-black text-md font-bold">
-                    TRPL REG 24 - Timeline Kegiatan {" "}
+
                     {
                         currentDate.toLocaleString(
                             "default",
@@ -804,17 +806,21 @@ export default function TrplReg24() {
                                                                 {shortEvents.map((item) => (
                                                                     <div
                                                                         key={item.id}
-                                                                        onClick={() => {
-                                                                            setSelected_cal(item);
-                                                                            setOpenViewRencana(true);
-                                                                        }}
-                                                                        className="cursor-pointer border border-gray-300 rounded-lg p-2"
+                                                                        className="flex justify-center p-2 max-h-30"
                                                                     >
                                                                         <div
-                                                                            className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
-                                                                        />
-                                                                        <div className="text-xs text-center">
-                                                                            {item.task}
+                                                                            onClick={() => {
+                                                                                setSelected_cal(item);
+                                                                                setOpenViewRencana(true);
+                                                                            }}
+                                                                            className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-110 active:-translate-y-0.5 active:brightness-110 active:scale-95"
+                                                                        >
+                                                                            <div
+                                                                                className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
+                                                                            />
+                                                                            <div className="text-xs text-center line-clamp-3">
+                                                                                {item.task}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 ))}
@@ -828,35 +834,37 @@ export default function TrplReg24() {
                                         {/* LONG EVENT LAYER — scoped to THIS week, sits below the date row */}
                                         <div className="absolute inset-0 pointer-events-none">
                                             {weekLongEvents.map((item, i) => (
-                                                <div
+                                                <div className="absolute px-1.5"
                                                     key={`${item.id}-${item.row}-${i}`}
                                                     onClick={() => {
                                                         setSelected_cal(item);
                                                         setOpenViewRencana(true);
                                                     }}
-                                                    className={`absolute h-7 px-2 flex items-center text-white shadow pointer-events-auto cursor-pointer ${statusStyles[item.type]} ${item.isStart ? "rounded-l-lg" : ""
-                                                        } ${item.isEnd ? "rounded-r-lg" : ""}`}
                                                     style={{
                                                         top: `${DATE_AREA_HEIGHT + item.stackLevel * 32}px`,
                                                         left: `${item.col * cellWidth}%`,
                                                         width: `${item.span * cellWidth}%`
                                                     }}
                                                 >
-                                                    {item.isStart && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelected_cal(item);
-                                                                setOpenViewRencana(true);
-                                                            }}
-                                                            className="material-symbols-rounded text-sm mr-2 cursor-pointer"
-                                                        >
-                                                            visibility
-                                                        </button>
-                                                    )}
-                                                    <span className="truncate text-xs">
-                                                        {item.task}
-                                                    </span>
+                                                    <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow pointer-events-auto cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-105 active:scale-99
+                                                        ${statusStyles[item.type]} ${item.isStart ? "rounded-l-lg" : ""
+                                                        } ${item.isEnd ? "rounded-r-lg" : ""}`}
+                                                    >
+                                                        {item.isStart && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelected_cal(item);
+                                                                    setOpenViewRencana(true);
+                                                                }}
+                                                                className="text-sm cursor-pointer overflow-hidden"
+                                                            >
+                                                                <span className="block truncate text-xs">
+                                                                    {item.task}
+                                                                </span>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -919,21 +927,7 @@ export default function TrplReg24() {
             <div className="m-0 p-0 flex flex-col bg-orange-100">
                 <div className="mt-3 flex flex-col h-fit rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 overflow-hidden mx-5 bg-white">
 
-                    <p className="text-xs p-2 m-2">
 
-                        todo:<br />
-                        1.  jam hari viewed bisa custom ubah2<br />
-                        2.  copy jadwal: perday, perweek, pertask+tugas<br />
-                        3.  gabung modal biar satu file, but interchangeable mau buka modal apa like return table<br />
-                        4.  tabel jadwal bisa lebih dari satu task? (w fit/full)<br />
-                        5.  tabel jadwal kategori like reguler ganti, lebih dari satu jadwal? kategorisasi untuk siapa<br />
-                        6.  BUAT ORANG SET TO WHOM TASK<br />
-                        7.  filter everything<br />
-                        8.  fix css nama variabel everything -: sehingga butuh redesign firestore structure<br />
-                        9.  ...<br />
-                        10. ...<br />
-
-                    </p>
 
 
 

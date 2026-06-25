@@ -49,6 +49,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const [openDeleteRencana, setOpenDeleteRencana] = useState(false);
   const [selectedDelete, setSelectedDelete] = useState<any>(null);
 
+  const [originalData, setOriginalData] = useState<any>(null);
+
   // AUTH
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
@@ -146,158 +148,273 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     }
   };
 
+
   return (
-    <Modal open={open} onClose={handleClose}>
-      <h2>View / Edit Rencana</h2>
+    <>
+      <Modal open={open} onClose={handleClose}>
+        <h2>Detail Rencana</h2>
 
-      {/* EDIT TOGGLE */}
-      {user && (
-        <>
-          <button
-            onClick={() => setEditMode((prev) => !prev)}
-            style={{ marginBottom: 10 }}
+
+
+        {/* <label>Program</label>
+
+        {editMode || !data ? (
+          <select
+            value={program}
+            onChange={(e) => setProgram(e.target.value)}
           >
-            {editMode ? "👁 View Mode" : "✏️ Edit Mode"}
-          </button>
+            <option value="" disabled>Pilih Program Studi</option>
+            <option value="TRPL">TRPL</option>
+            <option value="BISDIG">BISDIG-Reguler</option>
+            <option value="BISDIGeks">BISDIG-Eksekutif</option>
+          </select>
+        ) : (
+          <p className="pt-1">{program}</p>
+        )}
 
-          <button
-            onClick={() => {
-              setSelectedDelete(data);
-              setOpenDeleteRencana(true);
-            }}
-            className="crud-button-icon material-symbols-rounded "
+
+
+        <label>Semester</label>
+
+        {editMode || !data ? (
+          <select
+            value={semester}
+            onChange={(e) => setSemester(Number(e.target.value))}
           >
-            delete
-          </button>
-        </>
-      )}
-
-      <label>Program</label>
-      {/* PROGRAM */}
-      <select
-        value={program}
-        onChange={(e) => setProgram(e.target.value)}
-        disabled={!editMode && !!data}
-      >
-        <option value="" disabled>Pilih Program Studi</option>
-        <option value="TRPL">TRPL</option>
-        <option value="BISDIG">BISDIG-Reguler</option>
-        <option value="BISDIGeks">BISDIG-Eksekutif</option>
-      </select>
-
-      <label>Semester</label>
-      {/* SEMESTER */}
-      <select
-        value={semester}
-        onChange={(e) => setSemester(Number(e.target.value))}
-        disabled={!editMode && !!data}
-      >
-        <option value={0} disabled>Pilih Semester</option>
-        {[1,2,3,4,5,6,7,8].map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-
-      <label>Bulan</label>
-      {/* BULAN */}
-      <select
-        value={bulan}
-        onChange={(e) => setBulan(Number(e.target.value))}
-        disabled={!editMode && !!data}
-      >
-        <option value={0} disabled>Pilih Bulan</option>
-        {months.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
-      </select>
-
-      <label>Tahun</label>
-      {/* TAHUN */}
-      <input
-        type="number"
-        value={tahun}
-        onChange={(e) => setTahun(Number(e.target.value))}
-        disabled={!editMode && !!data}
-      />
+            <option value={0} disabled>Pilih Semester</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        ) : (
+          <p className="pt-1">{semester}</p>
+        )} */}
 
 
-      {/* TANGGAL */}
-      <div style={{ marginTop: 10 }}>
-        <label>Tanggal</label>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10, }}>
-          {availableDates.map((day) => {
-            const isSelected = tanggal.includes(day);
+        <label>Title</label>
 
-            return (
-              <div
-                key={day}
-                onClick={() => toggleDate(day)}
-                className={`button-jam
-                  ${isSelected ? "selected enabled" : "enabled"}`}
+        {editMode || !data ? (
+          <input
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            placeholder="Title rencana..."
+          />
+        ) : (
+          <p className="pt-1">{task}</p>
+        )}
 
-                style={{
-                  borderColor: isSelected ? "#362dde" : "",
-                  cursor: editMode || !data ? "pointer" : "not-allowed",
-                  background: isSelected ? "#4f46e5" : "",
-                  color: isSelected ? "#fff" : "#000",
-                  opacity: !editMode && !!data ? 0.6 : 1,
-                }}
-              >
-                {day}
+
+
+        <label>Deskripsi</label>
+
+        {editMode || !data ? (
+          <textarea
+            rows={3}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Deskripsi rencana..."
+          />
+        ) : (
+          <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+            <p className="whitespace-pre-line mb-0!">{content}</p>
+          </div>
+        )}
+
+
+
+
+        {editMode && (
+          <>
+            <label>Tipe</label>
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="" disabled>Pilih Tipe</option>
+              <option value="orange-bg">Oranye</option>
+              <option value="red-bg">Merah</option>
+              <option value="blue-bg">Biru</option>
+              <option value="purple-bg">Purple</option>
+              <option value="green-bg">Hijau</option>
+            </select>
+          </>
+        )}
+
+
+
+
+
+        {/* BULAN */}
+        <div>
+
+
+          {editMode && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* BULAN */}
+              <div>
+                <label>Bulan</label>
+                <select
+                  className="w-full"
+                  value={bulan}
+                  onChange={(e) => setBulan(Number(e.target.value))}
+                >
+                  <option value={0} disabled>Pilih Bulan</option>
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            );
-          })}
+
+              {/* TAHUN */}
+              <div>
+                <label>Tahun</label>
+
+                {editMode || !data ? (
+                  <input
+                    className="w-full"
+                    value={tahun}
+                    onChange={(e) => setTahun(Number(e.target.value))}
+                  />
+                ) : (
+                  <p className="pt-1">{tahun}</p>
+                )}
+              </div>
+
+
+
+            </div>
+          )}
         </div>
-      </div>
 
-      <label>Tipe</label>
-      {/* TYPE */}
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        disabled={!editMode && !!data}
-      >
-        <option value="" disabled>Pilih Tipe</option>
-        <option value="orange-bg">Oranye</option>
-        <option value="red-bg">Merah</option>
-        <option value="blue-bg">Biru</option>
-        <option value="purple-bg">Purple</option>
-        <option value="green-bg">Hijau</option>
-      </select>
 
-      <label>Title</label>
-      {/* TASK */}
-      <input
-        placeholder="Title rencana..."
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-        readOnly={!editMode && !!data}
-      />
 
-      <label>Deskripsi</label>
-      {/* CONTENT */}
-      <input
-        placeholder="Deskripsi rencana..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        readOnly={!editMode && !!data}
-      />
 
-      {/* SAVE */}
-      {editMode && ( <button
-        onClick={handleSubmit}
-        disabled={(!editMode && !!data) || isInvalid || loading}
-        style={{
-          marginTop: 12,
-          opacity: isInvalid || loading ? 0.5 : 1,
-          cursor: isInvalid || loading ? "not-allowed" : "pointer",
-        }}
-      >
-        {loading ? "Loading..." : "Simpan"}
-      </button>
-      )}
+
+
+
+        {editMode || !data ? (
+          <>
+            <label>Jam</label>
+            <div className="flex flex-wrap gap-2 mt-2 mb-3">
+              {availableDates.map((day) => {
+                const isSelected = tanggal.includes(day);
+
+                return (
+                  <div
+                    key={day}
+                    onClick={() => toggleDate(day)}
+                    className={`button-jam ${isSelected ? "selected enabled" : "enabled"}`}
+                    style={{
+                      borderColor: isSelected ? "#362dde" : "",
+                      cursor: editMode || !data ? "pointer" : "not-allowed",
+                      background: isSelected ? "#4f46e5" : "",
+                      color: isSelected ? "#fff" : "#000",
+                      opacity: !editMode && !!data ? 0.6 : 1,
+                    }}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <label>Waktu</label>
+            <p className="py-2">
+              {tanggal.length > 0 && (
+                <>
+                  {tanggal.length === 1
+                    ? tanggal[0]
+                    : `${Math.min(...tanggal)}-${Math.max(...tanggal)}`}{" "}
+                  {months.find(m => m.value === bulan)?.label || bulan} {tahun}
+                </>
+              )}
+            </p>
+          </>
+        )}
+
+
+
+
+
+
+
+
+        {/* EDIT TOGGLE */}
+        {/* USER CONTROLS */}
+        {user && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* NOT IN EDIT MODE */}
+            {!editMode && (
+              <>
+                <button
+                  onClick={() => {
+                    setOriginalData({
+                      program,
+                      semester,
+                      bulan,
+                      tahun,
+                      tanggal,
+                      type,
+                      task,
+                      content,
+                    });
+
+                    setEditMode(true);
+                  }}
+                >
+                  ✏️ Edit Mode
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedDelete(data);
+                    setOpenDeleteRencana(true);
+                  }}
+                  className="flex justify-center items-center gap-1"
+                >
+                  <span className="material-symbols-rounded">delete</span>
+                  <div>Delete</div>
+                </button>
+              </>
+            )}
+
+            {/* EDIT MODE */}
+            {editMode && (
+              <>
+                <button
+                  onClick={() => {
+                    if (originalData) {
+                      setProgram(originalData.program);
+                      setSemester(originalData.semester);
+                      setBulan(originalData.bulan);
+                      setTahun(originalData.tahun);
+                      setTanggal(originalData.tanggal);
+                      setType(originalData.type);
+                      setTask(originalData.task);
+                      setContent(originalData.content);
+                    }
+                    setEditMode(false);
+                  }}
+                >
+                  ❌ Cancel Edit
+                </button>
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={isInvalid || loading}
+                  style={{
+                    opacity: isInvalid || loading ? 0.5 : 1,
+                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loading ? "Loading..." : "💾 Simpan"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
 
       {/* DELETE MODAL */}
       <DeleteRencanaModal
@@ -310,6 +427,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           onClose();
         }}
       />
-    </Modal>
+
+    </>
   );
 }

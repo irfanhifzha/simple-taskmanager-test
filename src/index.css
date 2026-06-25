@@ -61,9 +61,8 @@ select {
   font-family: inherit;
 
   color: #222;
-  background-color: #ffffff;
+  background-color: #f6f6f6;
 
-  border: 1px solid #d0d5dd;
   border-radius: 8px;
 
   outline: none;
@@ -74,12 +73,14 @@ select {
 
 /* Hover state */
 input:hover,
+textarea:focus,
 select:hover {
   border-color: #b8c0cc;
 }
 
 /* Focus state (the “white + glow thingy”) */
 input:focus,
+textarea:focus,
 select:focus {
   border-color: #4c8dff;
   box-shadow: 0 0 0 4px rgba(76, 141, 255, 0.15);
@@ -88,6 +89,7 @@ select:focus {
 
 /* Disabled state */
 input:disabled,
+textarea:disabled,
 select:disabled {
   background-color: #f5f5f5;
   color: #999;
@@ -106,10 +108,11 @@ textarea {
   
   margin: 3px 0 10px 0;
   color: #222;
-  background-color: #ffffff;
+  background-color: #f6f6f6;
 
-  border: 1px solid #d0d5dd;
   border-radius: 8px;
+
+  transition: all 0.2s ease-in-out;
 
   outline: none;
   flex-shrink: 0;
