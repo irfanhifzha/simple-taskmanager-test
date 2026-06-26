@@ -261,7 +261,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
             cursor: isInvalid || loading ? "not-allowed" : "pointer",
           }}
         >
-          {loading ? "Loading..." : "Simpan"}
+          {loading ? "⏳ Loading..." : "💾 Simpan"}
         </button>
       </form>
     </Modal>

@@ -127,7 +127,7 @@ export default function AddTugasModal({
             cursor: isInvalid || loading ? "not-allowed" : "pointer",
           }}
         >
-          {loading ? ("Loading...") : ("Simpan")}
+          {loading ? "⏳ Loading..." : "💾 Simpan"}
         </button>
       </form>
     </Modal>

@@ -79,7 +79,7 @@ export default function EditScheduleModal({
       const d = docSnap.data();
 
 
-      if (docSnap.id === data?.id) return;
+      if (docSnap.id === data?.schedule?.id) return;
 
       const day = d.dayIndex;
 
@@ -419,7 +419,7 @@ export default function EditScheduleModal({
                     cursor: isInvalid || loading ? "not-allowed" : "pointer",
                   }}
                 >
-                  {loading ? "Loading..." : "💾 Simpan"}
+                  {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
               </>
             )}

@@ -333,8 +333,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
               <div>
-                <label>Dari Tgl<span>*</span></label>
-                <select
+                <label htmlFor="startTgl">Dari Tgl<span>*</span></label>
+                <select id="startTgl"
                   className="w-full"
                   value={startTanggal}
                   onChange={(e) => setStartTanggal(e.target.value)}
@@ -349,8 +349,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
               </div>
 
               <div>
-                <label className="mt-3">Sampai Tgl<span>*</span></label>
-                <select
+                <label htmlFor="endTgl">Sampai Tgl<span>*</span></label>
+                <select id="endTgl"
                   className="w-full"
                   value={endTanggal}
                   onChange={(e) => setEndTanggal(e.target.value)}
@@ -469,7 +469,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                     cursor: isInvalid || loading ? "not-allowed" : "pointer",
                   }}
                 >
-                  {loading ? "Loading..." : "💾 Simpan"}
+                  {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
               </>
             )}
