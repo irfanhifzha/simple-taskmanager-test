@@ -22,6 +22,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
   const [dayIndex, setDayIndex] = useState<number>(0);
   const [slots, setSlots] = useState<number[]>([]);
   const [occupiedSlots, setOccupiedSlots] = useState<Set<string>>(new Set());
+  const [desc, setDesc] = useState("");
   const [note, setNote] = useState("");
 
   const [showInvalid, setShowInvalid] = useState(false);
@@ -114,6 +115,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         .map((l) => l.trim())
         .filter(Boolean),
       type,
+      desc,
       note,
     });
 
@@ -125,24 +127,24 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <h2>Tambah Jadwal</h2>
+      <h2>+ Tambah Jadwal</h2>
 
       <form onSubmit={handleSubmit}>
 
 
 
-        <label htmlFor="task">Nama Task<span>*</span></label>
+        <label htmlFor="task">📝 Judul<span>*</span></label>
         <input
           className="w-full"
           id="task"
-          placeholder="Nama task"
+          placeholder="Judul task"
           value={course}
           onChange={(e) => setCourse(e.target.value)}
         />
 
 
 
-        <label htmlFor="ruangan">Ruangan</label>
+        <label htmlFor="ruangan">🏢 Tempat</label>
         <input
           className="w-full"
           id="ruangan"
@@ -151,7 +153,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
           onChange={(e) => setRoom(e.target.value)}
         />
 
-        <label htmlFor="peoples">Orang terkait</label>
+        <label htmlFor="peoples">👥 Orang terkait</label>
         <input
           id="peoples"
           placeholder="Related person (dipisah dengan koma)"
@@ -159,43 +161,60 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
           onChange={(e) => setPeoples(e.target.value)}
         />
 
-        <label htmlFor="note">Note</label>
+        <label htmlFor="desc">💬 Deskripsi</label>
+        <textarea
+          id="desc"
+          rows={3}
+          placeholder="Deskripsi task"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+
+        <label htmlFor="note">📌 Note / Link URL</label>
         <textarea
           id="note"
-          placeholder="Deskripsi task"
+          placeholder="Note task / Link url"
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
 
-        <label htmlFor="tipe">Tipe<span>*</span></label>
-        <select id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="" disabled>Pilih Tipe</option>
-          <option value="green">Hijau</option>
-          <option value="blue">Biru</option>
-          <option value="red">Merah</option>
-          <option value="orange">Oranye</option>
-          <option value="purple">Purple</option>
-          <option value="abu">Abu</option>
-        </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="" disabled hidden>Pilih Warna</option>
+              <option value="green">Hijau</option>
+              <option value="blue">Biru</option>
+              <option value="red">Merah</option>
+              <option value="orange">Oranye</option>
+              <option value="purple">Purple</option>
+              <option value="abu">Abu</option>
+            </select>
+          </div>
 
-        <label htmlFor="hari">Hari<span>*</span></label>
-        <select
-          id="hari"
-          value={dayIndex}
-          onChange={(e) => setDayIndex(Number(e.target.value))}
-        >
-          <option value={0} disabled>Pilih Hari</option>
-          {days.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+          <div>
+            <label htmlFor="hari">📅 Hari<span>*</span></label>
+            <select
+              className="w-full"
+              id="hari"
+              value={dayIndex}
+              onChange={(e) => setDayIndex(Number(e.target.value))}
+            >
+              <option value={0} disabled>Pilih Hari</option>
+              {days.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
 
 
-        <label>Jam<span>*</span></label>
-        <div style={{ display: "flex", width: "100%", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10 }}>
+        <label htmlFor="jam">🕒 Jam<span>*</span></label>
+        <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
+        <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
           {slotOptions.map((slot) => {
             const key = `${dayIndex}-${slot}`;
             const isBlocked = occupiedSlots.has(key);

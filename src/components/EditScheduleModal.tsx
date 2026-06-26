@@ -30,6 +30,7 @@ export default function EditScheduleModal({
   const [dayIndex, setDayIndex] = useState<number>(1);
   const [slots, setSlots] = useState<number[]>([]);
   const [occupiedSlots, setOccupiedSlots] = useState<Set<string>>(new Set());
+  const [desc, setDesc] = useState("");
   const [note, setNote] = useState("");
 
   const [showInvalid, setShowInvalid] = useState(false);
@@ -47,13 +48,14 @@ export default function EditScheduleModal({
       setType(data.type || "");
       setDayIndex(data.dayIndex || 1);
       setSlots(data.slots || []);
+      setDesc(data.desc || "");
       setNote(data.note || "");
 
       isInitialLoad.current = true; // mark initial load
     }
   }, [open, data]);
 
-  
+
   const loadConflicts = async () => {
     const snap = await getDocs(collection(db, "schedules"));
 
@@ -62,11 +64,11 @@ export default function EditScheduleModal({
     snap.forEach((docSnap) => {
       const d = docSnap.data();
 
-     
+
       if (docSnap.id === data?.id) return;
 
       const day = d.dayIndex;
-      
+
 
       (d.slots || []).forEach((slot: number) => {
         occupied.add(`${day}-${slot}`);
@@ -93,7 +95,7 @@ export default function EditScheduleModal({
     setSlots([]);
   }, [dayIndex]);
 
-  
+
   const toggleSlot = (slot: number) => {
 
     const key = `${dayIndex}-${slot}`;
@@ -133,6 +135,7 @@ export default function EditScheduleModal({
       type,
       dayIndex,
       slots,
+      desc,
       note,
     });
     setLoading(false);
@@ -155,55 +158,93 @@ export default function EditScheduleModal({
         ]
       </p>
 
+
       <form onSubmit={handleUpdate}>
-        <label>Nama Task<span>*</span></label>
-        <input value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Nama task" />
-
-        <label>Ruangan</label>
-        <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Ruangan" />
-
-        <label>Orang terkait</label>
-        <input value={peoples} onChange={(e) => setPeoples(e.target.value)} placeholder="Related person (dipisah dengan koma)" />
-
-        <label>Note</label>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Deskripsi task" />
+        <label htmlFor="task">📝 Judul<span>*</span></label>
+        <input
+          className="w-full"
+          id="task"
+          placeholder="Judul task"
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
+        />
 
 
-        <label>Tipe<span>*</span></label>
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="green">Hijau</option>
-          <option value="blue">Biru</option>
-          <option value="red">Merah</option>
-          <option value="orange">Oranye</option>
-          <option value="purple">Purple</option>
-          <option value="abu">Abu</option>
-        </select>
 
-        <label>Hari<span>*</span></label>
-        <select
-          value={dayIndex}
-          onChange={(e) => setDayIndex(Number(e.target.value))}
-        >
-          {days.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+        <label htmlFor="ruangan">🏢 Tempat</label>
+        <input
+          className="w-full"
+          id="ruangan"
+          placeholder="Ruangan"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+        />
 
-       
+        <label htmlFor="peoples">👥 Orang terkait</label>
+        <input
+          id="peoples"
+          placeholder="Related person (dipisah dengan koma)"
+          value={peoples}
+          onChange={(e) => setPeoples(e.target.value)}
+        />
 
-        <label>Jam<span>*</span></label>
+        <label htmlFor="desc">💬 Deskripsi</label>
+        <textarea
+          id="desc"
+          rows={3}
+          placeholder="Deskripsi task"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10 }}>
+        <label htmlFor="note">📌 Note / Link URL</label>
+        <textarea
+          id="note"
+          placeholder="Note task / Link url"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="" disabled hidden>Pilih Warna</option>
+              <option value="green">Hijau</option>
+              <option value="blue">Biru</option>
+              <option value="red">Merah</option>
+              <option value="orange">Oranye</option>
+              <option value="purple">Purple</option>
+              <option value="abu">Abu</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="hari">📅 Hari<span>*</span></label>
+            <select
+              className="w-full"
+              id="hari"
+              value={dayIndex}
+              onChange={(e) => setDayIndex(Number(e.target.value))}
+            >
+              <option value={0} disabled>Pilih Hari</option>
+              {days.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+
+
+        <label htmlFor="jam">🕒 Jam<span>*</span></label>
+        <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
+        <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
           {slotOptions.map((slot) => {
-            
-
             const key = `${dayIndex}-${slot}`;
-
-            const isBlocked =
-              occupiedSlots.has(key) && !slots.includes(slot);
-
+            const isBlocked = occupiedSlots.has(key);
             const isSelected = slots.includes(slot);
 
             return (
@@ -212,7 +253,7 @@ export default function EditScheduleModal({
                 onClick={() => toggleSlot(slot)}
                 className={`button-jam 
                   ${isBlocked ? "blocked" : "enabled"} 
-                  ${isSelected ? "selected" : ""}`}
+                  ${isSelected && !isBlocked ? "selected" : ""}`}
               >
                 {slot}
               </div>

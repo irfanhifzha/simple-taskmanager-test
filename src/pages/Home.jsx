@@ -30,31 +30,6 @@ import AddRencanaModal from "../components/AddRencanaModal";
 import ViewRencanaModal from "../components/ViewRencanaModal";
 
 
-const initialSchedule = {
-    id: undefined,
-    dayIndex: 0,
-    slots: [],
-    course: "",
-    room: "",
-    lecturers: [],
-    type: "",
-
-    note: "",
-
-    statusTugas: "",
-    titleTugas: "",
-    h1Tugas: "",
-    note1Tugas: "",
-    note2Tugas: "",
-
-    statusTugasAgain: "",
-    titleTugasAgain: "",
-    h1TugasAgain: "",
-    note1TugasAgain: "",
-    note2TugasAgain: ""
-};
-
-
 export default function Home() {
 
     useEffect(() => {
@@ -67,6 +42,7 @@ export default function Home() {
 
     const [editMode, setEditMode] = useState(false);
     const [tugasVisibility, setTugasVisibility] = useState(true);
+    const [weekendVisibility, setWeekendVisibility] = useState(false);
 
     // modals (UNCHANGED)
     const [openAdd, setOpenAdd] = useState(false);
@@ -83,16 +59,20 @@ export default function Home() {
 
     const [selected, setSelected] = useState(null);
 
-    const days = [1, 2, 3, 4, 5];
+    const days = weekendVisibility
+        ? [1, 2, 3, 4, 5, 6, 7]
+        : [1, 2, 3, 4, 5];
+
     const hours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
 
     const statusStyles = {
-        "blue-bg": "bg-blue-600",
-        "red-bg": "bg-red-600",
-        "green-bg": "bg-green-600",
-        "orange-bg": "bg-orange-600",
-        "purple-bg": "bg-purple-500",
+        "blue": "bg-blue-600",
+        "red": "bg-red-600",
+        "green": "bg-green-600",
+        "orange": "bg-orange-600",
+        "purple": "bg-purple-500",
+        "abu": "bg-gray-500",
     };
 
     const colorClasses = {
@@ -183,19 +163,24 @@ export default function Home() {
 
             <div className="flex gap-3 mb-[10px] flex-wrap">
 
-                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                     onClick={() => setTugasVisibility(prev => !prev)}>
                     {tugasVisibility ? "👀 Hide Tugas" : "🔍 Show Tugas"}
                 </button>
 
+                <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                    onClick={() => setWeekendVisibility(prev => !prev)}>
+                    {weekendVisibility ? "💼 Hide Weekend" : "🗓️ Show Weekend"}
+                </button>
+
                 {user && (
                     <>
-                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                        <button className="bg-blue-600 text-white px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={() => setOpenAdd(true)}>
                             + Tambah Jadwal
                         </button>
 
-                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                             onClick={() => setEditMode(prev => !prev)}>
                             {editMode ? "🔒 Exit Edit Mode" : "✏️ Update Data"}
                         </button>
@@ -211,8 +196,8 @@ export default function Home() {
 
 
             <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
-                <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 
-                [&_td]:h-[36px] [&_td]:p-2 max-xl:w-[1200px]">
+                <table className={`relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 
+                [&_td]:h-[36px] [&_td]:p-2 ${weekendVisibility ? "max-2xl:w-[1700px]" : "max-xl:w-[1200px]"}`}>
                     <thead>
                         <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
                             <th className="sticky z-5 top-0 left-0 bg-white shadow-lg w-[60px] text-gray-400 font-[IBM_Plex_Sans]">Jam</th>
@@ -221,8 +206,8 @@ export default function Home() {
                             <th>Rabu</th>
                             <th>Kamis</th>
                             <th>Jumat</th>
-                            {/* <th>Sabtu</th>
-                            <th>Minggu</th> */}
+                            {weekendVisibility && (<><th>Sabtu</th>
+                                <th>Minggu</th></>)}
                         </tr>
                     </thead>
 
@@ -311,12 +296,18 @@ export default function Home() {
 
                                                     {/* CONTENT (UNCHANGED) */}
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
-                                                    <p>{s.room}</p>
-                                                    <p className="text-blue-700">
-                                                        {s.peoples || [].join(", ")}
-                                                    </p>
-
-                                                    {s.note && <p className="text-gray-500 whitespace-pre-line">{s.note}</p>}
+                                                    {s.room && (<p>{s.room}</p>)}
+                                                    {s.peoples && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {s.peoples.map((person, idx) => (
+                                                                <div key={idx} className="px-2 py-1 rounded-lg bg-white w-fit">
+                                                                    {person}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {s.desc && <p className="font-medium brightness-50 whitespace-pre-line">{s.desc}</p>}
+                                                    {s.note && <p className="text-blue-500 whitespace-pre-line">{s.note}</p>}
 
                                                     {/* TUGAS */}
                                                     {tugasVisibility && (
@@ -352,57 +343,87 @@ export default function Home() {
 
 
                                                                     <div className="flex mb-2 font-bold text-xs items-center">
-                                                                        <div className={`
-                                                                            w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle
-                                                                            ${statusStyles[s.statusTugas] || "bg-gray-200"}
-                                                                            `}></div>
+                                                                        <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle ${statusStyles[s.statusTugas] || "bg-gray-200"}`}></div>
                                                                         <div>{s.titleTugas}</div>
                                                                     </div>
-                                                                    <p className="font-bold mb-2 whitespace-pre-line">{s.h1Tugas}</p>
-                                                                    <p className="mb-2 whitespace-pre-line">{s.note1Tugas}</p>
-                                                                    <p className="mb-2 whitespace-pre-line">{s.note2Tugas}</p>
+                                                                    {s.h1Tugas && (<p className="font-bold mb-2 whitespace-pre-line">{s.h1Tugas}</p>)}
+                                                                    {s.note1Tugas && (<p className="mb-2 whitespace-pre-line">{s.note1Tugas}</p>)}
+                                                                    {s.note2Tugas && (<p className="mb-2 whitespace-pre-line">{s.note2Tugas}</p>)}
                                                                 </div>
                                                             )}
 
-                                                            {s.titleTugasAgain && (
-                                                                <div className="bg-white px-3 py-2 rounded-lg text-black"
-                                                                    style={{ display: "block" }}>
+                                                            {s.tugasAgain?.length > 0 && (
+                                                                <div className="space-y-2">
+                                                                    {s.tugasAgain.map((t) => (
+                                                                        <div
+                                                                            key={t.id}
+                                                                            className="bg-white px-3 py-2 rounded-lg text-black"
+                                                                        >
 
-                                                                    {/* adain lagi crud for tugas */}
-                                                                    {user && editMode && (
-                                                                        <div className="flex gap-2 mb-3">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelected(s);
-                                                                                    setOpenTugasEditAgain(true);
-                                                                                }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">edit</span>
-                                                                            </button>
+                                                                            {/* edit/delete */}
+                                                                            {user && editMode && (
+                                                                                <div className="flex gap-2 mb-3">
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            setSelected({
+                                                                                                schedule: s,
+                                                                                                tugas: t,
+                                                                                            });
+                                                                                            setOpenTugasEditAgain(true);
+                                                                                        }}
+                                                                                        className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                                    >
+                                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                                            edit
+                                                                                        </span>
+                                                                                    </button>
 
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            setSelected({
+                                                                                                schedule: s,
+                                                                                                tugas: t,
+                                                                                            });
+                                                                                            setOpenTugasDeleteAgain(true);
+                                                                                        }}
+                                                                                        className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                                    >
+                                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                                            delete
+                                                                                        </span>
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
 
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelected(s);
-                                                                                    setOpenTugasDeleteAgain(true);
-                                                                                }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">delete</span></button>
+                                                                            {/* title + status */}
+                                                                            <div className="flex mb-2 font-bold text-xs items-center">
+                                                                                <div
+                                                                                    className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"
+                                                                                        }`}
+                                                                                />
+                                                                                <div>{t.titleTugasAgain}</div>
+                                                                            </div>
+
+                                                                            {t.h1TugasAgain && (
+                                                                                <p className="font-bold mb-2 whitespace-pre-line">
+                                                                                    {t.h1TugasAgain}
+                                                                                </p>
+                                                                            )}
+
+                                                                            {t.note1TugasAgain && (
+                                                                                <p className="mb-2 whitespace-pre-line">
+                                                                                    {t.note1TugasAgain}
+                                                                                </p>
+                                                                            )}
+
+                                                                            {t.note2TugasAgain && (
+                                                                                <p className="mb-2 whitespace-pre-line">
+                                                                                    {t.note2TugasAgain}
+                                                                                </p>
+                                                                            )}
 
                                                                         </div>
-                                                                    )}
-
-
-                                                                    <div className="flex mb-2 font-bold text-xs items-center">
-                                                                        <div className={`
-                                                                            w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle
-                                                                            ${statusStyles[s.statusTugasAgain] || "bg-gray-200"}
-                                                                            `}></div>
-                                                                        <div>{s.titleTugasAgain}</div>
-                                                                    </div>
-                                                                    <p className="font-bold mb-2 whitespace-pre-line">{s.h1TugasAgain}</p>
-                                                                    <p className="mb-2 whitespace-pre-line">{s.note1TugasAgain}</p>
-                                                                    <p className="mb-2 whitespace-pre-line">{s.note2TugasAgain}</p>
+                                                                    ))}
                                                                 </div>
                                                             )}
 
@@ -633,10 +654,9 @@ export default function Home() {
 
                 {/* TITLE */}
                 <p className="text-black text-md font-bold">
-
                     {
                         currentDate.toLocaleString(
-                            "default",
+                            "id-ID",
                             { month: "long" }
                         )
                     } {year}
@@ -645,7 +665,7 @@ export default function Home() {
                 {/* BUTTONS */}
                 <div className="flex gap-3 mb-[10px] flex-wrap">
 
-                    <button className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    <button className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() =>
                             setCurrentDate(
                                 new Date(
@@ -659,7 +679,7 @@ export default function Home() {
                         Prev
                     </button>
 
-                    <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() =>
                             setCurrentDate(
                                 new Date(
@@ -673,7 +693,7 @@ export default function Home() {
                         Next
                     </button>
 
-                    <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() =>
                             setCurrentDate(
                                 new Date()
@@ -685,7 +705,7 @@ export default function Home() {
 
                     {user && (
                         <>
-                            <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                            <button className="bg-blue-600 text-white px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                                 onClick={() => setOpenAddRencana(true)}>
                                 + Tambah Rencana
                             </button>
@@ -801,7 +821,7 @@ export default function Home() {
                                                                             className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-110 active:-translate-y-0.5 active:brightness-110 active:scale-95"
                                                                         >
                                                                             <div
-                                                                                className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type]}`}
+                                                                                className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
                                                                             />
                                                                             <div className="text-xs text-center line-clamp-3">
                                                                                 {item.task}
@@ -832,7 +852,7 @@ export default function Home() {
                                                     }}
                                                 >
                                                     <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow pointer-events-auto cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-105 active:scale-99
-                                                        ${statusStyles[item.type]} ${item.isStart ? "rounded-l-lg" : ""
+                                                        ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""
                                                         } ${item.isEnd ? "rounded-r-lg" : ""}`}
                                                     >
                                                         {item.isStart && (
@@ -844,7 +864,7 @@ export default function Home() {
                                                                 }}
                                                                 className="text-sm cursor-pointer overflow-hidden"
                                                             >
-                                                                <span className="block truncate text-xs">
+                                                                <span className="block truncate text-xs select-text">
                                                                     {item.task}
                                                                 </span>
                                                             </button>
@@ -928,7 +948,7 @@ export default function Home() {
 
                     {renderCalendar()}
 
-                    {renderTable(`Jadwal`, schedule)}
+                    {renderTable(`Jadwal Harian`, schedule)}
 
 
 

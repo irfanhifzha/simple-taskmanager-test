@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { updateDoc, doc } from "firebase/firestore";
+import { updateDoc, doc, arrayRemove, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase";
 
 const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
@@ -19,17 +19,17 @@ export default function EditTugasModalAgain({
 
   const [showInvalid, setShowInvalid] = useState(false);
 
-  // ✅ load existing data into form
   useEffect(() => {
-    if (open && data) {
-      setStatus(data.statusTugasAgain || "");
-      setTitle(data.titleTugasAgain || "");
-      setH1(data.h1TugasAgain || "");
-      setNote1(data.note1TugasAgain || "");
-      setNote2(data.note2TugasAgain || "");
+    const t = data?.tugas;
+
+    if (open && t) {
+      setStatus(t.statusTugasAgain || "");
+      setTitle(t.titleTugasAgain || "");
+      setH1(t.h1TugasAgain || "");
+      setNote1(t.note1TugasAgain || "");
+      setNote2(t.note2TugasAgain || "");
     }
   }, [open, data]);
-
 
   useEffect(() => {
     if (open) {
@@ -45,109 +45,116 @@ export default function EditTugasModalAgain({
 
   const [loading, setLoading] = useState(false);
 
-  const handleUpdate = async () => {
 
+
+  const handleUpdate = async () => {
     setLoading(true);
 
     if (isInvalid) {
       setShowInvalid(true);
+      setLoading(false);
       return;
     }
 
-    if (!data?.id) return;
+    if (!data?.schedule?.id || !data?.tugas?.id) return;
 
-    await updateDoc(doc(db, "schedules", data.id), {
+    const ref = doc(db, "schedules", data.schedule.id);
+
+    const oldItem = data.tugas;
+
+    const updatedItem = {
+      ...oldItem,
       statusTugasAgain,
       titleTugasAgain,
       h1TugasAgain,
       note1TugasAgain,
       note2TugasAgain,
-    });
-    
-    setLoading(false);
+    };
 
+    await updateDoc(ref, {
+      tugasAgain: arrayRemove(oldItem),
+    });
+
+    await updateDoc(ref, {
+      tugasAgain: arrayUnion(updatedItem),
+    });
+
+    setLoading(false);
     onSuccess();
     onClose();
   };
 
+
+
   return (
     <Modal open={open} onClose={onClose}>
       <h2>Edit Tugas</h2>
-      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13}}>
-        Mengedit tugas: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
-          {" "}
-          {data?.slots?.length > 1
-            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
-            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
-          }
+      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+        Mengedit tugas: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+        {" "}
+        {data?.schedule?.slots?.length > 1
+          ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+          : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
+        }
         ]
       </p>
 
-    <form onSubmit={handleUpdate}>
-    <label>Status</label>
-      <select value={statusTugasAgain} onChange={(e) => setStatus(e.target.value)}>
-        <option value="orange-bg">Oranye</option>
-        <option value="green-bg">Hijau</option>
-        <option value="red-bg">Merah</option>
-        <option value="blue-bg">Biru</option>
-      </select>
-
-      <label>Judul Tugas</label>
-      <input
-        placeholder="Judul"
-        value={titleTugasAgain}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-
-      <label>Nama Tugas</label>
-      <textarea
-        placeholder="Nama Tugas"
-        value={h1TugasAgain}
-        onChange={(e) => setH1(e.target.value)}
-      />
-
-      <label>Deskripsi Tugas</label>
-      <textarea
-        placeholder="Note 1, Deskripsi Tugas..."
-        value={note1TugasAgain}
-        onChange={(e) => setNote1(e.target.value)}
-      />
-    
-      <label>Note</label>
-      <textarea
-        placeholder="Note 2, Deadline:..."
-        value={note2TugasAgain}
-        onChange={(e) => setNote2(e.target.value)}
-      />
-
-
-
-      {/* warning */}
-      {showInvalid && (
-        <div style={{
-          background: "#ffe5e5",
-          color: "#b00020",
-          padding: 10,
-          marginTop: 10,
-          borderRadius: 6
-        }}>
-          Semua field wajib diisi dan minimal 1 jam harus dipilih
+      <form onSubmit={handleUpdate}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="title">📝 Judul Tugas<span>*</span></label>
+            <input className="w-full" id="title"
+              placeholder="Judul Tugas"
+              value={titleTugasAgain}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+            <select id="tipe" className="w-full" value={statusTugasAgain} onChange={(e) => setStatus(e.target.value)}>
+              <option value="" disabled hidden>Pilih Warna</option>
+              <option value="green">Hijau</option>
+              <option value="blue">Biru</option>
+              <option value="red">Merah</option>
+              <option value="orange">Oranye</option>
+              <option value="purple">Purple</option>
+              <option value="abu">Abu</option>
+            </select>
+          </div>
         </div>
-      )}
 
+        <label htmlFor="h1">🎯 Nama Tugas</label>
+        <textarea id="h1"
+          placeholder="Nama Tugas"
+          value={h1TugasAgain}
+          onChange={(e) => setH1(e.target.value)}
+        />
 
-      {/* button */}
-      <button
-        onClick={handleUpdate}
-        disabled={isInvalid || loading}
-        style={{
-          marginTop: 12,
-          opacity: isInvalid || loading ? 0.5 : 1,
-          cursor: isInvalid || loading ? "not-allowed" : "pointer"
-        }}
-      >
-        {loading ? ("Loading...") : ("Simpan")}
-      </button>
+        <label htmlFor="note1">💬 Deskripsi Tugas</label>
+        <textarea id="note1"
+          placeholder="Deskripsi Tugas"
+          value={note1TugasAgain}
+          onChange={(e) => setNote1(e.target.value)}
+        />
+
+        <label htmlFor="note2">✍️ Note</label>
+        <textarea id="note2"
+          placeholder="Note"
+          value={note2TugasAgain}
+          onChange={(e) => setNote2(e.target.value)}
+        />
+
+        <button
+          onClick={handleUpdate}
+          disabled={isInvalid || loading}
+          style={{
+            marginTop: 12,
+            opacity: isInvalid || loading ? 0.5 : 1,
+            cursor: isInvalid || loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? ("Loading...") : ("Simpan")}
+        </button>
       </form>
     </Modal>
   );

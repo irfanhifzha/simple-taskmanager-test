@@ -27,11 +27,11 @@ export default function DeleteTugasModalAgain({ open, onClose, data, onSuccess }
     return (
         <Modal open={open} onClose={onClose}>
             <h2>Yakin mau hapus tugas?</h2>
-            <p>"{data?.h1Tugas}" dari {data?.course || "null"} [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+            <p>"{data?.tugas?.titleTugasAgain}" dari {data?.schedule?.course || "null"} [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
           {" "}
-          {data?.slots?.length > 1
-            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
-            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+          {data?.schedule?.slots?.length > 1
+            ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+            : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
           }
         ]</p>
 

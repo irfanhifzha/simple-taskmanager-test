@@ -25,6 +25,8 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   const [type, setType] = useState("");
 
+  const [startTanggal, setStartTanggal] = useState("");
+  const [endTanggal, setEndTanggal] = useState("");
   const [tanggal, setTanggal] = useState<number[]>([]);
 
   const [content, setContent] = useState("");
@@ -35,14 +37,35 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   // ===== HELPERS =====
   const getDaysInMonth = (month: number, year: number) => {
-    if (!month || !year) return 0;
-    return new Date(year, month, 0).getDate();
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const namaHari = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const date = new Date(year, month - 1, day);
+
+      // Week calculation (simple: every 7 days = new week)
+      const week = Math.floor(i / 7) + 1;
+
+      return {
+        day,
+        label: `${day} - ${namaHari[date.getDay()]} (Week ${week})`,
+        weekday: namaHari[date.getDay()],
+        week,
+      };
+    });
   };
 
-  const availableDates = Array.from(
-    { length: getDaysInMonth(bulan, tahun) },
-    (_, i) => i + 1
-  );
+  const availableDates = getDaysInMonth(bulan, tahun);
 
 
   useEffect(() => {
@@ -60,7 +83,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
   // ===== VALIDATION =====
   const isInvalid =
     !task.trim() ||
-    !content.trim() ||
     !type.trim() ||
     tanggal.length === 0;
 
@@ -69,9 +91,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     setTanggal([]);
     setBulan(today.getMonth() + 1);
     setTahun(today.getFullYear());
-    setType("");
-    setTask("");
-    setContent("");
     setShowInvalid(false);
   };
 
@@ -120,109 +139,125 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <h2>Tambah Rencana</h2>
+      <h2>+ Tambah Rencana</h2>
 
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="title">📌 Title<span>*</span></label>
+        {/* TASK */}
+        <input
+          id="title"
+          placeholder="Title rencana..."
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+        />
 
-      <label>Title<span>*</span></label>
-      {/* TASK */}
-      <input
-        placeholder="Title rencana..."
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-      />
-
-      <label>Deskripsi<span>*</span></label>
-      {/* CONTENT */}
-      <textarea
-        placeholder="Deskripsi rencana..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
-
-
-
-      <label>Tipe<span>*</span></label>
-      {/* TYPE */}
-      <select
-        value={type} onChange={(e) => setType(e.target.value)}>
-        <option value="" disabled>Pilih Tipe</option>
-        <option value="orange-bg">Oranye</option>
-        <option value="red-bg">Merah</option>
-        <option value="blue-bg">Biru</option>
-        <option value="purple-bg">Purple</option>
-        <option value="green-bg">Hijau</option>
-      </select>
+        <label htmlFor="desc">💬 Deskripsi</label>
+        {/* CONTENT */}
+        <textarea
+          id="desc"
+          placeholder="Deskripsi rencana..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
 
 
 
+        <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+        {/* TYPE */}
+        <select
+          id="tipe"
+          value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="" disabled hidden>Pilih Warna</option>
+          <option value="orange">Oranye</option>
+          <option value="red">Merah</option>
+          <option value="blue">Biru</option>
+          <option value="purple">Purple</option>
+          <option value="green">Hijau</option>
+          <option value="abu">Abu</option>
+        </select>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label>Bulan<span>*</span></label>
-          {/* BULAN */}
-          <select className="w-full" value={bulan} onChange={(e) => setBulan(Number(e.target.value))}>
-            <option value={0} disabled>Pilih Bulan</option>
-            {months.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+
+
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="bulan">Bulan<span>*</span></label>
+            {/* BULAN */}
+            <select id="bulan" className="w-full" value={bulan} onChange={(e) => setBulan(Number(e.target.value))}>
+              <option value={0} disabled hidden>Pilih Bulan</option>
+              {months.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="tahun">Tahun<span>*</span></label>
+            {/* TAHUN */}
+            <input id="tahun" className="w-full"
+              placeholder="Tahun"
+              value={tahun}
+              onChange={(e) => setTahun(Number(e.target.value))}
+            />
+          </div>
         </div>
 
-        <div>
-          <label>Tahun<span>*</span></label>
-          {/* TAHUN */}
-          <input className="w-full"
-            placeholder="Tahun"
-            value={tahun}
-            onChange={(e) => setTahun(Number(e.target.value))}
-          />
+        {/* TANGGAL */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="tanggalStart">Dari Tgl<span>*</span></label>
+            <select
+              id="tanggalStart"
+              className="w-full"
+              value={startTanggal}
+              onChange={(e) => setStartTanggal(e.target.value)}
+            >
+              <option value="" disabled hidden>Pilih Start</option>
+              {availableDates.map((d) => (
+                <option key={d.day} value={d.day}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="tanggalEnd">Sampai Tgl<span>*</span></label>
+            <select
+              id="tanggalEnd"
+              className="w-full"
+              value={endTanggal}
+              onChange={(e) => setEndTanggal(e.target.value)}
+            >
+              <option value="" disabled hidden>Pilih End</option>
+              {availableDates.map((d) => (
+                <option key={d.day} value={d.day}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
-
-      {/* TANGGAL */}
-      <div style={{ marginTop: 10 }}>
-        <label>Tanggal<span>*</span></label>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10, }}>
-          {availableDates.map((day) => {
-            const isSelected = tanggal.includes(day);
-
-            return (
-              <div
-                key={day}
-                onClick={() => toggleDate(day)}
-                className={`button-jam
-                  ${isSelected ? "selected enabled" : "enabled"}`}
-                style={{
-                  borderColor: isSelected ? "#362dde" : "",
-                  background: isSelected ? "#4f46e5" : "",
-                  color: isSelected ? "#fff" : "#000",
-                }}
-              >
-                {day}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
 
 
 
 
-      {/* BUTTON */}
-      <button
-        onClick={handleSubmit}
-        disabled={isInvalid || loading}
-        style={{
-          marginTop: 12,
-          opacity: isInvalid || loading ? 0.5 : 1,
-          cursor: isInvalid || loading ? "not-allowed" : "pointer",
-        }}
-      >
-        {loading ? "Loading..." : "Simpan"}
-      </button>
+        {/* BUTTON */}
+        <button
+          onClick={handleSubmit}
+          disabled={isInvalid || loading}
+          style={{
+            marginTop: 12,
+            opacity: isInvalid || loading ? 0.5 : 1,
+            cursor: isInvalid || loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Loading..." : "Simpan"}
+        </button>
+      </form>
     </Modal>
   );
 }
