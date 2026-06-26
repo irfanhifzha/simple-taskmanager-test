@@ -24,15 +24,13 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
   const [tahun, setTahun] = useState<number>(today.getFullYear());
 
   const [type, setType] = useState("");
-  const [program, setProgram] = useState("");
-  const [semester, setSemester] = useState<number>(0);
 
   const [tanggal, setTanggal] = useState<number[]>([]);
 
   const [content, setContent] = useState("");
   const [task, setTask] = useState("");
 
-  const [_,setShowInvalid] = useState(false);
+  const [_, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // ===== HELPERS =====
@@ -61,8 +59,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   // ===== VALIDATION =====
   const isInvalid =
-    !program.trim() ||
-    semester === 0 ||
     !task.trim() ||
     !content.trim() ||
     !type.trim() ||
@@ -70,10 +66,8 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   // ===== RESET =====
   const resetForm = () => {
-    setProgram("");
-    setSemester(0);
     setTanggal([]);
-    setBulan(today.getMonth());
+    setBulan(today.getMonth() + 1);
     setTahun(today.getFullYear());
     setType("");
     setTask("");
@@ -106,8 +100,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
     try {
       await addDoc(collection(db, "calendar"), {
-        program,
-        semester,
         bulan,
         tahun,
         tanggal,
@@ -130,47 +122,68 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     <Modal open={open} onClose={handleClose}>
       <h2>Tambah Rencana</h2>
 
-      <label>Program</label>
-      {/* PROGRAM */}
-      <select value={program} onChange={(e) => setProgram(e.target.value)}>
-        <option value="" disabled>Pilih Program Studi</option>
-        <option value="TRPL">TRPL</option>
-        <option value="BISDIG">BISDIG-Reguler</option>
-        <option value="BISDIGeks">BISDIG-Eksekutif</option>
-      </select>
 
-      <label>Semester</label>
-      {/* SEMESTER */}
-      <select value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
-        <option value={0} disabled>Pilih Semester</option>
-        {[1,2,3,4,5,6,7,8].map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
-
-      <label>Bulan</label>
-      {/* BULAN */}
-      <select value={bulan} onChange={(e) => setBulan(Number(e.target.value))}>
-        <option value={0} disabled>Pilih Bulan</option>
-        {months.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
-      </select>
-
-      <label>Tahun</label>
-      {/* TAHUN */}
+      <label>Title<span>*</span></label>
+      {/* TASK */}
       <input
-        type="number"
-        placeholder="Tahun"
-        value={tahun}
-        onChange={(e) => setTahun(Number(e.target.value))}
+        placeholder="Title rencana..."
+        value={task}
+        onChange={(e) => setTask(e.target.value)}
       />
+
+      <label>Deskripsi<span>*</span></label>
+      {/* CONTENT */}
+      <input
+        placeholder="Deskripsi rencana..."
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+      />
+
+
+
+      <label>Tipe<span>*</span></label>
+      {/* TYPE */}
+      <select
+        value={type} onChange={(e) => setType(e.target.value)}>
+        <option value="" disabled>Pilih Tipe</option>
+        <option value="orange-bg">Oranye</option>
+        <option value="red-bg">Merah</option>
+        <option value="blue-bg">Biru</option>
+        <option value="purple-bg">Purple</option>
+        <option value="green-bg">Hijau</option>
+      </select>
+
+
+
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label>Bulan<span>*</span></label>
+          {/* BULAN */}
+          <select className="w-full" value={bulan} onChange={(e) => setBulan(Number(e.target.value))}>
+            <option value={0} disabled>Pilih Bulan</option>
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label>Tahun<span>*</span></label>
+          {/* TAHUN */}
+          <input className="w-full"
+            placeholder="Tahun"
+            value={tahun}
+            onChange={(e) => setTahun(Number(e.target.value))}
+          />
+        </div>
+      </div>
 
       {/* TANGGAL */}
       <div style={{ marginTop: 10 }}>
-        <label>Tanggal</label>
+        <label>Tanggal<span>*</span></label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10, }}>
           {availableDates.map((day) => {
             const isSelected = tanggal.includes(day);
@@ -196,33 +209,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
 
 
-      <label>Tipe</label>
-      {/* TYPE */}
-      <select
-      value={type} onChange={(e) => setType(e.target.value)}>
-        <option value="" disabled>Pilih Tipe</option>
-        <option value="orange-bg">Oranye</option>
-        <option value="red-bg">Merah</option>
-        <option value="blue-bg">Biru</option>
-        <option value="purple-bg">Purple</option>
-        <option value="green-bg">Hijau</option>
-      </select>
-
-      <label>Title</label>
-      {/* TASK */}
-      <input
-        placeholder="Title rencana..."
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-      />
-
-      <label>Deskripsi</label>
-      {/* CONTENT */}
-      <input
-        placeholder="Deskripsi rencana..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-      />
 
 
       {/* BUTTON */}

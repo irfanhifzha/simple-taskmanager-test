@@ -45,11 +45,14 @@ form {
 /* input css */
 label {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  gap: 0s;
   font-size: 0.875rem;
   color: #6b7280;
 }
+
+  label span {
+    color: #9b2c2c;
+  }
 
 /* Base style for input & select */
 input,

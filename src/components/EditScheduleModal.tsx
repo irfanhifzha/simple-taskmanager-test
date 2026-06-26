@@ -12,7 +12,8 @@ const days = [
   { label: "Selasa", value: 2 },
   { label: "Rabu", value: 3 },
   { label: "Kamis", value: 4 },
-  { label: "Jumat", value: 5 }
+  { label: "Jumat", value: 5 },
+  { label: "Sabtu", value: 6 }, { label: "Minggu", value: 7 },
 ];
 
 export default function EditScheduleModal({
@@ -24,7 +25,7 @@ export default function EditScheduleModal({
 
   const [course, setCourse] = useState("");
   const [room, setRoom] = useState("");
-  const [lecturers, setLecturers] = useState("");
+  const [peoples, setPeoples] = useState("");
   const [type, setType] = useState("teori");
   const [dayIndex, setDayIndex] = useState<number>(1);
   const [slots, setSlots] = useState<number[]>([]);
@@ -34,25 +35,25 @@ export default function EditScheduleModal({
   const [showInvalid, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
-  
+
 
 
   // ✅ load existing data
-useEffect(() => {
-  if (open && data) {
-    setCourse(data.course || "");
-    setRoom(data.room || "");
-    setLecturers((data.lecturers || []).join(", "));
-    setType(data.type || "teori");
-    setDayIndex(data.dayIndex || 1);
-    setSlots(data.slots || []);
-    setNote(data.note || "");
+  useEffect(() => {
+    if (open && data) {
+      setCourse(data.course || "");
+      setRoom(data.room || "");
+      setPeoples((data.peoples || []).join(", "));
+      setType(data.type || "teori");
+      setDayIndex(data.dayIndex || 1);
+      setSlots(data.slots || []);
+      setNote(data.note || "");
 
-    isInitialLoad.current = true; // mark initial load
-  }
-}, [open, data]);
+      isInitialLoad.current = true; // mark initial load
+    }
+  }, [open, data]);
 
-  // 🔥 FIXED: include program + semester + exclude self
+  
   const loadConflicts = async () => {
     const snap = await getDocs(collection(db, "schedules"));
 
@@ -61,18 +62,14 @@ useEffect(() => {
     snap.forEach((docSnap) => {
       const d = docSnap.data();
 
-      // ❌ skip current schedule
+     
       if (docSnap.id === data?.id) return;
 
       const day = d.dayIndex;
-      const program = d.program;
-      const semester = d.semester;
-
-      if (!program || !semester) return;
-      if (day < 1 || day > 5) return;
+      
 
       (d.slots || []).forEach((slot: number) => {
-        occupied.add(`${program}-${semester}-${day}-${slot}`);
+        occupied.add(`${day}-${slot}`);
       });
     });
 
@@ -96,12 +93,10 @@ useEffect(() => {
     setSlots([]);
   }, [dayIndex]);
 
-  // 🔥 FIXED toggle logic (now includes program + semester)
+  
   const toggleSlot = (slot: number) => {
-    const program = data?.program;
-    const semester = data?.semester;
 
-    const key = `${program}-${semester}-${dayIndex}-${slot}`;
+    const key = `${dayIndex}-${slot}`;
 
     if (occupiedSlots.has(key)) return;
 
@@ -115,10 +110,10 @@ useEffect(() => {
   const isInvalid =
     !course.trim() ||
     !room.trim() ||
-    !lecturers.trim() ||
+    !peoples.trim() ||
     slots.length === 0;
 
- 
+
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -132,7 +127,7 @@ useEffect(() => {
     await updateDoc(doc(db, "schedules", data.id), {
       course,
       room,
-      lecturers: lecturers
+      peoples: peoples
         .split(",")
         .map((l: string) => l.trim())
         .filter(Boolean),
@@ -153,64 +148,59 @@ useEffect(() => {
       <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
         Mengedit data: {data?.course || "notfound"}{" "}
         [Hari {dayLabels[data?.dayIndex - 1] || "null"},
-          {" "}
-          {data?.slots?.length > 1
-            ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
-            : `Jam ${data?.slots?.at(0) ?? "?"}.00`
-          }
+        {" "}
+        {data?.slots?.length > 1
+          ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
+          : `Jam ${data?.slots?.at(0) ?? "?"}.00`
+        }
         ]
       </p>
 
-      <form onSubmit={handleUpdate}>  
-      <label>Program Studi</label>
-      <input value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Mata Kuliah" />
+      <form onSubmit={handleUpdate}>
+        <label>Nama Task<span>*</span></label>
+        <input value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Nama task" />
 
-      <label>Ruangan</label>
-      <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Ruangan" />
-      
-      <label>Dosen</label>
-      <input value={lecturers} onChange={(e) => setLecturers(e.target.value)} placeholder="Dosen (dipisah dengan koma)" />
+        <label>Ruangan</label>
+        <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Ruangan" />
 
-      <label>Tipe</label>
-      <select value={type} onChange={(e) => setType(e.target.value)}>
-        <option value="teori">Teori</option>
-        <option value="praktek">Praktek</option>
-        <option value="tambahan">Matkul Tambahan</option>
-      </select>
+        <label>Orang terkait</label>
+        <input value={peoples} onChange={(e) => setPeoples(e.target.value)} placeholder="Related person (dipisah dengan koma)" />
 
-      <label>Hari</label>
-      <select
-        value={dayIndex}
-        onChange={(e) => setDayIndex(Number(e.target.value))}
-      >
-        {days.map((d) => (
-          <option key={d.value} value={d.value}>
-            {d.label}
-          </option>
-        ))}
-      </select>
-
-      {showInvalid && (
-        <div style={{
-          background: "#ffe5e5",
-          color: "#b00020",
-          padding: 10,
-          marginTop: 10,
-          borderRadius: 6
-        }}>
-          Semua field wajib diisi dan minimal 1 jam harus dipilih
-        </div>
-      )}
+        <label>Note</label>
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Deskripsi task" />
 
 
-        <label>Jam</label>
+        <label>Tipe<span>*</span></label>
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="green">Hijau</option>
+          <option value="blue">Biru</option>
+          <option value="red">Merah</option>
+          <option value="orange">Oranye</option>
+          <option value="purple">Purple</option>
+          <option value="abu">Abu</option>
+        </select>
+
+        <label>Hari<span>*</span></label>
+        <select
+          value={dayIndex}
+          onChange={(e) => setDayIndex(Number(e.target.value))}
+        >
+          {days.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+
+       
+
+        <label>Jam<span>*</span></label>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10 }}>
           {slotOptions.map((slot) => {
-            const program = data?.program;
-            const semester = data?.semester;
+            
 
-            const key = `${program}-${semester}-${dayIndex}-${slot}`;
+            const key = `${dayIndex}-${slot}`;
 
             const isBlocked =
               occupiedSlots.has(key) && !slots.includes(slot);
@@ -231,20 +221,19 @@ useEffect(() => {
           })}
         </div>
 
-          <label>Note</label>
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (Optional)" />
 
-      <button
-        onClick={handleUpdate}
-        disabled={isInvalid || loading}
-        style={{
-          marginTop: 12,
-          opacity: isInvalid || loading ? 0.5 : 1,
-          cursor: isInvalid || loading ? "not-allowed" : "pointer"
-        }}
-      >
-        {loading ? ("Loading...") : ("Simpan")}
-      </button>
+
+        <button
+          onClick={handleUpdate}
+          disabled={isInvalid || loading}
+          style={{
+            marginTop: 12,
+            opacity: isInvalid || loading ? 0.5 : 1,
+            cursor: isInvalid || loading ? "not-allowed" : "pointer"
+          }}
+        >
+          {loading ? ("Loading...") : ("Simpan")}
+        </button>
       </form>
     </Modal>
   );

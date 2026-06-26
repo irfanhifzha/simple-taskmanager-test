@@ -60,7 +60,7 @@ const initialSchedule = {
 export default function TrplReg24() {
 
     useEffect(() => {
-        document.title = "Jadwal ADB | TRPL REG 24";
+        document.title = "asdfasdf";
     }, []);
 
 
@@ -218,7 +218,7 @@ export default function TrplReg24() {
 
             <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
                 <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 
-                [&_td]:h-[36px] [&_td]:p-2 max-lg:w-[960px]">
+                [&_td]:h-[36px] [&_td]:p-2 max-xl:w-[1200px]">
                     <thead>
                         <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
                             <th className="sticky z-5 top-0 left-0 bg-white shadow-lg w-[60px] text-gray-400 font-[IBM_Plex_Sans]">Jam</th>
@@ -227,6 +227,8 @@ export default function TrplReg24() {
                             <th>Rabu</th>
                             <th>Kamis</th>
                             <th>Jumat</th>
+                            {/* <th>Sabtu</th>
+                            <th>Minggu</th> */}
                         </tr>
                     </thead>
 

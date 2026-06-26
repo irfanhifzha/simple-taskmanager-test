@@ -191,7 +191,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         )} */}
 
 
-        <label>Title</label>
+        { !editMode ? (<label>Title</label>) : (<label>Title<span>*</span></label>)}
 
         {editMode || !data ? (
           <input
@@ -205,7 +205,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
 
 
-        <label>Deskripsi</label>
+        { !editMode ? (<label>Deskripsi</label>) : (<label>Deskripsi<span>*</span></label>)}
 
         {editMode || !data ? (
           <textarea
@@ -225,7 +225,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
         {editMode && (
           <>
-            <label>Tipe</label>
+            <label>Tipe<span>*</span></label>
             <select value={type} onChange={(e) => setType(e.target.value)}>
               <option value="" disabled>Pilih Tipe</option>
               <option value="orange-bg">Oranye</option>
@@ -249,7 +249,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             <div className="grid grid-cols-2 gap-4">
               {/* BULAN */}
               <div>
-                <label>Bulan</label>
+                <label>Bulan<span>*</span></label>
                 <select
                   className="w-full"
                   value={bulan}
@@ -266,7 +266,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
               {/* TAHUN */}
               <div>
-                <label>Tahun</label>
+                <label>Tahun<span>*</span></label>
 
                 {editMode || !data ? (
                   <input
@@ -293,7 +293,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
         {editMode || !data ? (
           <>
-            <label>Tanggal</label>
+            <label>Tanggal<span>*</span></label>
             <div className="flex flex-wrap gap-2 mt-2 mb-3">
               {availableDates.map((day) => {
                 const isSelected = tanggal.includes(day);

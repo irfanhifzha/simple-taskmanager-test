@@ -8,7 +8,8 @@ const days = [
   { label: "Selasa", value: 2 },
   { label: "Rabu", value: 3 },
   { label: "Kamis", value: 4 },
-  { label: "Jumat", value: 5 }
+  { label: "Jumat", value: 5 },
+  { label: "Sabtu", value: 6 }, { label: "Minggu", value: 7 },
 ];
 
 const slotOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
@@ -16,10 +17,8 @@ const slotOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
 export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
   const [course, setCourse] = useState("");
   const [room, setRoom] = useState("");
-  const [lecturers, setLecturers] = useState("");
+  const [peoples, setPeoples] = useState("");
   const [type, setType] = useState("");
-  const [program, setProgram] = useState("");
-  const [semester, setSemester] = useState<number>(0);
   const [dayIndex, setDayIndex] = useState<number>(0);
   const [slots, setSlots] = useState<number[]>([]);
   const [occupiedSlots, setOccupiedSlots] = useState<Set<string>>(new Set());
@@ -29,18 +28,12 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
   // validation (UNCHANGED LOGIC FIX ONLY)
   const isInvalid =
-    !program.trim() ||
-    semester === 0 ||
     !course.trim() ||
-    !room.trim() ||
-    !lecturers.trim() ||
     !type.trim() ||
     dayIndex === 0 ||
     slots.length === 0;
 
   const resetForm = () => {
-    setProgram("");
-    setSemester(0);
     setType("");
     setDayIndex(0);
     setSlots([]);
@@ -52,7 +45,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
     onClose();
   };
 
-  // 🔥 FIXED: now includes program + semester
+
   const loadConflicts = async () => {
     const snap = await getDocs(collection(db, "schedules"));
 
@@ -64,13 +57,11 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
       const day = d.dayIndex;
       const s = d.slots || [];
 
-      const existingProgram = d.program;
-      const existingSemester = d.semester;
 
       s.forEach((slot: number) => {
         // ✅ NEW KEY STRUCTURE (IMPORTANT FIX)
         occupied.add(
-          `${existingProgram}-${existingSemester}-${day}-${slot}`
+          `${day}-${slot}`
         );
       });
     });
@@ -89,9 +80,9 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
     setSlots([]);
   }, [dayIndex]);
 
-  // 🔥 FIXED: check includes program + semester
+
   const toggleSlot = (slot: number) => {
-    const key = `${program}-${semester}-${dayIndex}-${slot}`;
+    const key = `${dayIndex}-${slot}`;
 
     if (occupiedSlots.has(key)) return;
 
@@ -111,16 +102,14 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
     if (isInvalid) {
       setShowInvalid(true);
       return;
-    } 
+    }
 
     await addDoc(collection(db, "schedules"), {
-      program,
-      semester,
       dayIndex,
       slots,
       course,
       room,
-      lecturers: lecturers
+      peoples: peoples
         .split(",")
         .map((l) => l.trim())
         .filter(Boolean),
@@ -137,94 +126,78 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
   return (
     <Modal open={open} onClose={handleClose}>
       <h2>Tambah Jadwal</h2>
-      
+
       <form onSubmit={handleSubmit}>
-      <label htmlFor="programstudi">Program Studi</label>
-      <select id="programstudi" value={program} onChange={(e) => setProgram(e.target.value)}>
-        <option value="" disabled>Pilih Program Studi</option>
-        <option value="TRPL">TRPL</option>
-        <option value="BISDIG">BISDIG-Reguler</option>
-        <option value="BISDIGeks">BISDIG-Eksekutif</option>
-      </select>
-
-      <label htmlFor="semester">Semester</label>
-      <select id="semester" value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
-        <option value={0} disabled>Pilih Semester</option>
-        <option value={1}>1</option>
-        <option value={2}>2</option>
-        <option value={3}>3</option>
-        <option value={4}>4</option>
-        <option value={5}>5</option>
-        <option value={6}>6</option>
-        <option value={7}>7</option>
-        <option value={8}>8</option>
-      </select>
-
-      
-
-      <label htmlFor="matakuliah">Mata Kuliah</label>
-      <input
-        id="matakuliah"
-        placeholder="Mata Kuliah"
-        value={course}
-        onChange={(e) => setCourse(e.target.value)}
-      />
 
 
-      <label htmlFor="ruangan">Ruangan</label>
-      <input
-        id="ruangan"
-        placeholder="Ruangan"
-        value={room}
-        onChange={(e) => setRoom(e.target.value)}
-      />
 
-      <label htmlFor="person">Dosen</label>
-      <input
-        id="person"
-        placeholder="Dosen (dipisah dengan koma)"
-        value={lecturers}
-        onChange={(e) => setLecturers(e.target.value)}
-      />
+        <label htmlFor="task">Nama Task<span>*</span></label>
+        <input
+          className="w-full"
+          id="task"
+          placeholder="Nama task"
+          value={course}
+          onChange={(e) => setCourse(e.target.value)}
+        />
 
-      <label htmlFor="tipe">Tipe</label>
-      <select id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-        <option value="" disabled>Pilih Tipe</option>
-        <option value="teori">Teori</option>
-        <option value="praktek">Praktek</option>
-        <option value="tambahan">Matkul Tambahan</option>
-      </select>
 
-      <label htmlFor="hari">Hari</label>
-      <select
-        id="hari"
-        value={dayIndex}
-        onChange={(e) => setDayIndex(Number(e.target.value))}
-      >
-        <option value={0} disabled>Pilih Hari</option>
-        {days.map((d) => (
-          <option key={d.value} value={d.value}>
-            {d.label}
-          </option>
-        ))}
-      </select>
 
-      {showInvalid && (
-        <div style={{
-          background: "#ffe5e5",
-          color: "#b00020",
-          padding: 10,
-          marginTop: 10,
-          borderRadius: 6
-        }}>
-          Semua field wajib diisi dan minimal 1 jam harus dipilih
-        </div>
-      )}
+        <label htmlFor="ruangan">Ruangan</label>
+        <input
+          className="w-full"
+          id="ruangan"
+          placeholder="Ruangan"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+        />
 
-        <label>Jam</label>
-        <div style={{ display: "flex", width:"100%", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10}}>
+        <label htmlFor="peoples">Orang terkait</label>
+        <input
+          id="peoples"
+          placeholder="Related person (dipisah dengan koma)"
+          value={peoples}
+          onChange={(e) => setPeoples(e.target.value)}
+        />
+
+        <label htmlFor="note">Note</label>
+        <textarea
+          id="note"
+          placeholder="Deskripsi task"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+
+        <label htmlFor="tipe">Tipe<span>*</span></label>
+        <select id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="" disabled>Pilih Tipe</option>
+          <option value="green">Hijau</option>
+          <option value="blue">Biru</option>
+          <option value="red">Merah</option>
+          <option value="orange">Oranye</option>
+          <option value="purple">Purple</option>
+          <option value="abu">Abu</option>
+        </select>
+
+        <label htmlFor="hari">Hari<span>*</span></label>
+        <select
+          id="hari"
+          value={dayIndex}
+          onChange={(e) => setDayIndex(Number(e.target.value))}
+        >
+          <option value={0} disabled>Pilih Hari</option>
+          {days.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+
+
+
+        <label>Jam<span>*</span></label>
+        <div style={{ display: "flex", width: "100%", flexWrap: "wrap", gap: 6, marginTop: 6, marginBottom: 10 }}>
           {slotOptions.map((slot) => {
-            const key = `${program}-${semester}-${dayIndex}-${slot}`;
+            const key = `${dayIndex}-${slot}`;
             const isBlocked = occupiedSlots.has(key);
             const isSelected = slots.includes(slot);
 
@@ -242,25 +215,19 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
           })}
         </div>
 
-      <label htmlFor="note">Note</label>
-      <input
-        id="note"
-        placeholder="Note (Optional)"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
 
-      <button
-        onClick={handleSubmit}
-        disabled={isInvalid || loading}
-        style={{
-          marginTop: 12,
-          opacity: isInvalid || loading ? 0.5 : 1,
-          cursor: isInvalid || loading ? "not-allowed" : "pointer"
-        }}
-      >
-        {loading ? ("Loading...") : ("Simpan")}
-      </button>
+
+        <button
+          onClick={handleSubmit}
+          disabled={isInvalid || loading}
+          style={{
+            marginTop: 12,
+            opacity: isInvalid || loading ? 0.5 : 1,
+            cursor: isInvalid || loading ? "not-allowed" : "pointer"
+          }}
+        >
+          {loading ? ("Loading...") : ("Simpan")}
+        </button>
       </form>
     </Modal>
   );
