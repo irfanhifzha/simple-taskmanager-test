@@ -32,8 +32,6 @@ import ViewRencanaModal from "../components/ViewRencanaModal";
 
 const initialSchedule = {
     id: undefined,
-    program: "",
-    semester: 0,
     dayIndex: 0,
     slots: [],
     course: "",
@@ -57,7 +55,7 @@ const initialSchedule = {
 };
 
 
-export default function TrplReg24() {
+export default function Home() {
 
     useEffect(() => {
         document.title = "asdfasdf";
@@ -96,6 +94,17 @@ export default function TrplReg24() {
         "orange-bg": "bg-orange-600",
         "purple-bg": "bg-purple-500",
     };
+
+    const colorClasses = {
+        green: "border border-green-200 bg-green-100 text-green-700",
+        blue: "border border-blue-200 bg-blue-100 text-blue-800",
+        red: "border border-red-200 bg-red-100 text-red-700",
+        orange: "border border-orange-200 bg-orange-100 text-orange-700",
+        purple: "border border-purple-200 bg-purple-100 text-purple-700",
+        abu: "border border-gray-200 bg-gray-100 text-gray-700",
+    };
+
+
 
 
     // new live
@@ -137,21 +146,10 @@ export default function TrplReg24() {
     }, []);
 
 
-    // fetch data semester
-    const [semester, setSemester] = useState(null);
-    const [kategori, setKategori] = useState(null);
-    const [sks_semesterini, setSKS] = useState(null);
 
 
-    useEffect(() => {
-        getDoc(doc(db, "kelas", "trplreg24")).then((snap) => {
-            if (snap.exists()) {
-                setSemester(snap.data().semester);
-                setKategori(snap.data().kategori);
-                setSKS(snap.data().sks_semesterini);
-            }
-        });
-    }, []);
+
+
 
     // FETCH (FIXED FILTER ONLY)
     const fetchSchedules = async () => {
@@ -162,16 +160,12 @@ export default function TrplReg24() {
             ...doc.data()
         }));
 
-        setSchedule(
-            data.filter(d => d.program === "TRPL" && d.semester === semester)
-        );
+        setSchedule(data);
     };
 
     useEffect(() => {
-        if (semester !== null) {
-            fetchSchedules();
-        }
-    }, [semester]);
+        fetchSchedules();
+    }, []);
 
     // SESSION LOOKUP (SIMPLE, NO RESTRICTION)
     const getSession = (data, dayIndex, hour) => {
@@ -246,13 +240,7 @@ export default function TrplReg24() {
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
                                                 <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
-                                                ${s.type === "teori"
-                                                        ? "border border-green-200 bg-green-100 text-green-700"
-                                                        : s.type === "praktek"
-                                                            ? "border border-blue-200 bg-blue-100 text-blue-800"
-                                                            : s.type === "tambahan"
-                                                                ? "border border-gray-200 bg-gray-100 text-gray-600"
-                                                                : "border border-white bg-white"
+                                                ${colorClasses[s.type] ?? "border border-black bg-white"
                                                     }`}>
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
@@ -325,7 +313,7 @@ export default function TrplReg24() {
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
                                                     <p>{s.room}</p>
                                                     <p className="text-blue-700">
-                                                        {s.lecturers.join(", ")}
+                                                        {s.peoples || [].join(", ")}
                                                     </p>
 
                                                     {s.note && <p className="text-gray-500 whitespace-pre-line">{s.note}</p>}
@@ -450,9 +438,6 @@ export default function TrplReg24() {
     const Calendar = {
         id: undefined,
 
-        program: "",
-        semester: 0,
-
         tahun: 0,
 
         bulan: 0,
@@ -484,8 +469,6 @@ export default function TrplReg24() {
         setCalendar(
             data_calendar.filter(
                 d =>
-                    d.program === "TRPL" &&
-                    d.semester === semester &&
                     d.tahun === currentDate.getFullYear()
             )
         );
@@ -493,7 +476,7 @@ export default function TrplReg24() {
 
     useEffect(() => {
         fetchCalendar();
-    }, [semester, currentDate.getFullYear()]);
+    }, [currentDate.getFullYear()]);
 
     // FIND EVENT FOR SPECIFIC DATE
     const getCalendar = (data, bulan, tgl) => {
@@ -935,7 +918,7 @@ export default function TrplReg24() {
 
                     <div>
                         <p className="font-bold text-lg uppercase">
-                            Dashboard Jadwal Kuliah - TRPL REG 24 // jam-hari bisa custom nanti
+                            Simple task manager thingy
                         </p>
                     </div>
 
@@ -945,7 +928,7 @@ export default function TrplReg24() {
 
                     {renderCalendar()}
 
-                    {renderTable(`TRPL REG 24 - Semester ${semester} (${kategori}) / SKS ${sks_semesterini}`, schedule)}
+                    {renderTable(`Jadwal`, schedule)}
 
 
 
