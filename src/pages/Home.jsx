@@ -86,7 +86,7 @@ export default function TrplReg24() {
     const [selected, setSelected] = useState(null);
 
     const days = [1, 2, 3, 4, 5];
-    const hours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+    const hours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
 
     const statusStyles = {

@@ -246,7 +246,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
 
           {editMode && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {/* BULAN */}
               <div>
                 <label>Bulan</label>
@@ -293,7 +293,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
         {editMode || !data ? (
           <>
-            <label>Jam</label>
+            <label>Tanggal</label>
             <div className="flex flex-wrap gap-2 mt-2 mb-3">
               {availableDates.map((day) => {
                 const isSelected = tanggal.includes(day);
@@ -343,7 +343,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         {/* EDIT TOGGLE */}
         {/* USER CONTROLS */}
         {user && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mt-2">
             {/* NOT IN EDIT MODE */}
             {!editMode && (
               <>
