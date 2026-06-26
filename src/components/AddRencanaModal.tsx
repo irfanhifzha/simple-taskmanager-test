@@ -142,14 +142,32 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
       <h2>+ Tambah Rencana</h2>
 
       <form onSubmit={handleSubmit}>
-        <label htmlFor="title">📌 Title<span>*</span></label>
-        {/* TASK */}
-        <input
-          id="title"
-          placeholder="Title rencana..."
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="title">📌 Title<span>*</span></label>
+            <input className="w-full"
+              id="title"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              placeholder="Title rencana..."
+            />
+          </div>
+
+
+          <div>
+            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="" disabled hidden>Pilih Warna</option>
+              <option value="orange">Oranye</option>
+              <option value="red">Merah</option>
+              <option value="blue">Biru</option>
+              <option value="purple">Purple</option>
+              <option value="green">Hijau</option>
+              <option value="abu">Abu</option>
+            </select>
+          </div>
+
+        </div>
 
         <label htmlFor="desc">💬 Deskripsi</label>
         {/* CONTENT */}
@@ -162,19 +180,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
 
 
-        <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-        {/* TYPE */}
-        <select
-          id="tipe"
-          value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="" disabled hidden>Pilih Warna</option>
-          <option value="orange">Oranye</option>
-          <option value="red">Merah</option>
-          <option value="blue">Biru</option>
-          <option value="purple">Purple</option>
-          <option value="green">Hijau</option>
-          <option value="abu">Abu</option>
-        </select>
+        
 
 
 

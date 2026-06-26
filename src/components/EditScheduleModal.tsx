@@ -33,26 +33,40 @@ export default function EditScheduleModal({
   const [desc, setDesc] = useState("");
   const [note, setNote] = useState("");
 
+  const [editMode, setEditMode] = useState(false);
+
   const [showInvalid, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
 
 
+  const statusStyles: Record<string, string> = {
+    "blue": "bg-blue-600",
+    "red": "bg-red-600",
+    "green": "bg-green-600",
+    "orange": "bg-orange-600",
+    "purple": "bg-purple-500",
+    "abu": "bg-gray-500",
+  };
 
   // ✅ load existing data
   useEffect(() => {
-    if (open && data) {
-      setCourse(data.course || "");
-      setRoom(data.room || "");
-      setPeoples((data.peoples || []).join(", "));
-      setType(data.type || "");
-      setDayIndex(data.dayIndex || 1);
-      setSlots(data.slots || []);
-      setDesc(data.desc || "");
-      setNote(data.note || "");
+    const s = data?.schedule;
+
+    if (open && s) {
+      setCourse(s.course || "");
+      setRoom(s.room || "");
+      setPeoples((s.peoples || []).join(", "));
+      setType(s.type || "");
+      setDayIndex(s.dayIndex || 1);
+      setSlots(s.slots || []);
+      setDesc(s.desc || "");
+      setNote(s.note || "");
 
       isInitialLoad.current = true; // mark initial load
     }
+
+    setEditMode(false);
   }, [open, data]);
 
 
@@ -123,9 +137,9 @@ export default function EditScheduleModal({
       return;
     }
 
-    if (!data?.id) return;
+    if (!data?.schedule?.id) { setLoading(false); return; }
 
-    await updateDoc(doc(db, "schedules", data.id), {
+    await updateDoc(doc(db, "schedules", data.schedule.id), {
       course,
       room,
       peoples: peoples
@@ -146,135 +160,274 @@ export default function EditScheduleModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h2>Edit Jadwal</h2>
-      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Mengedit data: {data?.course || "notfound"}{" "}
-        [Hari {dayLabels[data?.dayIndex - 1] || "null"},
-        {" "}
-        {data?.slots?.length > 1
-          ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
-          : `Jam ${data?.slots?.at(0) ?? "?"}.00`
-        }
-        ]
-      </p>
+      <h2>Detail Jadwal</h2>
+
+
+      {editMode && (
+          <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+            Mengedit tugas: {data?.schedule?.course || "notfound"}{" "}
+            [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+            {" "}
+            {data?.schedule?.slots?.length > 1
+              ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+              : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
+            }
+            ]
+          </p>
+        )
+      }
 
 
       <form onSubmit={handleUpdate}>
-        <label htmlFor="task">📝 Judul<span>*</span></label>
-        <input
-          className="w-full"
-          id="task"
-          placeholder="Judul task"
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-        />
+
+        {editMode ? (<>
+          <label htmlFor="task">📝 Judul<span>*</span></label>
+          <input
+            className="w-full"
+            id="task"
+            placeholder="Judul task"
+            value={course}
+            onChange={(e) => setCourse(e.target.value)}
+          />
+        </>) : (<>
+          <label>📝 Judul</label>
+          <div className="flex mb-3 items-center pt-1">
+            <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.schedule?.type] || "bg-gray-200"}`}></div>
+            <div className="pt-1">{course}</div>
+          </div>
+        </>)}
+
+        {data?.schedule?.room && (
+          editMode ? (
+            <>
+              <label htmlFor="ruangan">🏢 Tempat</label>
+              <input
+                className="w-full"
+                id="ruangan"
+                placeholder="Ruangan"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+              />
+            </>
+          ) : (
+            <div>
+              <label>🏢 Tempat</label>
+              <p className="pt-1">{room}</p>
+            </div>
+          )
+        )}
+
+
+        {data?.schedule.peoples?.length > 0 && (
+          editMode ? (
+            <>
+              <label htmlFor="peoples">👥 Orang terkait</label>
+              <input
+                id="peoples"
+                placeholder="Related person (dipisah dengan koma)"
+                value={peoples}
+                onChange={(e) => setPeoples(e.target.value)}
+              />
+            </>
+          ) : (
+            <div>
+              <label>👥 Orang terkait</label>
+              <div className="mt-2 flex flsex-wrap gap-2  mb-4">
+                {peoples.split(",").map((peoples, index) => (
+                  <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
+                    {peoples}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        )}
+
+
+        {data?.schedule?.desc && (
+          editMode ? (
+            <>
+              <label htmlFor="desc">💬 Deskripsi</label>
+              <textarea
+                id="desc"
+                rows={3}
+                placeholder="Deskripsi task"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+            </>
+          ) : (
+            <div>
+              <label>💬 Deskripsi</label>
+              <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
+                <p className="mb-0! whitespace-pre-line">{desc}</p>
+              </div>
+            </div>
+          )
+        )}
+
+        {data?.schedule?.note && (
+          editMode ? (<>
+            <label htmlFor="note">📌 Note / Link URL</label>
+            <textarea
+              id="note"
+              placeholder="Note task / Link url"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </>)
+            : (
+              <div>
+                <label>📌 Note / Link URL</label>
+                <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
+                  <p className="mb-0! whitespace-pre-line text-blue-500">{note}</p>
+                </div>
+              </div>
+            )
+        )}
+
+
+        {editMode ? (<>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+            <div>
+              <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+              <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+                <option value="" disabled hidden>Pilih Warna</option>
+                <option value="green">Hijau</option>
+                <option value="blue">Biru</option>
+                <option value="red">Merah</option>
+                <option value="orange">Oranye</option>
+                <option value="purple">Purple</option>
+                <option value="abu">Abu</option>
+              </select>
+            </div>
 
 
 
-        <label htmlFor="ruangan">🏢 Tempat</label>
-        <input
-          className="w-full"
-          id="ruangan"
-          placeholder="Ruangan"
-          value={room}
-          onChange={(e) => setRoom(e.target.value)}
-        />
 
-        <label htmlFor="peoples">👥 Orang terkait</label>
-        <input
-          id="peoples"
-          placeholder="Related person (dipisah dengan koma)"
-          value={peoples}
-          onChange={(e) => setPeoples(e.target.value)}
-        />
-
-        <label htmlFor="desc">💬 Deskripsi</label>
-        <textarea
-          id="desc"
-          rows={3}
-          placeholder="Deskripsi task"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-        />
-
-        <label htmlFor="note">📌 Note / Link URL</label>
-        <textarea
-          id="note"
-          placeholder="Note task / Link url"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-          <div>
-            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="" disabled hidden>Pilih Warna</option>
-              <option value="green">Hijau</option>
-              <option value="blue">Biru</option>
-              <option value="red">Merah</option>
-              <option value="orange">Oranye</option>
-              <option value="purple">Purple</option>
-              <option value="abu">Abu</option>
-            </select>
+            <div>
+              <label htmlFor="hari">📅 Hari<span>*</span></label>
+              <select
+                className="w-full"
+                id="hari"
+                value={dayIndex}
+                onChange={(e) => setDayIndex(Number(e.target.value))}
+              >
+                <option value={0} disabled>Pilih Hari</option>
+                {days.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="hari">📅 Hari<span>*</span></label>
-            <select
-              className="w-full"
-              id="hari"
-              value={dayIndex}
-              onChange={(e) => setDayIndex(Number(e.target.value))}
-            >
-              <option value={0} disabled>Pilih Hari</option>
-              {days.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
 
+          <label htmlFor="jam">🕒 Jam<span>*</span></label>
 
-        <label htmlFor="jam">🕒 Jam<span>*</span></label>
-        <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
-        <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
-          {slotOptions.map((slot) => {
-            const key = `${dayIndex}-${slot}`;
-            const isBlocked = occupiedSlots.has(key);
-            const isSelected = slots.includes(slot);
 
-            return (
-              <div
-                key={slot}
-                onClick={() => toggleSlot(slot)}
-                className={`button-jam 
+          <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
+
+          <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
+            {slotOptions.map((slot) => {
+              const key = `${dayIndex}-${slot}`;
+              const isBlocked = occupiedSlots.has(key);
+              const isSelected = slots.includes(slot);
+
+              return (
+                <div
+                  key={slot}
+                  onClick={() => toggleSlot(slot)}
+                  className={`button-jam 
                   ${isBlocked ? "blocked" : "enabled"} 
                   ${isSelected && !isBlocked ? "selected" : ""}`}
-              >
-                {slot}
-              </div>
-            );
-          })}
-        </div>
+                >
+                  {slot}
+                </div>
+              );
+            })}
+          </div>
+        </>) : (
+          <div>
+            <label>🕒 Waktu</label>
+            <p className="pt-1">
+              Hari {days.find(d => d.value === dayIndex)?.label}, Jam{" "}
+              {slots.length > 1
+                ? `${Math.min(...slots)} - ${Math.max(...slots)}`
+                : `${slots[0]}`}
+            </p>
+          </div>
+        )
+        }
 
 
 
-        <button
-          onClick={handleUpdate}
-          disabled={isInvalid || loading}
-          style={{
-            marginTop: 12,
-            opacity: isInvalid || loading ? 0.5 : 1,
-            cursor: isInvalid || loading ? "not-allowed" : "pointer"
-          }}
-        >
-          {loading ? ("Loading...") : ("Simpan")}
-        </button>
+
+        {/* EDIT TOGGLE */}
+        {/* USER CONTROLS */}
+        {data?.login && (
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {/* NOT IN EDIT MODE */}
+            {!editMode && (
+              <>
+                <button
+                  onClick={() => {
+                    setEditMode(true);
+                  }}
+                >
+                  ✏️ Edit Mode
+                </button>
+
+                <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                  onClick={() => {
+
+                  }}
+                >
+                  <div>🗑️ Delete</div>
+                </button>
+              </>
+            )}
+
+            {/* EDIT MODE */}
+            {editMode && (
+              <>
+                <button
+                  onClick={() => {
+                    const s = data?.schedule;
+                    setCourse(s.course || "");
+                    setRoom(s.room || "");
+                    setPeoples((s.peoples || []).join(", "));
+                    setType(s.type || "");
+                    setDayIndex(s.dayIndex || 1);
+                    setSlots(s.slots || []);
+                    setDesc(s.desc || "");
+                    setNote(s.note || "");
+
+                    setEditMode(false);
+                  }}
+                >
+                  ❌ Cancel Edit
+                </button>
+
+                <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
+                  onClick={handleUpdate}
+                  disabled={isInvalid || loading}
+                  style={{
+                    opacity: isInvalid || loading ? 0.5 : 1,
+                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loading ? "Loading..." : "💾 Simpan"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+
       </form>
-    </Modal>
+    </Modal >
   );
 }

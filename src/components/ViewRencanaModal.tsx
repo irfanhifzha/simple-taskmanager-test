@@ -49,7 +49,14 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const [openDeleteRencana, setOpenDeleteRencana] = useState(false);
   const [selectedDelete, setSelectedDelete] = useState<any>(null);
 
-  const [originalData, setOriginalData] = useState<any>(null);
+  const statusStyles: Record<string, string> = {
+    "blue": "bg-blue-600",
+    "red": "bg-red-600",
+    "green": "bg-green-600",
+    "orange": "bg-orange-600",
+    "purple": "bg-purple-500",
+    "abu": "bg-gray-500",
+  };
 
   // AUTH
   useEffect(() => {
@@ -65,7 +72,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
       setTanggal(data.tanggal || []);
 
-      // ✅ convert array to start & end
       if (data.tanggal?.length > 0) {
         const sorted = [...data.tanggal].sort((a, b) => a - b);
 
@@ -79,6 +85,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       setType(data.type || "");
       setTask(data.task || "");
       setContent(data.content || "");
+
+
       setEditMode(false);
     }
   }, [open, data]);
@@ -183,7 +191,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           task,
           type,
           content,
-          createdAt: new Date(),
         });
       }
 
@@ -205,44 +212,23 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
         {/* <form onSubmit={handleSubmit} > */}
 
-          {!editMode ? (<label>📌 Title</label>) : (<label htmlFor="title">📌 Title<span>*</span></label>)}
 
-          {editMode || !data ? (
-            <input
-              id="title"
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              placeholder="Title rencana..."
-            />
-          ) : (
-            <p className="pt-1">{task}</p>
-          )}
-
-
-
-          {!editMode ? (<label>💬 Deskripsi</label>) : (<label htmlFor="desc">💬 Deskripsi</label>)}
-
-          {editMode || !data ? (
-            <textarea
-              id="desc"
-              rows={3}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Deskripsi rencana..."
-            />
-          ) : (
-            <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
-              <p className="whitespace-pre-line mb-0!">{content}</p>
+        {editMode ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+            <div>
+              <label htmlFor="title">📌 Title<span>*</span></label>
+              <input className="w-full"
+                id="title"
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                placeholder="Title rencana..."
+              />
             </div>
-          )}
 
 
-
-
-          {editMode && (
-            <>
+            <div>
               <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-              <select id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+              <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
                 <option value="" disabled hidden>Pilih Warna</option>
                 <option value="orange">Oranye</option>
                 <option value="red">Merah</option>
@@ -251,192 +237,244 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                 <option value="green">Hijau</option>
                 <option value="abu">Abu</option>
               </select>
-            </>
-          )}
+            </div>
 
-
-
-
-
-          {/* BULAN */}
-          <div>
-
-
-            {editMode && (
-              <div className="grid grid-cols-2 gap-4">
-                {/* BULAN */}
-                <div>
-                  <label htmlFor="bulan">Bulan<span>*</span></label>
-                  <select
-                    id="bulan"
-                    className="w-full"
-                    value={bulan}
-                    onChange={(e) => setBulan(Number(e.target.value))}
-                  >
-                    <option value={0} disabled hidden>Pilih Bulan</option>
-                    {months.map((m) => (
-                      <option key={m.value} value={m.value}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* TAHUN */}
-                <div>
-                  <label htmlFor="tahun">Tahun<span>*</span></label>
-
-                  {editMode || !data ? (
-                    <input
-                      id="tahun"
-                      className="w-full"
-                      value={tahun}
-                      onChange={(e) => setTahun(Number(e.target.value))}
-                    />
-                  ) : (
-                    <p className="pt-1">{tahun}</p>
-                  )}
-                </div>
-
-
-
-              </div>
-            )}
           </div>
 
+        ) : (<>
+          <label>📌 Title</label>
+          <div className="flex mb-3 items-center pt-1">
+            <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.type] || "bg-gray-200"}`}></div>
+            <div className="pt-1">{task}</div>
+          </div>
+        </>
+        )}
+
+
+
+        {!editMode ? (<label>💬 Deskripsi</label>) : (<label htmlFor="desc">💬 Deskripsi</label>)}
+
+        {editMode || !data ? (
+          <textarea
+            id="desc"
+            rows={3}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Deskripsi rencana..."
+          />
+        ) : (
+          <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+            <p className="whitespace-pre-line mb-0!">{content}</p>
+          </div>
+        )}
 
 
 
 
 
 
-          {editMode || !data ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-                <div>
-                  <label>Dari Tgl<span>*</span></label>
-                  <select
-                    className="w-full"
-                    value={startTanggal}
-                    onChange={(e) => setStartTanggal(e.target.value)}
-                  >
-                    <option value="" disabled hidden>Pilih Start</option>
-                    {availableDates.map((d) => (
-                      <option key={d.day} value={d.day}>
-                        {d.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
-                <div>
-                  <label className="mt-3">Sampai Tgl<span>*</span></label>
-                  <select
-                    className="w-full"
-                    value={endTanggal}
-                    onChange={(e) => setEndTanggal(e.target.value)}
-                  >
-                    <option value="" disabled hidden>Pilih End</option>
-                    {availableDates.map((d) => (
-                      <option key={d.day} value={d.day}>
-                        {d.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
+
+
+        {/* BULAN */}
+        <div>
+
+
+          {editMode && (
+            <div className="grid grid-cols-2 gap-4">
+              {/* BULAN */}
+              <div>
+                <label htmlFor="bulan">Bulan<span>*</span></label>
+                <select
+                  id="bulan"
+                  className="w-full"
+                  value={bulan}
+                  onChange={(e) => setBulan(Number(e.target.value))}
+                >
+                  <option value={0} disabled hidden>Pilih Bulan</option>
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </>
-          ) : (
-            <>
-              <label>📅 Waktu</label>
-              <p className="py-2">
-                {tanggal.length > 0 && (
-                  <>
-                    {tanggal.length === 1
-                      ? tanggal[0]
-                      : `${Math.min(...tanggal)}-${Math.max(...tanggal)}`}{" "}
-                    {months.find(m => m.value === bulan)?.label || bulan} {tahun}
-                  </>
+
+              {/* TAHUN */}
+              <div>
+                <label htmlFor="tahun">Tahun<span>*</span></label>
+
+                {editMode || !data ? (
+                  <input
+                    id="tahun"
+                    className="w-full"
+                    value={tahun}
+                    onChange={(e) => setTahun(Number(e.target.value))}
+                  />
+                ) : (
+                  <p className="pt-1">{tahun}</p>
                 )}
-              </p>
-            </>
-          )}
+              </div>
 
 
 
-
-
-
-
-
-          {/* EDIT TOGGLE */}
-          {/* USER CONTROLS */}
-          {user && (
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              {/* NOT IN EDIT MODE */}
-              {!editMode && (
-                <>
-                  <button
-                    onClick={() => {
-                      setOriginalData({
-                        bulan,
-                        tahun,
-                        tanggal,
-                        type,
-                        task,
-                        content,
-                      });
-
-                      setEditMode(true);
-                    }}
-                  >
-                    ✏️ Edit Mode
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setSelectedDelete(data);
-                      setOpenDeleteRencana(true);
-                    }}
-                  >
-                    <div>🗑️ Delete</div>
-                  </button>
-                </>
-              )}
-
-              {/* EDIT MODE */}
-              {editMode && (
-                <>
-                  <button
-                    onClick={() => {
-                      if (originalData) {
-                        setBulan(originalData.bulan);
-                        setTahun(originalData.tahun);
-                        setTanggal(originalData.tanggal);
-                        setType(originalData.type);
-                        setTask(originalData.task);
-                        setContent(originalData.content);
-                      }
-                      setEditMode(false);
-                    }}
-                  >
-                    ❌ Cancel Edit
-                  </button>
-
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isInvalid || loading}
-                    style={{
-                      opacity: isInvalid || loading ? 0.5 : 1,
-                      cursor: isInvalid || loading ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    {loading ? "Loading..." : "💾 Simpan"}
-                  </button>
-                </>
-              )}
             </div>
           )}
+        </div>
+
+
+
+
+
+
+
+        {editMode || !data ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+              <div>
+                <label>Dari Tgl<span>*</span></label>
+                <select
+                  className="w-full"
+                  value={startTanggal}
+                  onChange={(e) => setStartTanggal(e.target.value)}
+                >
+                  <option value="" disabled hidden>Pilih Start</option>
+                  {availableDates.map((d) => (
+                    <option key={d.day} value={d.day}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mt-3">Sampai Tgl<span>*</span></label>
+                <select
+                  className="w-full"
+                  value={endTanggal}
+                  onChange={(e) => setEndTanggal(e.target.value)}
+                >
+                  <option value="" disabled hidden>Pilih End</option>
+                  {availableDates.map((d) => (
+                    <option key={d.day} value={d.day}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <label>📅 Waktu</label>
+            <p className="py-2">
+              {tanggal.length > 0 && (() => {
+                const monthLabel = months.find(m => m.value === bulan)?.label || bulan;
+
+                if (tanggal.length === 1) {
+                  const date = new Date(tahun, bulan - 1, tanggal[0]);
+                  const hari = date.toLocaleDateString("id-ID", {
+                    weekday: "long",
+                  });
+
+                  return `${hari}, ${tanggal[0]} ${monthLabel} ${tahun}`;
+                }
+
+                const firstDate = new Date(tahun, bulan - 1, Math.min(...tanggal));
+                const lastDate = new Date(tahun, bulan - 1, Math.max(...tanggal));
+
+                const firstHari = firstDate.toLocaleDateString("id-ID", {
+                  weekday: "long",
+                });
+                const lastHari = lastDate.toLocaleDateString("id-ID", {
+                  weekday: "long",
+                });
+
+                return `${firstHari} - ${lastHari}, ${Math.min(...tanggal)}-${Math.max(...tanggal)} ${monthLabel} ${tahun}`;
+              })()}
+            </p>
+          </>
+        )}
+
+
+
+
+
+
+
+
+        {/* EDIT TOGGLE */}
+        {/* USER CONTROLS */}
+        {user && (
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            {/* NOT IN EDIT MODE */}
+            {!editMode && (
+              <>
+                <button
+                  onClick={() => {
+                    setEditMode(true);
+                  }}
+                >
+                  ✏️ Edit Mode
+                </button>
+
+                <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                  onClick={() => {
+                    setSelectedDelete(data);
+                    setOpenDeleteRencana(true);
+                  }}
+                >
+                  <div>🗑️ Delete</div>
+                </button>
+              </>
+            )}
+
+            {/* EDIT MODE */}
+            {editMode && (
+              <>
+                <button
+                  onClick={() => {
+
+                    setBulan(data.bulan || today.getMonth() + 1);
+                    setTahun(data.tahun || today.getFullYear());
+
+                    setTanggal(data.tanggal || []);
+
+                    if (data.tanggal?.length > 0) {
+                      const sorted = [...data.tanggal].sort((a, b) => a - b);
+
+                      setStartTanggal(sorted[0]);
+                      setEndTanggal(sorted[sorted.length - 1]);
+                    } else {
+                      setStartTanggal("");
+                      setEndTanggal("");
+                    }
+
+                    setType(data.type || "");
+                    setTask(data.task || "");
+                    setContent(data.content || "");
+
+                    setEditMode(false);
+                  }}
+                >
+                  ❌ Cancel Edit
+                </button>
+
+                <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
+                  onClick={handleSubmit}
+                  disabled={isInvalid || loading}
+                  style={{
+                    opacity: isInvalid || loading ? 0.5 : 1,
+                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loading ? "Loading..." : "💾 Simpan"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* </form> */}
 

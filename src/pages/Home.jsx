@@ -121,9 +121,11 @@ export default function Home() {
 
     // auth
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+        const unsub = onAuthStateChanged(auth, (u) => {setUser(u); console.log(u);});
         return () => unsub();
     }, []);
+
+    const isLoggedIn = !!user;
 
 
 
@@ -224,9 +226,8 @@ export default function Home() {
                                             {s && (
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
-                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4
-                                                ${colorClasses[s.type] ?? "border border-black bg-white"
-                                                    }`}>
+                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer active:scale-97 active:brightness-103" : "" } ${colorClasses[s.type] ?? "border border-black bg-white"}`}
+                                                onClick={!editMode ? () => {setSelected({schedule: s, login: isLoggedIn}); setOpenEdit(true);} : undefined}>
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
                                                     {liveMatkul && liveMatkul.id === s.id && (
