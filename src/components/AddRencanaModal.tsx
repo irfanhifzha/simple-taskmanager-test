@@ -133,7 +133,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
       <label>Deskripsi<span>*</span></label>
       {/* CONTENT */}
-      <input
+      <textarea
         placeholder="Deskripsi rencana..."
         value={content}
         onChange={(e) => setContent(e.target.value)}

@@ -44,7 +44,7 @@ export default function EditScheduleModal({
       setCourse(data.course || "");
       setRoom(data.room || "");
       setPeoples((data.peoples || []).join(", "));
-      setType(data.type || "teori");
+      setType(data.type || "");
       setDayIndex(data.dayIndex || 1);
       setSlots(data.slots || []);
       setNote(data.note || "");
@@ -109,8 +109,7 @@ export default function EditScheduleModal({
 
   const isInvalid =
     !course.trim() ||
-    !room.trim() ||
-    !peoples.trim() ||
+    dayIndex === 0 ||
     slots.length === 0;
 
 

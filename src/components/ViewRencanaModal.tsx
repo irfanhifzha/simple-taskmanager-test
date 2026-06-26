@@ -34,8 +34,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const [tahun, setTahun] = useState<number>(today.getFullYear());
 
   const [type, setType] = useState("");
-  const [program, setProgram] = useState("");
-  const [semester, setSemester] = useState<number>(0);
 
   const [tanggal, setTanggal] = useState<number[]>([]);
   const [content, setContent] = useState("");
@@ -60,8 +58,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   // LOAD DATA
   useEffect(() => {
     if (open && data) {
-      setProgram(data.program || "");
-      setSemester(data.semester || 0);
       setBulan(data.bulan || today.getMonth() + 1);
       setTahun(data.tahun || today.getFullYear());
       setTanggal(data.tanggal || []);
@@ -85,8 +81,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   }, [bulan, tahun]);
 
   const isInvalid =
-    !program.trim() ||
-    semester === 0 ||
     !task.trim() ||
     !content.trim() ||
     !type.trim() ||
@@ -116,8 +110,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     try {
       if (data?.id) {
         await updateDoc(doc(db, "calendar", data.id), {
-          program,
-          semester,
           bulan,
           tahun,
           tanggal,
@@ -127,8 +119,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         });
       } else {
         await addDoc(collection(db, "calendar"), {
-          program,
-          semester,
           bulan,
           tahun,
           tanggal,
@@ -155,40 +145,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         <h2>Detail Rencana</h2>
 
 
-
-        {/* <label>Program</label>
-
-        {editMode || !data ? (
-          <select
-            value={program}
-            onChange={(e) => setProgram(e.target.value)}
-          >
-            <option value="" disabled>Pilih Program Studi</option>
-            <option value="TRPL">TRPL</option>
-            <option value="BISDIG">BISDIG-Reguler</option>
-            <option value="BISDIGeks">BISDIG-Eksekutif</option>
-          </select>
-        ) : (
-          <p className="pt-1">{program}</p>
-        )}
-
-
-
-        <label>Semester</label>
-
-        {editMode || !data ? (
-          <select
-            value={semester}
-            onChange={(e) => setSemester(Number(e.target.value))}
-          >
-            <option value={0} disabled>Pilih Semester</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        ) : (
-          <p className="pt-1">{semester}</p>
-        )} */}
 
 
         { !editMode ? (<label>Title</label>) : (<label>Title<span>*</span></label>)}
@@ -350,8 +306,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                 <button
                   onClick={() => {
                     setOriginalData({
-                      program,
-                      semester,
                       bulan,
                       tahun,
                       tanggal,
@@ -385,8 +339,6 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                 <button
                   onClick={() => {
                     if (originalData) {
-                      setProgram(originalData.program);
-                      setSemester(originalData.semester);
                       setBulan(originalData.bulan);
                       setTahun(originalData.tahun);
                       setTanggal(originalData.tanggal);
