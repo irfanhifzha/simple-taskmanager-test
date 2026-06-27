@@ -824,7 +824,7 @@ export default function Home() {
                                         })}
 
                                         {/* LONG EVENT LAYER — scoped to THIS week, sits below the date row */}
-                                        <div className="absolute inset-0">
+                                        <div className="absolute inset-0 pointer-events-none">
                                             {weekLongEvents.map((item, i) => {
                                                 return (
                                                     <div
@@ -840,7 +840,7 @@ export default function Home() {
                                                         }}
                                                         className={`absolute ${item.isStart ? "ps-1.5" : ""} ${item.isEnd ? "pe-1.5" : ""}`}
                                                     >
-                                                        <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}>
+                                                        <div className={`h-7 px-2 ps-3 pointer-events-auto flex items-center justify-start text-white shadow cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}>
                                                             {item.isStart && (
                                                                 <button
                                                                     onClick={(e) => {
@@ -861,7 +861,7 @@ export default function Home() {
 
 
                                                         {item.peoples.length > 0 && item.isStart && (
-                                                            <div className="h-8 w-full flex gap-4 text-[10px] mt-1 ps-6 pe-2 overflow-hidden">
+                                                            <div className="h-8 w-full flex gap-4 text-[10px] mt-1 ps-6 pe-2 overflow-hidden pointer-events-auto">
 
                                                                 <div className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:translate-x-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"} hover:brightness-105 active:brightness-80 active:scale-99`}>
                                                                     {item.peoples.map((person, idx) => (
