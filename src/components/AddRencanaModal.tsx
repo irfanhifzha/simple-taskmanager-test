@@ -33,6 +33,8 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
   const [notes, setNotes] = useState("");
   const [task, setTask] = useState("");
 
+  const [peoples, setPeoples] = useState("");
+
   const [_, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -54,8 +56,9 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
       const day = i + 1;
       const date = new Date(year, month - 1, day);
 
-      // Week calculation (simple: every 7 days = new week)
-      const week = Math.floor(i / 7) + 1;
+      const firstDayOffset = new Date(year, month - 1, 1).getDay();
+
+      const week = Math.floor((i + firstDayOffset) / 7) + 1;
 
       return {
         day,
@@ -66,7 +69,35 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     });
   };
 
+
   const availableDates = getDaysInMonth(bulan, tahun);
+
+  const filteredEndDates = availableDates.filter(
+    (d) => !startTanggal || d.day >= Number(startTanggal)
+  );
+
+  
+
+  useEffect(() => {
+    if (startTanggal && endTanggal) {
+      const start = Number(startTanggal);
+      const end = Number(endTanggal);
+
+      if (start <= end) {
+        const range = Array.from(
+          { length: end - start + 1 },
+          (_, i) => start + i
+        );
+
+        setTanggal(range);
+      } else {
+        setTanggal([]);
+      }
+    } else {
+      setTanggal([]);
+    }
+  }, [startTanggal, endTanggal]);
+
 
 
   useEffect(() => {
@@ -100,19 +131,12 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     onClose();
   };
 
-  const toggleDate = (day: number) => {
-    setTanggal((prev) =>
-      prev.includes(day)
-        ? prev.filter((d) => d !== day)
-        : [...prev, day]
-    );
-  };
+
 
 
   // ===== SUBMIT =====
   const handleSubmit = async () => {
     if (isInvalid) {
-      setShowInvalid(true);
       return;
     }
 
@@ -127,6 +151,10 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         type,
         content,
         notes,
+        peoples: peoples
+          .split(",")
+          .map((l: string) => l.trim())
+          .filter(Boolean),
       });
 
       onSuccess();
@@ -170,6 +198,21 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
         </div>
 
+
+
+        <label htmlFor="peoples">👥 Pihak Terkait</label>
+        <input
+          id="peoples"
+          placeholder="Individu 1,.. (dipisah dengan koma)"
+          value={peoples}
+          onChange={(e) => setPeoples(e.target.value)}
+        />
+
+
+
+
+
+
         <label htmlFor="desc">💬 Deskripsi</label>
         {/* CONTENT */}
         <textarea rows={3}
@@ -190,7 +233,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
 
 
-        
+
 
 
 
@@ -248,7 +291,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
               onChange={(e) => setEndTanggal(e.target.value)}
             >
               <option value="" disabled hidden>Pilih End</option>
-              {availableDates.map((d) => (
+              {filteredEndDates.map((d) => (
                 <option key={d.day} value={d.day}>
                   {d.label}
                 </option>
@@ -274,6 +317,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
           {loading ? "⏳ Loading..." : "💾 Simpan"}
         </button>
       </form>
-    </Modal>
+    </Modal >
   );
 }

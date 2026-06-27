@@ -42,6 +42,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const [notes, setNotes] = useState("");
   const [task, setTask] = useState("");
 
+  const [peoples, setPeoples] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -87,6 +89,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       setTask(data.task || "");
       setContent(data.content || "");
       setNotes(data.notes || "");
+      setPeoples((data.peoples || []).join(", "));
 
 
       setEditMode(false);
@@ -111,8 +114,9 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       const day = i + 1;
       const date = new Date(year, month - 1, day);
 
-      // Week calculation (simple: every 7 days = new week)
-      const week = Math.floor(i / 7) + 1;
+      const firstDayOffset = new Date(year, month - 1, 1).getDay();
+
+      const week = Math.floor((i + firstDayOffset) / 7) + 1;
 
       return {
         day,
@@ -123,7 +127,14 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     });
   };
 
+
   const availableDates = getDaysInMonth(bulan, tahun);
+
+  const filteredEndDates = availableDates.filter(
+    (d) => !startTanggal || d.day >= Number(startTanggal)
+  );
+
+
 
   useEffect(() => {
     if (startTanggal && endTanggal) {
@@ -159,15 +170,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     setEditMode(false);
   };
 
-  const toggleDate = (day: number) => {
-    if (!editMode && data) return;
 
-    setTanggal((prev) =>
-      prev.includes(day)
-        ? prev.filter((d) => d !== day)
-        : [...prev, day]
-    );
-  };
 
   // CREATE / UPDATE
   const handleSubmit = async () => {
@@ -185,6 +188,10 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           type,
           content,
           notes,
+          peoples: peoples
+            .split(",")
+            .map((l: string) => l.trim())
+            .filter(Boolean),
         });
       } else {
         await addDoc(collection(db, "calendar"), {
@@ -195,6 +202,10 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           type,
           content,
           notes,
+          peoples: peoples
+            .split(",")
+            .map((l: string) => l.trim())
+            .filter(Boolean),
         });
       }
 
@@ -255,7 +266,30 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         )}
 
 
-
+        {editMode ? (
+          <>
+            <label htmlFor="peoples">👥 Pihak Terkait</label>
+            <input
+              id="peoples"
+              placeholder="Individu 1,.. (dipisah dengan koma)"
+              value={peoples}
+              onChange={(e) => setPeoples(e.target.value)}
+            />
+          </>
+        ) : (
+          data?.peoples?.length > 0 && (
+            <div>
+              <label>👥 Pihak Terkait</label>
+              <div className="mt-2 flex flex-wrap gap-2  mb-4">
+                {peoples.split(",").map((peoples, index) => (
+                  <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
+                    {peoples}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        )}
 
 
         {editMode || !data ? (<>
@@ -384,7 +418,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                   onChange={(e) => setEndTanggal(e.target.value)}
                 >
                   <option value="" disabled hidden>Pilih End</option>
-                  {availableDates.map((d) => (
+                  {filteredEndDates.map((d) => (
                     <option key={d.day} value={d.day}>
                       {d.label}
                     </option>

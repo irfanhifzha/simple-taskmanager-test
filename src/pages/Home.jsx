@@ -76,12 +76,12 @@ export default function Home() {
     };
 
     const statusBorder = {
-        "blue": "bg-blue-600 before:border-t-blue-600",
-        "red": "bg-red-600 before:border-t-red-600",
-        "green": "bg-green-600 before:border-t-green-600",
-        "orange": "bg-orange-600 before:border-t-orange-600",
-        "purple": "bg-purple-500 before:border-t-purple-500",
-        "abu": "bg-gray-500 before:border-t-gray-500",
+        "green": "bg-green-600 before:border-t-green-600 [&_div]:bg-green-800/50",
+        "blue": "bg-blue-600 before:border-t-blue-600 [&_div]:bg-blue-800",
+        "red": "bg-red-600 before:border-t-red-600 [&_div]:bg-red-800/50",
+        "orange": "bg-orange-600 before:border-t-orange-600 [&_div]:bg-orange-800/50",
+        "purple": "bg-purple-500 before:border-t-purple-500 [&_div]:bg-purple-700/60",
+        "abu": "bg-gray-500 before:border-t-gray-500 [&_div]:bg-gray-700/50",
     };
 
     const colorClasses = {
@@ -554,7 +554,11 @@ export default function Home() {
 
 
     const longEvents = [];
-    const rowLevels = {};
+    const rowOffsets = {};
+
+    const GAP_STACK_NORMAL = 32;
+    const GAP_STACK_PIC = 70;
+    const DATE_AREA_HEIGHT = 44;
 
     calendar
         .filter(
@@ -577,14 +581,21 @@ export default function Home() {
             const startRow = Math.floor(startIndex / 7);
             const endRow = Math.floor(endIndex / 7);
 
-            // pick one stack level shared across every week this event spans,
-            // so the bar stays at the same vertical position as it continues
-            let stackLevel = 0;
+            const eventHeight =
+                item.peoples?.length > 0
+                    ? GAP_STACK_PIC
+                    : GAP_STACK_NORMAL;
+
+            // Find the largest occupied offset among every week this event spans
+            let topOffset = 0;
+
             for (let r = startRow; r <= endRow; r++) {
-                stackLevel = Math.max(stackLevel, rowLevels[r] || 0);
+                topOffset = Math.max(topOffset, rowOffsets[r] || 0);
             }
+
+            // Reserve space in every affected week
             for (let r = startRow; r <= endRow; r++) {
-                rowLevels[r] = stackLevel + 1;
+                rowOffsets[r] = topOffset + eventHeight + 5;
             }
 
             // create one bar SEGMENT per week row it passes through
@@ -601,7 +612,7 @@ export default function Home() {
                     row,
                     col: segStartIndex - rowStartIndex,
                     span: segEndIndex - segStartIndex + 1,
-                    stackLevel,
+                    topOffset,
                     isStart: row === startRow,
                     isEnd: row === endRow,
                 });
@@ -717,19 +728,20 @@ export default function Home() {
                                     (e) => e.row === weekIdx
                                 );
 
-                                const stackCount = weekLongEvents.length > 0
-                                    ? Math.max(...weekLongEvents.map((e) => e.stackLevel)) + 1
-                                    : 0;
+                                const longEventsAreaHeight =
+                                    weekLongEvents.length > 0
+                                        ? Math.max(
+                                            ...weekLongEvents.map(
+                                                e =>
+                                                    15 + e.topOffset +
+                                                    (e.peoples?.length > 0
+                                                        ? GAP_STACK_PIC
+                                                        : GAP_STACK_NORMAL)
+                                            )
+                                        )
+                                        : 0;
 
-                                const longEventsAreaHeight = stackCount * 86;  // Normal = 64 | PIC = 86
                                 const cellWidth = 100 / 7;
-
-                                const GAP_STACK = 70;  // Normal = 32 | PIC = 70
-
-                                // fixed height reserved for the date number row — date is NEVER
-                                // pushed down, only the content below it is
-                                const DATE_AREA_HEIGHT = 44;
-
 
                                 return (
                                     <div
@@ -812,56 +824,76 @@ export default function Home() {
                                         })}
 
                                         {/* LONG EVENT LAYER — scoped to THIS week, sits below the date row */}
-                                        <div className="absolute inset-0 pointer-events-none">
-                                            {weekLongEvents.map((item, i) => (<>
-                                                <div className="absolute px-1.5"
-                                                    key={`${item.id}-${item.row}-${i}`}
-                                                    onClick={() => {
-                                                        setSelected_cal(item);
-                                                        setOpenViewRencana(true);
-                                                    }}
-                                                    style={{
-                                                        top: `${DATE_AREA_HEIGHT + item.stackLevel * GAP_STACK}px`,
-                                                        left: `${item.col * cellWidth}%`,
-                                                        width: `${item.span * cellWidth}%`
-                                                    }}
-                                                >
-                                                    <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow pointer-events-auto cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}>
-                                                        {item.isStart && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelected_cal(item);
-                                                                    setOpenViewRencana(true);
-                                                                }}
-                                                                className="text-sm cursor-pointer overflow-hidden"
-                                                            >
-                                                                <span className="block truncate text-xs select-text">
-                                                                    {item.task}
-                                                                </span>
-                                                            </button>
+                                        <div className="absolute inset-0">
+                                            {weekLongEvents.map((item, i) => {
+                                                return (
+                                                    <div
+                                                        key={`${item.id}-${item.row}-${i}`}
+                                                        onClick={() => {
+                                                            setSelected_cal(item);
+                                                            setOpenViewRencana(true);
+                                                        }}
+                                                        style={{
+                                                            top: `${DATE_AREA_HEIGHT + item.topOffset}px`,
+                                                            left: `${item.col * cellWidth}%`,
+                                                            width: `${item.span * cellWidth}%`
+                                                        }}
+                                                        className={`absolute ${item.isStart ? "ps-1.5" : ""} ${item.isEnd ? "pe-1.5" : ""}`}
+                                                    >
+                                                        <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}>
+                                                            {item.isStart && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSelected_cal(item);
+                                                                        setOpenViewRencana(true);
+                                                                    }}
+                                                                    className="text-sm cursor-pointer overflow-hidden"
+                                                                >
+                                                                    <span className="block truncate text-xs select-text">
+                                                                        {item.task}
+                                                                    </span>
+                                                                </button>
+                                                            )}
+
+
+                                                        </div>
+
+
+                                                        {item.peoples.length > 0 && item.isStart && (
+                                                            <div className="h-8 w-full flex gap-4 text-[10px] mt-1 ps-6 pe-2 overflow-hidden">
+
+                                                                <div className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:translate-x-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"} hover:brightness-105 active:brightness-80 active:scale-99`}>
+                                                                    {item.peoples.map((person, idx) => (
+                                                                    <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
+                                                                        {person}
+                                                                    </div>
+
+                                                                ))}
+                                                                </div>
+
+                                                            </div>
                                                         )}
 
 
+                                                        {/* {item.peoples.map((person, idx) => (
+                                                                    <div key={idx} className="truncate min-w-0 w-full px-2 py-0.5 rounded-md">
+                                                                        {person}
+                                                                    </div>
+
+                                                                ))}</div> */}
+
+                                                        {/* <div className="truncate min-w-0 w-full px-2 py-0.5 rounded-md">
+                                                                        {(item.peoples || []).join(", ")}
+                                                                    </div> */}
+
+
+
                                                     </div>
 
-                                                    <div className="h-7 w-full flex gap-4 text-xs mt-1 px-5 pointer-events-auto [&_div]:cursor-pointer [&_div]:hover:translate-x-0.5">
-                                                        <div className={`relative flex items-center w-fit px-3 py-2 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"}`}>
-                                                            <p className="select-text">Person 1</p>
-                                                        </div>
 
-                                                        <div className={`relative flex items-center w-fit px-3 py-2 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"}`}>
-                                                            <p className="select-text">Person 2</p>
-                                                        </div>
-                                                    </div>
-
-
-
-
-                                                </div>
-
-
-                                            </>))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );
