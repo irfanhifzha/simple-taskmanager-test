@@ -18,13 +18,17 @@ textarea {
 input:-webkit-autofill,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
-  -webkit-text-fill-color: #000; /* text color */
-  -webkit-box-shadow: 0 0 0px 1000px white inset; /* background fix */
-  transition: background-color 9999s ease-out 0s; /* prevents flash */
+  -webkit-text-fill-color: #000;
+  /* text color */
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  /* background fix */
+  transition: background-color 9999s ease-out 0s;
+  /* prevents flash */
 }
 
 
-html, body {
+html,
+body {
   /* width: 100vw; */
   margin: 0;
   padding: 0;
@@ -50,9 +54,9 @@ label {
   color: #6b7280;
 }
 
-  label span {
-    color: #9b2c2c;
-  }
+label span {
+  color: #9b2c2c;
+}
 
 /* Base style for input & select */
 input,
@@ -108,7 +112,7 @@ textarea {
   padding: 10px 12px;
   font-size: 16px;
   font-family: inherit;
-  
+
   margin: 3px 0 10px 0;
   color: #222;
   background-color: #f6f6f6;
@@ -128,9 +132,9 @@ textarea {
 select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, #888 50%),
-                    linear-gradient(135deg, #888 50%, transparent 50%);
+    linear-gradient(135deg, #888 50%, transparent 50%);
   background-position: calc(100% - 18px) calc(1em + 2px),
-                       calc(100% - 13px) calc(1em + 2px);
+    calc(100% - 13px) calc(1em + 2px);
   background-size: 5px 5px;
   background-repeat: no-repeat;
 }
@@ -146,8 +150,10 @@ select {
   align-items: center;
   justify-content: center;
 
-  width: 40px;          /* consistent rectangle width */
-  height: 40px;              /* consistent height */
+  width: 40px;
+  /* consistent rectangle width */
+  height: 40px;
+  /* consistent height */
 
   border-radius: 8px;
   border: 1px solid #d1d5db;
@@ -166,7 +172,7 @@ select {
 .button-jam.enabled:hover,
 .button-jam.selected:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.10);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.10);
 }
 
 /* ENABLED */
@@ -200,13 +206,36 @@ select {
 
 
 @keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+@keyframes fadeOverlay {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

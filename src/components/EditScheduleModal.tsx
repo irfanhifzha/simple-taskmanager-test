@@ -164,17 +164,17 @@ export default function EditScheduleModal({
 
 
       {editMode && (
-          <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-            Mengedit tugas: {data?.schedule?.course || "notfound"}{" "}
-            [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
-            {" "}
-            {data?.schedule?.slots?.length > 1
-              ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
-              : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
-            }
-            ]
-          </p>
-        )
+        <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+          Mengedit: {data?.schedule?.course || "notfound"}{" "}
+          [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.schedule?.slots?.length > 1
+            ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+            : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
+          }
+          ]
+        </p>
+      )
       }
 
 
@@ -189,49 +189,77 @@ export default function EditScheduleModal({
             value={course}
             onChange={(e) => setCourse(e.target.value)}
           />
-        </>) : (<>
-          <label>📝 Judul</label>
-          <div className="flex mb-3 items-center pt-1">
-            <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.schedule?.type] || "bg-gray-200"}`}></div>
-            <div className="pt-1">{course}</div>
-          </div>
-        </>)}
+        </>) : (
+          data?.schedule?.room ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+              <div>
+                <label>📝 Judul</label>
+                <div className="flex mb-3 items-center pt-1">
+                  <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.schedule?.type] || "bg-gray-200"}`}></div>
+                  <div className="pt-1">{course}</div>
+                </div>
+              </div>
 
-        {data?.schedule?.room && (
-          editMode ? (
-            <>
-              <label htmlFor="ruangan">🏢 Tempat</label>
-              <input
-                className="w-full"
-                id="ruangan"
-                placeholder="Ruangan"
-                value={room}
-                onChange={(e) => setRoom(e.target.value)}
-              />
-            </>
+
+              <div>
+                <label>🏢 Tempat</label>
+                <p className="pt-1">{data?.schedule?.room || ""}</p>
+              </div>
+            </div>
           ) : (
             <div>
-              <label>🏢 Tempat</label>
-              <p className="pt-1">{room}</p>
+              <label>📝 Judul</label>
+              <div className="flex mb-3 items-center pt-1">
+                <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.schedule?.type] || "bg-gray-200"}`}></div>
+                <div className="pt-1">{course}</div>
+              </div>
             </div>
           )
         )}
 
 
-        {data?.schedule.peoples?.length > 0 && (
-          editMode ? (
-            <>
-              <label htmlFor="peoples">👥 Orang terkait</label>
-              <input
-                id="peoples"
-                placeholder="Related person (dipisah dengan koma)"
-                value={peoples}
-                onChange={(e) => setPeoples(e.target.value)}
-              />
-            </>
-          ) : (
+        {editMode ? (
+          <>
+            <label htmlFor="ruangan">🏢 Tempat</label>
+            <input
+              className="w-full"
+              id="ruangan"
+              placeholder="Ruangan"
+              value={room}
+              onChange={(e) => setRoom(e.target.value)}
+            />
+          </>
+        ) : (
+          data?.schedule?.room && (
             <div>
-              <label>👥 Orang terkait</label>
+              <label>🕒 Waktu</label>
+              <p className="pt-1">
+                Hari {days.find(d => d.value === dayIndex)?.label}, Jam{" "}
+                {slots.length > 1
+                  ? `${Math.min(...slots)} - ${Math.max(...slots)}`
+                  : `${slots[0]}`}
+              </p>
+            </div>
+          )
+        )}
+
+
+
+
+        {editMode ? (
+          <>
+            <label htmlFor="peoples">👥 Pihak Terkait</label>
+            <input
+              id="peoples"
+              placeholder="Individu 1,.. (dipisah dengan koma)"
+              value={peoples}
+              onChange={(e) => setPeoples(e.target.value)}
+            />
+          </>
+        ) : (
+          data?.schedule?.peoples?.length > 0 && (
+            <div>
+              <label>👥 Pihak Terkait</label>
               <div className="mt-2 flex flsex-wrap gap-2  mb-4">
                 {peoples.split(",").map((peoples, index) => (
                   <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
@@ -244,19 +272,20 @@ export default function EditScheduleModal({
         )}
 
 
-        {data?.schedule?.desc && (
-          editMode ? (
-            <>
-              <label htmlFor="desc">💬 Deskripsi</label>
-              <textarea
-                id="desc"
-                rows={3}
-                placeholder="Deskripsi task"
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-              />
-            </>
-          ) : (
+
+        {editMode ? (
+          <>
+            <label htmlFor="desc">💬 Deskripsi</label>
+            <textarea
+              id="desc"
+              rows={4}
+              placeholder="Deskripsi task"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+            />
+          </>
+        ) : (
+          data?.schedule?.desc && (
             <div>
               <label>💬 Deskripsi</label>
               <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
@@ -266,17 +295,19 @@ export default function EditScheduleModal({
           )
         )}
 
-        {data?.schedule?.note && (
-          editMode ? (<>
-            <label htmlFor="note">📌 Note / Link URL</label>
-            <textarea
-              id="note"
-              placeholder="Note task / Link url"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </>)
-            : (
+
+        {editMode ? (<>
+          <label htmlFor="note">📌 Note / Link URL</label>
+          <textarea
+            rows={4}
+            id="note"
+            placeholder="Note task / Link url"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </>)
+          : (
+            data?.schedule?.note && (
               <div>
                 <label>📌 Note / Link URL</label>
                 <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
@@ -284,10 +315,10 @@ export default function EditScheduleModal({
                 </div>
               </div>
             )
-        )}
+          )}
 
 
-        {editMode ? (<>
+        {editMode && (<>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
             <div>
               <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
@@ -349,17 +380,7 @@ export default function EditScheduleModal({
               );
             })}
           </div>
-        </>) : (
-          <div>
-            <label>🕒 Waktu</label>
-            <p className="pt-1">
-              Hari {days.find(d => d.value === dayIndex)?.label}, Jam{" "}
-              {slots.length > 1
-                ? `${Math.min(...slots)} - ${Math.max(...slots)}`
-                : `${slots[0]}`}
-            </p>
-          </div>
-        )
+        </>)
         }
 
 
@@ -377,7 +398,7 @@ export default function EditScheduleModal({
                     setEditMode(true);
                   }}
                 >
-                  ✏️ Edit Mode
+                  ✏️ Edit
                 </button>
 
                 <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
@@ -408,7 +429,7 @@ export default function EditScheduleModal({
                     setEditMode(false);
                   }}
                 >
-                  ❌ Cancel Edit
+                  ❌ Cancel
                 </button>
 
                 <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"

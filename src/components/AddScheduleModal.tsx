@@ -153,10 +153,10 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
           onChange={(e) => setRoom(e.target.value)}
         />
 
-        <label htmlFor="peoples">👥 Orang terkait</label>
+        <label htmlFor="peoples">👥 Pihak Terkait</label>
         <input
           id="peoples"
-          placeholder="Related person (dipisah dengan koma)"
+          placeholder="Individu 1,.. (dipisah dengan koma)"
           value={peoples}
           onChange={(e) => setPeoples(e.target.value)}
         />
@@ -164,7 +164,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         <label htmlFor="desc">💬 Deskripsi</label>
         <textarea
           id="desc"
-          rows={3}
+          rows={4}
           placeholder="Deskripsi task"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
@@ -172,6 +172,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
         <label htmlFor="note">📌 Note / Link URL</label>
         <textarea
+          rows={4}
           id="note"
           placeholder="Note task / Link url"
           value={note}

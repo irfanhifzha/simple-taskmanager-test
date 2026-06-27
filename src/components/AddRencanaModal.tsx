@@ -30,6 +30,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
   const [tanggal, setTanggal] = useState<number[]>([]);
 
   const [content, setContent] = useState("");
+  const [notes, setNotes] = useState("");
   const [task, setTask] = useState("");
 
   const [_, setShowInvalid] = useState(false);
@@ -125,7 +126,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         task,
         type,
         content,
-        createdAt: new Date(),
+        notes,
       });
 
       onSuccess();
@@ -144,7 +145,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
           <div>
-            <label htmlFor="title">📌 Title<span>*</span></label>
+            <label htmlFor="title">📝 Title<span>*</span></label>
             <input className="w-full"
               id="title"
               value={task}
@@ -171,11 +172,20 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
         <label htmlFor="desc">💬 Deskripsi</label>
         {/* CONTENT */}
-        <textarea
+        <textarea rows={3}
           id="desc"
           placeholder="Deskripsi rencana..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
+        />
+
+        <label htmlFor="notes">📌 Note / Link URL</label>
+        {/* CONTENT */}
+        <textarea rows={3}
+          id="notes"
+          placeholder="Notes rencana..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
         />
 
 

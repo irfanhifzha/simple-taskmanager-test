@@ -75,13 +75,31 @@ export default function Home() {
         "abu": "bg-gray-500",
     };
 
+    const statusBorder = {
+        "blue": "bg-blue-600 before:border-t-blue-600",
+        "red": "bg-red-600 before:border-t-red-600",
+        "green": "bg-green-600 before:border-t-green-600",
+        "orange": "bg-orange-600 before:border-t-orange-600",
+        "purple": "bg-purple-500 before:border-t-purple-500",
+        "abu": "bg-gray-500 before:border-t-gray-500",
+    };
+
     const colorClasses = {
-        green: "border border-green-200 bg-green-100 text-green-700",
-        blue: "border border-blue-200 bg-blue-100 text-blue-800",
-        red: "border border-red-200 bg-red-100 text-red-700",
-        orange: "border border-orange-200 bg-orange-100 text-orange-700",
-        purple: "border border-purple-200 bg-purple-100 text-purple-700",
-        abu: "border border-gray-200 bg-gray-100 text-gray-700",
+        green: "border border-green-200 bg-green-100 text-green-700 active:bg-green-300/40 active:border-green-300",
+        blue: "border border-blue-200 bg-blue-100 text-blue-800 active:bg-blue-300/50 active:border-blue-300",
+        red: "border border-red-200 bg-red-100 text-red-700 active:bg-red-300/50 active:border-red-300",
+        orange: "border border-orange-200 bg-orange-100 text-orange-700 active:bg-orange-200 active:border-orange-300",
+        purple: "border border-purple-200 bg-purple-100 text-purple-700 active:bg-purple-200 active:border-purple-300",
+        abu: "border border-gray-300 bg-gray-200 text-gray-700 active:bg-gray-300 active:border-gray-300",
+    };
+
+    const colorOutline = {
+        green: "border border-green-200 bg-green-100 text-green-700 hover:border-green-600 active:border-green-600",
+        blue: "border border-blue-200 bg-blue-100 text-blue-800 hover:border-blue-400 active:border-blue-400",
+        red: "border border-red-200 bg-red-100 text-red-700 hover:border-red-400 active:border-red-400",
+        orange: "border border-orange-200 bg-orange-100 text-orange-700 hover:border-orange-400 active:border-orange-400",
+        purple: "border border-purple-200 bg-purple-100 text-purple-700 hover:border-purple-400 active:border-purple-400",
+        abu: "border border-gray-300 bg-gray-100 text-gray-700 hover:border-gray-500 active:border-gray-400",
     };
 
 
@@ -121,7 +139,7 @@ export default function Home() {
 
     // auth
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (u) => {setUser(u); console.log(u);});
+        const unsub = onAuthStateChanged(auth, (u) => { setUser(u); console.log(u); });
         return () => unsub();
     }, []);
 
@@ -226,8 +244,8 @@ export default function Home() {
                                             {s && (
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
-                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer active:scale-97 active:brightness-103" : "" } ${colorClasses[s.type] ?? "border border-black bg-white"}`}
-                                                onClick={!editMode ? () => {setSelected({schedule: s, login: isLoggedIn}); setOpenEdit(true);} : undefined}>
+                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer" : ""} ${colorClasses[s.type] ?? "border border-black bg-white"}`}
+                                                    onClick={!editMode ? () => { setSelected({ schedule: s, login: isLoggedIn }); setOpenEdit(true); } : undefined}>
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
                                                     {liveMatkul && liveMatkul.id === s.id && (
@@ -298,10 +316,10 @@ export default function Home() {
                                                     {/* CONTENT (UNCHANGED) */}
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
                                                     {s.room && (<p>{s.room}</p>)}
-                                                    {s.peoples && (
+                                                    {s.peoples.length > 0 && (
                                                         <div className="flex flex-wrap gap-1">
                                                             {s.peoples.map((person, idx) => (
-                                                                <div key={idx} className="px-2 py-1 rounded-lg bg-white w-fit">
+                                                                <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit">
                                                                     {person}
                                                                 </div>
                                                             ))}
@@ -311,125 +329,80 @@ export default function Home() {
                                                     {s.note && <p className="text-blue-500 whitespace-pre-line">{s.note}</p>}
 
                                                     {/* TUGAS */}
-                                                    {tugasVisibility && (
-                                                        <>
-                                                            {s.titleTugas && (
-                                                                <div className="bg-white px-3 py-2 mt-2 rounded-lg text-black"
-                                                                    style={{ display: "block" }}>
+                                                    {s.tugasAgain?.length > 0 && (
+                                                        <div className="space-y-2">
+                                                            {s.tugasAgain.map((t, index) => (
+                                                                <div
+                                                                    key={t.id}
+                                                                    className={`text-black! bg-white px-3 py-2 mt-2 rounded-lg text-black transition duration-200 eases ${!editMode ? "cursor-pointer active:scale-97 active:brightness-90 hover:-translate-y-0.5 bg-white!" : ""} ${colorOutline[s.type] ?? "border border-black bg-white"}`} onClick={!editMode ? (e) => { e.stopPropagation(); setSelected({ schedule: s, tugas: t, index, login: isLoggedIn }); setOpenTugasEditAgain(true); } : undefined}
+                                                                >
 
-                                                                    {/* adain lagi crud for tugas */}
+                                                                    {/* edit/delete */}
                                                                     {user && editMode && (
                                                                         <div className="flex gap-2 mb-3">
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    setSelected(s);
-                                                                                    setOpenTugasEdit(true);
+                                                                                    setSelected({
+                                                                                        schedule: s,
+                                                                                        tugas: t,
+                                                                                    });
+                                                                                    setOpenTugasEditAgain(true);
                                                                                 }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">edit</span>
+                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                            >
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                                    edit
+                                                                                </span>
                                                                             </button>
-
 
                                                                             <button
                                                                                 onClick={() => {
-                                                                                    setSelected(s);
-                                                                                    setOpenTugasDelete(true);
+                                                                                    setSelected({
+                                                                                        schedule: s,
+                                                                                        tugas: t,
+                                                                                    });
+                                                                                    setOpenTugasDeleteAgain(true);
                                                                                 }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600">
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">delete</span>
+                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
+                                                                            >
+                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
+                                                                                    delete
+                                                                                </span>
                                                                             </button>
-
                                                                         </div>
                                                                     )}
 
-
+                                                                    {/* title + status */}
                                                                     <div className="flex mb-2 font-bold text-xs items-center">
-                                                                        <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-1 align-middle ${statusStyles[s.statusTugas] || "bg-gray-200"}`}></div>
-                                                                        <div>{s.titleTugas}</div>
-                                                                    </div>
-                                                                    {s.h1Tugas && (<p className="font-bold mb-2 whitespace-pre-line">{s.h1Tugas}</p>)}
-                                                                    {s.note1Tugas && (<p className="mb-2 whitespace-pre-line">{s.note1Tugas}</p>)}
-                                                                    {s.note2Tugas && (<p className="mb-2 whitespace-pre-line">{s.note2Tugas}</p>)}
-                                                                </div>
-                                                            )}
-
-                                                            {s.tugasAgain?.length > 0 && (
-                                                                <div className="space-y-2">
-                                                                    {s.tugasAgain.map((t) => (
                                                                         <div
-                                                                            key={t.id}
-                                                                            className="bg-white px-3 py-2 rounded-lg text-black"
-                                                                        >
+                                                                            className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"}`} />
+                                                                        <div>{t.titleTugasAgain}</div>
+                                                                    </div>
 
-                                                                            {/* edit/delete */}
-                                                                            {user && editMode && (
-                                                                                <div className="flex gap-2 mb-3">
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            setSelected({
-                                                                                                schedule: s,
-                                                                                                tugas: t,
-                                                                                            });
-                                                                                            setOpenTugasEditAgain(true);
-                                                                                        }}
-                                                                                        className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                                    >
-                                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                                            edit
-                                                                                        </span>
-                                                                                    </button>
+                                                                    {t.h1TugasAgain && (
+                                                                        <p className="font-bold mb-2 whitespace-pre-line">
+                                                                            {t.h1TugasAgain}
+                                                                        </p>
+                                                                    )}
 
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            setSelected({
-                                                                                                schedule: s,
-                                                                                                tugas: t,
-                                                                                            });
-                                                                                            setOpenTugasDeleteAgain(true);
-                                                                                        }}
-                                                                                        className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                                    >
-                                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                                            delete
-                                                                                        </span>
-                                                                                    </button>
-                                                                                </div>
-                                                                            )}
+                                                                    {t.note1TugasAgain && (
+                                                                        <p className="mb-2 whitespace-pre-line">
+                                                                            {t.note1TugasAgain}
+                                                                        </p>
+                                                                    )}
 
-                                                                            {/* title + status */}
-                                                                            <div className="flex mb-2 font-bold text-xs items-center">
-                                                                                <div
-                                                                                    className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"
-                                                                                        }`}
-                                                                                />
-                                                                                <div>{t.titleTugasAgain}</div>
-                                                                            </div>
+                                                                    {t.note2TugasAgain && (
+                                                                        <p className="text-blue-500! mb-2 whitespace-pre-line">
+                                                                            {t.note2TugasAgain}
+                                                                        </p>
+                                                                    )}
 
-                                                                            {t.h1TugasAgain && (
-                                                                                <p className="font-bold mb-2 whitespace-pre-line">
-                                                                                    {t.h1TugasAgain}
-                                                                                </p>
-                                                                            )}
-
-                                                                            {t.note1TugasAgain && (
-                                                                                <p className="mb-2 whitespace-pre-line">
-                                                                                    {t.note1TugasAgain}
-                                                                                </p>
-                                                                            )}
-
-                                                                            {t.note2TugasAgain && (
-                                                                                <p className="mb-2 whitespace-pre-line">
-                                                                                    {t.note2TugasAgain}
-                                                                                </p>
-                                                                            )}
-
-                                                                        </div>
-                                                                    ))}
                                                                 </div>
-                                                            )}
-
-                                                        </>
+                                                            ))}
+                                                        </div>
                                                     )}
+
+
 
                                                 </div>
 
@@ -718,9 +691,7 @@ export default function Home() {
                 {/* CALENDAR */}
                 <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
 
-                    <div
-                        className="relative min-w-[960px]"
-                    >
+                    <div className="relative min-w-[960px]">
 
                         {/* HEADER */}
                         <div className="grid grid-cols-7">
@@ -750,12 +721,15 @@ export default function Home() {
                                     ? Math.max(...weekLongEvents.map((e) => e.stackLevel)) + 1
                                     : 0;
 
-                                const longEventsAreaHeight = stackCount * 32;
+                                const longEventsAreaHeight = stackCount * 86;  // Normal = 64 | PIC = 86
                                 const cellWidth = 100 / 7;
+
+                                const GAP_STACK = 70;  // Normal = 32 | PIC = 70
 
                                 // fixed height reserved for the date number row — date is NEVER
                                 // pushed down, only the content below it is
                                 const DATE_AREA_HEIGHT = 44;
+
 
                                 return (
                                     <div
@@ -819,7 +793,7 @@ export default function Home() {
                                                                                 setSelected_cal(item);
                                                                                 setOpenViewRencana(true);
                                                                             }}
-                                                                            className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-110 active:-translate-y-0.5 active:brightness-110 active:scale-95"
+                                                                            className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-95"
                                                                         >
                                                                             <div
                                                                                 className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
@@ -839,7 +813,7 @@ export default function Home() {
 
                                         {/* LONG EVENT LAYER — scoped to THIS week, sits below the date row */}
                                         <div className="absolute inset-0 pointer-events-none">
-                                            {weekLongEvents.map((item, i) => (
+                                            {weekLongEvents.map((item, i) => (<>
                                                 <div className="absolute px-1.5"
                                                     key={`${item.id}-${item.row}-${i}`}
                                                     onClick={() => {
@@ -847,15 +821,12 @@ export default function Home() {
                                                         setOpenViewRencana(true);
                                                     }}
                                                     style={{
-                                                        top: `${DATE_AREA_HEIGHT + item.stackLevel * 32}px`,
+                                                        top: `${DATE_AREA_HEIGHT + item.stackLevel * GAP_STACK}px`,
                                                         left: `${item.col * cellWidth}%`,
                                                         width: `${item.span * cellWidth}%`
                                                     }}
                                                 >
-                                                    <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow pointer-events-auto cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-105 active:scale-99
-                                                        ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""
-                                                        } ${item.isEnd ? "rounded-r-lg" : ""}`}
-                                                    >
+                                                    <div className={`h-7 px-2 ps-3 flex items-center justify-start text-white shadow pointer-events-auto cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"} ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}>
                                                         {item.isStart && (
                                                             <button
                                                                 onClick={(e) => {
@@ -870,9 +841,27 @@ export default function Home() {
                                                                 </span>
                                                             </button>
                                                         )}
+
+
                                                     </div>
+
+                                                    <div className="h-7 w-full flex gap-4 text-xs mt-1 px-5 pointer-events-auto [&_div]:cursor-pointer [&_div]:hover:translate-x-0.5">
+                                                        <div className={`relative flex items-center w-fit px-3 py-2 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"}`}>
+                                                            <p className="select-text">Person 1</p>
+                                                        </div>
+
+                                                        <div className={`relative flex items-center w-fit px-3 py-2 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"}`}>
+                                                            <p className="select-text">Person 2</p>
+                                                        </div>
+                                                    </div>
+
+
+
+
                                                 </div>
-                                            ))}
+
+
+                                            </>))}
                                         </div>
                                     </div>
                                 );

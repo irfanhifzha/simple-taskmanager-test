@@ -70,7 +70,7 @@ export default function EditTugasModal({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h2>Edit Tugas</h2>
+      <h2>Detail Tugas 1</h2>
       <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
         Mengedit tugas: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
         {" "}
@@ -113,14 +113,14 @@ export default function EditTugasModal({
         />
 
         <label htmlFor="note1">💬 Deskripsi Tugas</label>
-        <textarea id="note1"
+        <textarea id="note1" rows={3}
           placeholder="Deskripsi Tugas"
           value={note1Tugas}
           onChange={(e) => setNote1(e.target.value)}
         />
 
         <label htmlFor="note2">✍️ Note</label>
-        <textarea id="note2"
+        <textarea id="note2" rows={3}
           placeholder="Note"
           value={note2Tugas}
           onChange={(e) => setNote2(e.target.value)}

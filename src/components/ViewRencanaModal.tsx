@@ -39,6 +39,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const [endTanggal, setEndTanggal] = useState("");
   const [tanggal, setTanggal] = useState<number[]>([]);
   const [content, setContent] = useState("");
+  const [notes, setNotes] = useState("");
   const [task, setTask] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       setType(data.type || "");
       setTask(data.task || "");
       setContent(data.content || "");
+      setNotes(data.notes || "");
 
 
       setEditMode(false);
@@ -182,6 +184,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           task,
           type,
           content,
+          notes,
         });
       } else {
         await addDoc(collection(db, "calendar"), {
@@ -191,6 +194,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           task,
           type,
           content,
+          notes,
         });
       }
 
@@ -242,7 +246,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           </div>
 
         ) : (<>
-          <label>📌 Title</label>
+          <label>📝 Title</label>
           <div className="flex mb-3 items-center pt-1">
             <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.type] || "bg-gray-200"}`}></div>
             <div className="pt-1">{task}</div>
@@ -252,20 +256,44 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
 
 
-        {!editMode ? (<label>💬 Deskripsi</label>) : (<label htmlFor="desc">💬 Deskripsi</label>)}
 
-        {editMode || !data ? (
+
+        {editMode || !data ? (<>
+          <label htmlFor="desc">💬 Deskripsi</label>
           <textarea
             id="desc"
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Deskripsi rencana..."
-          />
+          /></>
         ) : (
-          <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
-            <p className="whitespace-pre-line mb-0!">{content}</p>
-          </div>
+          data?.content && (<>
+            <label>💬 Deskripsi</label>
+            <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+              <p className="whitespace-pre-line mb-0!">{content}</p>
+            </div></>
+          )
+        )}
+
+
+
+        {editMode || !data ? (<>
+          <label htmlFor="notes">📌 Note / Link URL</label>
+          <textarea
+            id="notes"
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Notes rencana..."
+          /></>
+        ) : (
+          data?.notes && (<>
+            <label>📌 Note / Link URL</label>
+            <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+              <p className="whitespace-pre-line text-blue-500 mb-0!">{notes}</p>
+            </div></>
+          )
         )}
 
 
@@ -416,7 +444,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                     setEditMode(true);
                   }}
                 >
-                  ✏️ Edit Mode
+                  ✏️ Edit
                 </button>
 
                 <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
@@ -454,11 +482,12 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                     setType(data.type || "");
                     setTask(data.task || "");
                     setContent(data.content || "");
+                    setNotes(data.notes || "");
 
                     setEditMode(false);
                   }}
                 >
-                  ❌ Cancel Edit
+                  ❌ Cancel
                 </button>
 
                 <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
