@@ -131,16 +131,33 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
       <form onSubmit={handleSubmit}>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+          <div>
+            <label htmlFor="title">📝 Judul<span>*</span></label>
+            <input
+              className="w-full"
+              id="title"
+              placeholder="Judul rencana"
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="" disabled hidden>Pilih Warna</option>
+              <option value="green">Hijau</option>
+              <option value="blue">Biru</option>
+              <option value="red">Merah</option>
+              <option value="orange">Oranye</option>
+              <option value="purple">Purple</option>
+              <option value="abu">Abu</option>
+            </select>
+          </div>
+        </div>
 
 
-        <label htmlFor="task">📝 Judul<span>*</span></label>
-        <input
-          className="w-full"
-          id="task"
-          placeholder="Judul task"
-          value={course}
-          onChange={(e) => setCourse(e.target.value)}
-        />
 
 
 
@@ -156,7 +173,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         <label htmlFor="peoples">👥 Pihak Terkait</label>
         <input
           id="peoples"
-          placeholder="Individu 1,.. (dipisah dengan koma)"
+          placeholder="A, B, .. (dipisah dengan koma)"
           value={peoples}
           onChange={(e) => setPeoples(e.target.value)}
         />
@@ -165,7 +182,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         <textarea
           id="desc"
           rows={4}
-          placeholder="Deskripsi task"
+          placeholder="Deskripsi rencana"
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
         />
@@ -174,42 +191,30 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         <textarea
           rows={4}
           id="note"
-          placeholder="Note task / Link url"
+          placeholder="Note rencana / Link url"
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-          <div>
-            <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-            <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="" disabled hidden>Pilih Warna</option>
-              <option value="green">Hijau</option>
-              <option value="blue">Biru</option>
-              <option value="red">Merah</option>
-              <option value="orange">Oranye</option>
-              <option value="purple">Purple</option>
-              <option value="abu">Abu</option>
-            </select>
-          </div>
 
-          <div>
-            <label htmlFor="hari">📅 Hari<span>*</span></label>
-            <select
-              className="w-full"
-              id="hari"
-              value={dayIndex}
-              onChange={(e) => setDayIndex(Number(e.target.value))}
-            >
-              <option value={0} disabled>Pilih Hari</option>
-              {days.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+
+
+
+        <label htmlFor="hari">📅 Hari<span>*</span></label>
+        <select
+          className="w-full"
+          id="hari"
+          value={dayIndex}
+          onChange={(e) => setDayIndex(Number(e.target.value))}
+        >
+          <option value={0} disabled>Pilih Hari</option>
+          {days.map((d) => (
+            <option key={d.value} value={d.value}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+
 
 
 

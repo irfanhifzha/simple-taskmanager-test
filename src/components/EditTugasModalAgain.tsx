@@ -101,11 +101,11 @@ export default function EditTugasModalAgain({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h2>Detail Tugas ke-{(data?.index ?? 0) + 1}</h2>
+      <h2>Detail Task ke-{(data?.index ?? 0) + 1}</h2>
       
       {editMode && (
       <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Mengedit tugas dari: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+        Mengedit task dari: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
         {" "}
         {data?.schedule?.slots?.length > 1
           ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
@@ -120,9 +120,9 @@ export default function EditTugasModalAgain({
         {editMode ? (<>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
             <div>
-              <label htmlFor="title">📝 Judul Tugas<span>*</span></label>
+              <label htmlFor="title">📝 Judul Task<span>*</span></label>
               <input className="w-full" id="title"
-                placeholder="Judul tugas"
+                placeholder="Judul task"
                 value={titleTugasAgain}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -143,7 +143,7 @@ export default function EditTugasModalAgain({
         </>) : (
           <div>
             <div>
-              <label>📝 Judul Tugas</label>
+              <label>📝 Judul Task</label>
               <div className="flex mb-3 items-center pt-1">
                 <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.tugas?.statusTugasAgain] || "bg-gray-200"}`}></div>
                 <div className="pt-1">{titleTugasAgain}</div>
@@ -155,16 +155,16 @@ export default function EditTugasModalAgain({
 
 
         {editMode ? (<>
-          <label htmlFor="h1">🎯 Nama Tugas</label>
+          <label htmlFor="h1">🎯 Nama Task</label>
           <textarea id="h1"
-            placeholder="Nama Tugas"
+            placeholder="Nama task"
             value={h1TugasAgain}
             onChange={(e) => setH1(e.target.value)}
           />
         </>) : (
           data?.tugas?.h1TugasAgain && (
             <div>
-              <label>🎯 Nama Tugas</label>
+              <label>🎯 Nama Task</label>
               <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
                 <p className="mb-0! whitespace-pre-line">{h1TugasAgain}</p>
               </div>
@@ -173,15 +173,15 @@ export default function EditTugasModalAgain({
         )}
 
         {editMode ? (<>
-          <label htmlFor="note1">💬 Deskripsi Tugas</label>
+          <label htmlFor="note1">💬 Deskripsi Task</label>
           <textarea id="note1" rows={3}
-            placeholder="Deskripsi Tugas"
+            placeholder="Deskripsi task"
             value={note1TugasAgain}
             onChange={(e) => setNote1(e.target.value)}
           /></>) : (
           data?.tugas?.note1TugasAgain && (
             <div>
-              <label>💬 Deskripsi Tugas</label>
+              <label>💬 Deskripsi Task</label>
               <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
                 <p className="mb-0! whitespace-pre-line">{note1TugasAgain}</p>
               </div>

@@ -33,11 +33,75 @@ export default function EditScheduleModal({
   const [desc, setDesc] = useState("");
   const [note, setNote] = useState("");
 
+  const [tugasAgain, setTugas] = useState<TugasAgainType[]>([]);;
+
+
   const [editMode, setEditMode] = useState(false);
 
   const [showInvalid, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
+
+  const itemRefs = useRef(new Map());
+
+  const recordPositions = () => {
+    const map = new Map();
+
+    tugasAgain.forEach((task) => {
+      const el = itemRefs.current.get(task.id);
+      if (!el) return;
+
+      map.set(task.id, el.getBoundingClientRect());
+    });
+
+    return map;
+  };
+
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const handleDrop = (dropIndex: number) => {
+    if (dragIndex === null || dragIndex === dropIndex) return;
+
+    const firstRects = recordPositions();
+
+    setTugas((prev) => {
+      const updated = [...prev];
+      const dragged = updated[dragIndex];
+
+      updated.splice(dragIndex, 1);
+      updated.splice(dropIndex, 0, dragged);
+
+      return updated;
+    });
+
+    requestAnimationFrame(() => {
+      tugasAgain.forEach((task) => {
+        const el = itemRefs.current.get(task.id);
+        if (!el) return;
+
+        const first = firstRects.get(task.id);
+        const last = el.getBoundingClientRect();
+
+        if (!first) return;
+
+        const deltaY = first.top - last.top;
+
+        el.style.transform = `translateY(${deltaY}px)`;
+        el.style.transition = "transform 0s";
+
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 250ms ease";
+          el.style.transform = "";
+        });
+      });
+    });
+
+    setDragIndex(null);
+  };
+
+
+
+
 
 
   const statusStyles: Record<string, string> = {
@@ -62,12 +126,26 @@ export default function EditScheduleModal({
       setSlots(s.slots || []);
       setDesc(s.desc || "");
       setNote(s.note || "");
+      setTugas(s.tugasAgain || []);
 
       isInitialLoad.current = true; // mark initial load
     }
 
     setEditMode(false);
   }, [open, data]);
+
+
+  type TugasAgainType = {
+    id: number;
+    titleTugasAgain: string;
+    statusTugasAgain: string;
+    h1TugasAgain?: string;
+    note1TugasAgain?: string;
+    note2TugasAgain?: string;
+  };
+
+
+
 
 
   const loadConflicts = async () => {
@@ -151,6 +229,7 @@ export default function EditScheduleModal({
       slots,
       desc,
       note,
+      tugasAgain,
     });
     setLoading(false);
 
@@ -181,14 +260,32 @@ export default function EditScheduleModal({
       <form onSubmit={handleUpdate}>
 
         {editMode ? (<>
-          <label htmlFor="task">📝 Judul<span>*</span></label>
-          <input
-            className="w-full"
-            id="task"
-            placeholder="Judul task"
-            value={course}
-            onChange={(e) => setCourse(e.target.value)}
-          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+            <div>
+              <label htmlFor="title">📝 Judul<span>*</span></label>
+              <input
+                className="w-full"
+                id="title"
+                placeholder="Judul rencana"
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+              <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+                <option value="" disabled hidden>Pilih Warna</option>
+                <option value="green">Hijau</option>
+                <option value="blue">Biru</option>
+                <option value="red">Merah</option>
+                <option value="orange">Oranye</option>
+                <option value="purple">Purple</option>
+                <option value="abu">Abu</option>
+              </select>
+            </div>
+          </div>
         </>) : (
           data?.schedule?.room ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
@@ -251,7 +348,7 @@ export default function EditScheduleModal({
             <label htmlFor="peoples">👥 Pihak Terkait</label>
             <input
               id="peoples"
-              placeholder="Individu 1,.. (dipisah dengan koma)"
+              placeholder="A, B, .. (dipisah dengan koma)"
               value={peoples}
               onChange={(e) => setPeoples(e.target.value)}
             />
@@ -260,7 +357,7 @@ export default function EditScheduleModal({
           data?.schedule?.peoples?.length > 0 && (
             <div>
               <label>👥 Pihak Terkait</label>
-              <div className="mt-2 flex flsex-wrap gap-2  mb-4">
+              <div className="mt-2 flex flex-wrap gap-2  mb-4">
                 {peoples.split(",").map((peoples, index) => (
                   <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
                     {peoples}
@@ -279,7 +376,7 @@ export default function EditScheduleModal({
             <textarea
               id="desc"
               rows={4}
-              placeholder="Deskripsi task"
+              placeholder="Deskripsi rencana"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
             />
@@ -301,7 +398,7 @@ export default function EditScheduleModal({
           <textarea
             rows={4}
             id="note"
-            placeholder="Note task / Link url"
+            placeholder="Note rencana / Link url"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -319,40 +416,23 @@ export default function EditScheduleModal({
 
 
         {editMode && (<>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-            <div>
-              <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-              <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="" disabled hidden>Pilih Warna</option>
-                <option value="green">Hijau</option>
-                <option value="blue">Biru</option>
-                <option value="red">Merah</option>
-                <option value="orange">Oranye</option>
-                <option value="purple">Purple</option>
-                <option value="abu">Abu</option>
-              </select>
-            </div>
 
 
 
-
-            <div>
-              <label htmlFor="hari">📅 Hari<span>*</span></label>
-              <select
-                className="w-full"
-                id="hari"
-                value={dayIndex}
-                onChange={(e) => setDayIndex(Number(e.target.value))}
-              >
-                <option value={0} disabled>Pilih Hari</option>
-                {days.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <label htmlFor="hari">📅 Hari<span>*</span></label>
+          <select
+            className="w-full"
+            id="hari"
+            value={dayIndex}
+            onChange={(e) => setDayIndex(Number(e.target.value))}
+          >
+            <option value={0} disabled>Pilih Hari</option>
+            {days.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </select>
 
 
 
@@ -361,7 +441,7 @@ export default function EditScheduleModal({
 
           <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
 
-          <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
+          <div className="flex flex-wrap w-full gap-1 mt-1 mb-3">
             {slotOptions.map((slot) => {
               const key = `${dayIndex}-${slot}`;
               const isBlocked = occupiedSlots.has(key);
@@ -383,37 +463,124 @@ export default function EditScheduleModal({
         </>)
         }
 
+        {/* {tugasAgain && (<div>{JSON.stringify(tugasAgain, null, 2)}</div>)} */}
+
+
+        {!editMode ? (
+
+          tugasAgain.length > 0 && (
+
+            <div className="pt-4 mt-2 border-t-1 border-black">
+              <div className="text-gray-500 text-sm pointer-events-none">📂 Daftar task [{tugasAgain.length}]</div>
+              <div className="px-4 py-1 bg-gray-100 mt-2 mb-2 pb-3 rounded-lg">
+                {tugasAgain?.map((task, index) => (
+                  <div key={index}>
+                    <div className="flex flex-col mb-1">
+                      <div className="flex mb-1 items-center pt-1">
+                        {/* <div className="pt-1 me-2">[{index + 1}]</div> */}
+                        <div
+                          className={`w-[10px] h-[10px] rounded-full inline-block me-2 translate-y-0.5 ${statusStyles[task.statusTugasAgain] || "bg-gray-200"}`}></div>
+                        <div>{task.titleTugasAgain}</div>
+                      </div>
+                      {task.h1TugasAgain &&
+                        (<div className="-mt-1 ps-5 flex gap-0.5 w-full text-gray-600/60 text-xs">
+                          {task.h1TugasAgain && (<div className="truncate">{task.h1TugasAgain}</div>)}
+                          {task.note1TugasAgain && (<div className="truncate">({task.note1TugasAgain})</div>)}
+                        </div>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )) : (
+          <div className="pt-4 mt-2 border-t-1 border-black">
+            <div className="text-gray-500 text-sm pointer-events-none">📂 Daftar task [{tugasAgain.length}]</div>
+            <div className="px-4 py-1 bg-gray-100 mt-2 mb-2 pb-3 rounded-lg">
+              {tugasAgain.length > 0 ? (
+                tugasAgain?.map((task, index) => (
+                  <div key={task.id}>
+                    <div
+                      key={task.id}
+                      ref={(el) => {
+                        if (el) itemRefs.current.set(task.id, el);
+                      }}
+                      className="bg-red-200 cursor-default active:cursor-grabbing relative flex flex-col mb-1"
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handleDrop(index)}
+                    >
+
+                      <div className="bg-green-100 absolute h-full flex w-10 items-center justify-end top-0 right-0 cursor-grab select-none">
+                        <span className="material-symbols-rounded text-xs text-gray-400">drag_indicator</span>
+                      </div>
+
+
+                      <div className="flex mb-1 items-center pt-1">
+                        {/* <div className="pt-1 me-2">[{index + 1}]</div> */}
+                        <div
+                          className={`w-[10px] h-[10px] rounded-full inline-block me-2 translate-y-0.5 ${statusStyles[task.statusTugasAgain] || "bg-gray-200"}`}></div>
+                        <div>{task.titleTugasAgain}</div>
+                      </div>
+                      {task.h1TugasAgain &&
+                        (<div className="-mt-1 ps-5 flex gap-0.5 w-full text-gray-600/60 text-xs">
+                          {task.h1TugasAgain && (<div className="truncate">{task.h1TugasAgain}</div>)}
+                          {task.note1TugasAgain && (<div className="truncate">({task.note1TugasAgain})</div>)}
+                        </div>)}
+                    </div>
+                  </div>
+                ))) : (
+                <div className="flex items-center pt-2">
+                  <div className="flex w-full text-gray-600/60 text-sm justify-start h-5 items-center select-none">Tidak ada task :)</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
 
 
 
         {/* EDIT TOGGLE */}
         {/* USER CONTROLS */}
         {data?.login && (
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div>
             {/* NOT IN EDIT MODE */}
             {!editMode && (
               <>
-                <button
-                  onClick={() => {
-                    setEditMode(true);
-                  }}
-                >
-                  ✏️ Edit
-                </button>
 
-                <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
-                  onClick={() => {
 
-                  }}
-                >
-                  <div>🗑️ Delete</div>
-                </button>
+
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <button
+                    onClick={() => {
+                      setEditMode(true);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+
+                  <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                    onClick={() => {
+
+                    }}
+                  >
+                    <div>🗑️ Delete</div>
+                  </button>
+                </div>
+
               </>
             )}
 
             {/* EDIT MODE */}
-            {editMode && (
-              <>
+            {editMode && (<>
+
+
+
+
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
                 <button
                   onClick={() => {
                     const s = data?.schedule;
@@ -425,6 +592,7 @@ export default function EditScheduleModal({
                     setSlots(s.slots || []);
                     setDesc(s.desc || "");
                     setNote(s.note || "");
+                    setTugas(s.tugasAgain || []);
 
                     setEditMode(false);
                   }}
@@ -442,8 +610,20 @@ export default function EditScheduleModal({
                 >
                   {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
-              </>
-            )}
+              </div>
+
+
+              <button className="bg-gray-800! text-white! w-full mt-4"
+                onClick={() => {
+
+                }}
+              >
+                <div>+ Tambah Task</div>
+              </button>
+
+
+
+            </>)}
           </div>
         )}
 

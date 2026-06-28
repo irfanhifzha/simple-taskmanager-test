@@ -64,11 +64,11 @@ export default function AddTugasModalAgain({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <h2>+ Tambah Tugas Lagi</h2>
+      <h2>+ Tambah Task</h2>
 
 
       <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Menambah tugas lagi: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+        Menambah task ke: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
         {" "}
         {data?.slots?.length > 1
           ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
@@ -80,9 +80,9 @@ export default function AddTugasModalAgain({
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
           <div>
-            <label htmlFor="title">📝 Judul Tugas<span>*</span></label>
+            <label htmlFor="title">📝 Judul Task<span>*</span></label>
             <input className="w-full" id="title"
-              placeholder="Judul Tugas"
+              placeholder="Judul task"
               value={titleTugasAgain}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -101,16 +101,16 @@ export default function AddTugasModalAgain({
           </div>
         </div>
 
-        <label htmlFor="h1">🎯 Nama Tugas</label>
+        <label htmlFor="h1">🎯 Nama Task</label>
         <textarea id="h1"
-          placeholder="Nama Tugas"
+          placeholder="Nama task"
           value={h1TugasAgain}
           onChange={(e) => setH1(e.target.value)}
         />
 
-        <label htmlFor="note1">💬 Deskripsi Tugas</label>
+        <label htmlFor="note1">💬 Deskripsi Task</label>
         <textarea id="note1"
-          placeholder="Deskripsi Tugas"
+          placeholder="Deskripsi task"
           value={note1TugasAgain}
           onChange={(e) => setNote1(e.target.value)}
         />

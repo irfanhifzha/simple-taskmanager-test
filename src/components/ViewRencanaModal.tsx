@@ -236,7 +236,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                 id="title"
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
-                placeholder="Title rencana..."
+                placeholder="Title rencana"
               />
             </div>
 
@@ -271,7 +271,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             <label htmlFor="peoples">👥 Pihak Terkait</label>
             <input
               id="peoples"
-              placeholder="Individu 1,.. (dipisah dengan koma)"
+              placeholder="A, B, .. (dipisah dengan koma)"
               value={peoples}
               onChange={(e) => setPeoples(e.target.value)}
             />
@@ -299,7 +299,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Deskripsi rencana..."
+            placeholder="Deskripsi rencana"
           /></>
         ) : (
           data?.content && (<>
@@ -319,7 +319,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes rencana..."
+            placeholder="Notes rencana"
           /></>
         ) : (
           data?.notes && (<>

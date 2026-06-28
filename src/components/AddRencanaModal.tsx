@@ -178,7 +178,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
               id="title"
               value={task}
               onChange={(e) => setTask(e.target.value)}
-              placeholder="Title rencana..."
+              placeholder="Title rencana"
             />
           </div>
 
@@ -203,7 +203,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         <label htmlFor="peoples">👥 Pihak Terkait</label>
         <input
           id="peoples"
-          placeholder="Individu 1,.. (dipisah dengan koma)"
+          placeholder="A, B, .. (dipisah dengan koma)"
           value={peoples}
           onChange={(e) => setPeoples(e.target.value)}
         />
@@ -217,7 +217,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         {/* CONTENT */}
         <textarea rows={3}
           id="desc"
-          placeholder="Deskripsi rencana..."
+          placeholder="Deskripsi rencana"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -226,7 +226,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         {/* CONTENT */}
         <textarea rows={3}
           id="notes"
-          placeholder="Notes rencana..."
+          placeholder="Notes rencana"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />

@@ -94,12 +94,12 @@ export default function Home() {
     };
 
     const colorOutline = {
-        green: "border border-green-200 bg-green-100 text-green-700 hover:border-green-600 active:border-green-600",
-        blue: "border border-blue-200 bg-blue-100 text-blue-800 hover:border-blue-400 active:border-blue-400",
-        red: "border border-red-200 bg-red-100 text-red-700 hover:border-red-400 active:border-red-400",
-        orange: "border border-orange-200 bg-orange-100 text-orange-700 hover:border-orange-400 active:border-orange-400",
-        purple: "border border-purple-200 bg-purple-100 text-purple-700 hover:border-purple-400 active:border-purple-400",
-        abu: "border border-gray-300 bg-gray-100 text-gray-700 hover:border-gray-500 active:border-gray-400",
+        green: "border border-green-300 bg-green-100 text-green-700 hover:border-green-600 active:border-green-600",
+        blue: "border border-blue-300 bg-blue-100 text-blue-800 hover:border-blue-400 active:border-blue-400",
+        red: "border border-red-300 bg-red-100 text-red-700 hover:border-red-400 active:border-red-400",
+        orange: "border border-orange-300 bg-orange-100 text-orange-700 hover:border-orange-400 active:border-orange-400",
+        purple: "border border-purple-300 bg-purple-100 text-purple-700 hover:border-purple-400 active:border-purple-400",
+        abu: "border border-gray-400 bg-gray-100 text-gray-700 hover:border-gray-500 active:border-gray-400",
     };
 
 
@@ -185,7 +185,7 @@ export default function Home() {
 
                 <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                     onClick={() => setTugasVisibility(prev => !prev)}>
-                    {tugasVisibility ? "👀 Hide Tugas" : "🔍 Show Tugas"}
+                    {tugasVisibility ? "👀 Hide Task" : "🔍 Show Task"}
                 </button>
 
                 <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
@@ -329,7 +329,7 @@ export default function Home() {
                                                     {s.note && <p className="text-blue-500 whitespace-pre-line">{s.note}</p>}
 
                                                     {/* TUGAS */}
-                                                    {s.tugasAgain?.length > 0 && (
+                                                    {tugasVisibility && s.tugasAgain?.length > 0 && (
                                                         <div className="space-y-2">
                                                             {s.tugasAgain.map((t, index) => (
                                                                 <div
@@ -798,7 +798,7 @@ export default function Home() {
                                                                 {shortEvents.map((item) => (
                                                                     <div
                                                                         key={item.id}
-                                                                        className="flex justify-center p-2 max-h-30"
+                                                                        className="flex justify-center px-2 pb-2 max-h-40 flex-col items-center"
                                                                     >
                                                                         <div
                                                                             onClick={() => {
@@ -810,10 +810,28 @@ export default function Home() {
                                                                             <div
                                                                                 className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
                                                                             />
-                                                                            <div className="text-xs text-center line-clamp-3">
+                                                                            <div className="text-xs text-center line-clamp-3 break-all">
                                                                                 {item.task}
                                                                             </div>
                                                                         </div>
+
+                                                                        {item.peoples.length > 0 && (
+                                                                            <div className="h-8 w-full flex gap-4 text-[10px] mt-3 px-1 pointer-events-auto" onClick={() => {
+                                                                                setSelected_cal(item);
+                                                                                setOpenViewRencana(true);
+                                                                            }}>
+
+                                                                                <div className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:-translate-y-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:-top-1 before:left-10 before:w-0 before:h-0 before:rotate-45 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent ${statusBorder[item.type] || "bg-gray-400"} hover:brightness-105 active:brightness-80 active:scale-99`}>
+                                                                                    {item.peoples.map((person, idx) => (
+                                                                                        <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
+                                                                                            {person}
+                                                                                        </div>
+
+                                                                                    ))}
+                                                                                </div>
+
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -865,29 +883,15 @@ export default function Home() {
 
                                                                 <div className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:translate-x-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"} hover:brightness-105 active:brightness-80 active:scale-99`}>
                                                                     {item.peoples.map((person, idx) => (
-                                                                    <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
-                                                                        {person}
-                                                                    </div>
+                                                                        <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
+                                                                            {person}
+                                                                        </div>
 
-                                                                ))}
+                                                                    ))}
                                                                 </div>
 
                                                             </div>
                                                         )}
-
-
-                                                        {/* {item.peoples.map((person, idx) => (
-                                                                    <div key={idx} className="truncate min-w-0 w-full px-2 py-0.5 rounded-md">
-                                                                        {person}
-                                                                    </div>
-
-                                                                ))}</div> */}
-
-                                                        {/* <div className="truncate min-w-0 w-full px-2 py-0.5 rounded-md">
-                                                                        {(item.peoples || []).join(", ")}
-                                                                    </div> */}
-
-
 
                                                     </div>
 
