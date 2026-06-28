@@ -816,7 +816,7 @@ export default function Home() {
                                                                         </div>
 
                                                                         {item.peoples.length > 0 && (
-                                                                            <div className="h-8 w-full flex gap-4 text-[10px] mt-3 px-1 pointer-events-auto" onClick={() => {
+                                                                            <div className="h-8 w-full flex justify-center gap-4 text-[10px] mt-3 px-1 pointer-events-auto" onClick={() => {
                                                                                 setSelected_cal(item);
                                                                                 setOpenViewRencana(true);
                                                                             }}>

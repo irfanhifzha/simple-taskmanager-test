@@ -42,6 +42,10 @@ export default function EditScheduleModal({
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
 
+
+
+
+
   const itemRefs = useRef(new Map());
 
   const recordPositions = () => {
@@ -57,45 +61,90 @@ export default function EditScheduleModal({
     return map;
   };
 
+  const [dragId, setDragId] = useState<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleDrop = (dropIndex: number) => {
-    if (dragIndex === null || dragIndex === dropIndex) return;
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
-    const firstRects = recordPositions();
+  const handlePointerDown = (index: number, id: number) => {
+    setDragIndex(index);
+    setDragId(id);
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (!el) return;
+
+    const target = el.closest("[data-index]");
+    if (!target) return;
+
+    const index = Number(target.getAttribute("data-index"));
+    setOverIndex(index);
+  };
+
+  const handlePointerUp = () => {
+    if (dragIndex === null || overIndex === null) {
+      setIsDragging(false);
+      setDragIndex(null);
+      setDragId(null);
+      setOverIndex(null);
+      return;
+    }
+
+    // Record current positions
+    const first = recordPositions();
 
     setTugas((prev) => {
       const updated = [...prev];
-      const dragged = updated[dragIndex];
 
-      updated.splice(dragIndex, 1);
-      updated.splice(dropIndex, 0, dragged);
+      const item = updated.splice(dragIndex, 1)[0];
+      updated.splice(overIndex, 0, item);
 
       return updated;
     });
 
     requestAnimationFrame(() => {
-      tugasAgain.forEach((task) => {
-        const el = itemRefs.current.get(task.id);
-        if (!el) return;
-
-        const first = firstRects.get(task.id);
+      itemRefs.current.forEach((el, id) => {
         const last = el.getBoundingClientRect();
+        const prev = first.get(id);
 
-        if (!first) return;
+        if (!prev) return;
 
-        const deltaY = first.top - last.top;
+        const dx = prev.left - last.left;
+        const dy = prev.top - last.top;
 
-        el.style.transform = `translateY(${deltaY}px)`;
-        el.style.transition = "transform 0s";
-
-        requestAnimationFrame(() => {
-          el.style.transition = "transform 250ms ease";
-          el.style.transform = "";
-        });
+        if (dx || dy) {
+          el.animate(
+            [
+              {
+                transform: `translate(${dx}px, ${dy}px)`,
+              },
+              {
+                transform: "translate(0, 0)",
+              },
+            ],
+            {
+              duration: 180,
+              easing: "ease",
+            }
+          );
+        }
       });
     });
 
+    setIsDragging(false);
+    setDragIndex(null);
+    setDragId(null);
+    setOverIndex(null);
+  };
+
+
+  const handlePointerCancel = () => {
+    setIsDragging(false);
     setDragIndex(null);
   };
 
@@ -495,29 +544,36 @@ export default function EditScheduleModal({
           )) : (
           <div className="pt-4 mt-2 border-t-1 border-black">
             <div className="text-gray-500 text-sm pointer-events-none">📂 Daftar task [{tugasAgain.length}]</div>
-            <div className="px-4 py-1 bg-gray-100 mt-2 mb-2 pb-3 rounded-lg">
+            <div
+              className="px-4 py-2 bg-gray-100 my-2 pb-4 rounded-lg touch-none"
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerCancel}
+            >
               {tugasAgain.length > 0 ? (
                 tugasAgain?.map((task, index) => (
                   <div key={task.id}>
                     <div
                       key={task.id}
+                      data-index={index}
                       ref={(el) => {
                         if (el) itemRefs.current.set(task.id, el);
                       }}
-                      className="bg-red-200 cursor-default active:cursor-grabbing relative flex flex-col mb-1"
-                      draggable
-                      onDragStart={() => setDragIndex(index)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => handleDrop(index)}
+                      className={`border border-gray-200 bg-white mt-2 p-1 px-3 rounded-lg relative flex flex-col mb-1 select-none transition-all duration-150 ${isDragging && dragIndex === index ? "opacity-40 scale-[0.97]" : ""} ${isDragging ? "cursor-grabbing" : ""}`}
                     >
 
-                      <div className="bg-green-100 absolute h-full flex w-10 items-center justify-end top-0 right-0 cursor-grab select-none">
-                        <span className="material-symbols-rounded text-xs text-gray-400">drag_indicator</span>
+                      <div
+                        className="absolute h-full flex w-13 items-center me-3 justify-end top-0 right-0 cursor-grab active:cursor-grabbing touch-none select-none"
+                        onPointerDown={() => handlePointerDown(index, task.id)}>
+                        <div className="text-xs text-gray-400 me-1">{index + 1}</div>
+                        <span className="material-symbols-rounded text-xs text-gray-400">
+                          unfold_more
+                        </span>
                       </div>
 
 
-                      <div className="flex mb-1 items-center pt-1">
-                        {/* <div className="pt-1 me-2">[{index + 1}]</div> */}
+                      <div className="flex mb-1 items-center">
+
                         <div
                           className={`w-[10px] h-[10px] rounded-full inline-block me-2 translate-y-0.5 ${statusStyles[task.statusTugasAgain] || "bg-gray-200"}`}></div>
                         <div>{task.titleTugasAgain}</div>
