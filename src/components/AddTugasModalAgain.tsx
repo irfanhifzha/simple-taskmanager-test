@@ -17,58 +17,83 @@ export default function AddTugasModalAgain({
   const [note1TugasAgain, setNote1] = useState("");
   const [note2TugasAgain, setNote2] = useState("");
 
-  const [showInvalid, setShowInvalid] = useState(false);
-
-
-  useEffect(() => {
-    if (open && data) {
-      setShowInvalid(false);
-    }
-  }, [open, data]);
 
   const isInvalid =
-    !statusTugasAgain ||
+    !statusTugasAgain.trim() ||
     !titleTugasAgain.trim()
 
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-
-    setLoading(true);
-
-
-    if (isInvalid) {
-      setShowInvalid(true);
-      return;
-    }
-
-    if (!data?.id) return;
-
-
-    await updateDoc(doc(db, "schedules", data.id), {
-      tugasAgain: arrayUnion({
-        id: Date.now(),
-        statusTugasAgain,
-        titleTugasAgain,
-        h1TugasAgain,
-        note1TugasAgain,
-        note2TugasAgain,
-      }),
-    });
-
+  const handleClose = () => {
+    setErrors({});
+    setFormError(null);
     setLoading(false);
-
-    onSuccess();
     onClose();
   };
 
+
+  const [loading, setLoading] = useState(false);
+
+
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!statusTugasAgain.trim()) errors.statusTugasAgain = "Tipe task wajib diisi";
+    if (!titleTugasAgain.trim()) errors.titleTugasAgain = "Judul task wajib diisi";
+
+    return errors;
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+
+
+  // ===== SUBMIT =====
+  const handleSubmit = async () => {
+    if (loading) return;
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setFormError("Mohon lengkapi form terlebih dahulu");
+      return;
+    }
+
+    setErrors({});
+    setFormError(null);
+    setLoading(true);
+
+    try {
+      await updateDoc(doc(db, "schedules", data.id), {
+        tugasAgain: arrayUnion({
+          id: Date.now(),
+          statusTugasAgain,
+          titleTugasAgain,
+          h1TugasAgain,
+          note1TugasAgain,
+          note2TugasAgain,
+        }),
+      });
+
+      onSuccess();
+      handleClose();
+    } catch (err) {
+      setFormError(`(${err})\n\nGagal menyimpan data`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <h2>+ Tambah Task</h2>
 
 
       <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Menambah task ke: {data?.course || "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
+        Menambah task ke: {data?.course ? (data.course.length > 15 ? `${data.course.slice(0, 15)}...` : data.course) : "notfound"}  [Hari {dayLabels[data?.dayIndex - 1] || "null"},
         {" "}
         {data?.slots?.length > 1
           ? `Jam ${data.slots.at(0)}.00 - ${data.slots.at(-1)}.00`
@@ -122,16 +147,30 @@ export default function AddTugasModalAgain({
           onChange={(e) => setNote2(e.target.value)}
         />
 
-        <button
+
+
+        {formError && (
+          <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+            <div className="whitespace-pre-line break-words">
+              {formError}
+            </div>
+
+            {Object.keys(errors).length > 0 && (
+              <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                {errors.titleTugasAgain && <li>• {errors.titleTugasAgain}</li>}
+                {errors.statusTugasAgain && <li>• {errors.statusTugasAgain}</li>}
+              </ul>
+            )}
+          </div>
+        )}
+
+
+
+        <button type="button"
           onClick={handleSubmit}
-          disabled={isInvalid || loading}
-          style={{
-            marginTop: 12,
-            opacity: isInvalid || loading ? 0.5 : 1,
-            cursor: isInvalid || loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "⏳ Loading..." : "💾 Simpan"}
+          disabled={loading}
+          className={`mt-2 border border-blue-200! px-4 py-2 rounded-md transition ${loading ? "bg-blue-300! opacity-50 cursor-not-allowed!" : "hover:bg-blue-600 hover:text-white! active:bg-blue-800! active:text-white! cursor-pointer"}`}>
+          {loading ? "⏳ Loading..." : "+ Tambah Jadwal"}
         </button>
       </form>
     </Modal>

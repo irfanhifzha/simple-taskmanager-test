@@ -69,7 +69,7 @@ export default function EditTugasModalAgain({
     if (confirmed) {
 
       const ref = doc(db, "schedules", data.schedule.id);
-      
+
       await updateDoc(ref, {
         tugasAgain: arrayRemove(data.tugas)
       });
@@ -80,54 +80,96 @@ export default function EditTugasModalAgain({
   };
 
 
+  const handleClose = () => {
+    setErrors({});
+    setFormError(null);
+    setLoading(false);
+    onClose();
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!statusTugasAgain.trim()) errors.statusTugasAgain = "Tipe task wajib diisi";
+    if (!titleTugasAgain.trim()) errors.titleTugasAgain = "Judul task wajib diisi";
+
+    return errors;
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
 
 
+  // ===== SUBMIT =====
   const handleUpdate = async () => {
-    setLoading(true);
+    if (loading) return;
 
-    if (isInvalid) {
-      setShowInvalid(true);
-      setLoading(false);
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setFormError("Mohon lengkapi form terlebih dahulu");
       return;
     }
 
-    if (!data?.schedule?.id || !data?.tugas?.id) return;
+    setErrors({});
+    setFormError(null);
+    setLoading(true);
 
-    const ref = doc(db, "schedules", data.schedule.id);
+    try {
+      const ref = doc(db, "schedules", data.schedule.id);
 
-    const oldItem = data.tugas;
+      const oldItem = data.tugas;
 
-    const updatedItem = {
-      ...oldItem,
-      statusTugasAgain,
-      titleTugasAgain,
-      h1TugasAgain,
-      note1TugasAgain,
-      note2TugasAgain,
-    };
+      const updatedItem = {
+        ...oldItem,
+        statusTugasAgain,
+        titleTugasAgain,
+        h1TugasAgain,
+        note1TugasAgain,
+        note2TugasAgain,
+      };
 
-    await updateDoc(ref, {
-      tugasAgain: arrayRemove(oldItem),
-    });
+      await updateDoc(ref, {
+        tugasAgain: arrayRemove(oldItem),
+      });
 
-    await updateDoc(ref, {
-      tugasAgain: arrayUnion(updatedItem),
-    });
+      await updateDoc(ref, {
+        tugasAgain: arrayUnion(updatedItem),
+      });
 
-    setLoading(false);
-    onSuccess();
-    onClose();
+      onSuccess();
+      handleClose();
+    } catch (err) {
+      setFormError(`(${err})\n\nGagal menyimpan data`);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
 
+
+
+
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <h2>Detail Task ke-{(data?.index ?? 0) + 1}</h2>
 
-      {editMode && (
-        <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+      {editMode ? (
+        <p className="-mt-2 text-xs text-gray-400">
           Mengedit task dari: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.schedule?.slots?.length > 1
+            ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+            : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
+          }
+          ]
+        </p>
+      ) : (
+        <p className="-mt-2 text-xs text-gray-400">
+          Task dari: {data?.schedule.course ? (data.schedule?.course.length > 15 ? `${data.schedule?.course.slice(0, 15)}...` : data.schedule?.course) : "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
           {" "}
           {data?.schedule?.slots?.length > 1
             ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
@@ -226,6 +268,27 @@ export default function EditTugasModalAgain({
             </div>)
         )}
 
+
+
+
+        {editMode && formError && (
+          <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+            <div className="whitespace-pre-line break-words">
+              {formError}
+            </div>
+
+            {Object.keys(errors).length > 0 && (
+              <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                {errors.titleTugasAgain && <li>• {errors.titleTugasAgain}</li>}
+                {errors.statusTugasAgain && <li>• {errors.statusTugasAgain}</li>}
+              </ul>
+            )}
+          </div>
+        )}
+
+
+
+
         {/* EDIT TOGGLE */}
         {/* USER CONTROLS */}
         {data?.login && (
@@ -267,14 +330,10 @@ export default function EditTugasModalAgain({
                   ❌ Cancel
                 </button>
 
-                <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
+                <button type="button"
                   onClick={handleUpdate}
-                  disabled={isInvalid || loading}
-                  style={{
-                    opacity: isInvalid || loading ? 0.5 : 1,
-                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
-                  }}
-                >
+                  disabled={loading}
+                  className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-600 hover:text-white! active:bg-gray-800! active:text-white! cursor-pointer"}`}>
                   {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
               </>

@@ -50,6 +50,18 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
   const monthLabel = months.find(m => m.value === bulan)?.label || bulan;
 
+  const date = new Date(tahun, bulan - 1, tanggal[0]);
+  const hari = date.toLocaleDateString("id-ID", {
+    weekday: "long",
+  });
+
+  const firstHari = new Date(tahun, bulan - 1, Math.min(...tanggal)).toLocaleDateString("id-ID", {
+    weekday: "long",
+  });
+  const lastHari = new Date(tahun, bulan - 1, Math.max(...tanggal)).toLocaleDateString("id-ID", {
+    weekday: "long",
+  });
+
 
   const statusStyles: Record<string, string> = {
     "blue": "bg-blue-600",
@@ -165,6 +177,9 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     tanggal.length === 0;
 
   const handleClose = () => {
+    setErrors({});
+    setFormError(null);
+    setLoading(false);
     onClose();
     setEditMode(false);
   };
@@ -173,10 +188,9 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const handleDelete = async () => {
     if (!data?.id) return;
 
-    // waktu
 
     const confirmed = window.confirm(
-      `Delete "${data?.task?.length > 13 ? `${data.task.slice(0, 13)}...` : data?.task || "null"} [${data?.tanggal?.length > 1 ? `${startTanggal}-${endTanggal}` : `${startTanggal}` || "null" } ${monthLabel} ${tahun}]" dari rencana?`
+      `Delete "${data?.task?.length > 13 ? `${data.task.slice(0, 13)}...` : data?.task || "null"} [${data?.tanggal?.length > 1 ? `${startTanggal}-${endTanggal}` : `${startTanggal}` || "null"} ${monthLabel} ${tahun}]" dari rencana?`
     );
 
     if (confirmed) {
@@ -190,47 +204,57 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
 
 
-  // CREATE / UPDATE
-  const handleSubmit = async () => {
-    if (isInvalid) return;
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
 
+    if (!task.trim()) errors.task = "Task wajib diisi";
+    if (!type.trim()) errors.type = "Type wajib diisi";
+    if (tanggal.length === 0) errors.tanggal = "Tanggal wajib dipilih";
+
+    return errors;
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleUpdate = async () => {
+    if (loading) return;
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setFormError("Mohon lengkapi form terlebih dahulu");
+      return;
+    }
+
+    setErrors({});
+    setFormError(null);
     setLoading(true);
 
     try {
-      if (data?.id) {
-        await updateDoc(doc(db, "calendar", data.id), {
-          bulan,
-          tahun,
-          tanggal,
-          task,
-          type,
-          content,
-          notes,
-          peoples: peoples
-            .split(",")
-            .map((l: string) => l.trim())
-            .filter(Boolean),
-        });
-      } else {
-        await addDoc(collection(db, "calendar"), {
-          bulan,
-          tahun,
-          tanggal,
-          task,
-          type,
-          content,
-          notes,
-          peoples: peoples
-            .split(",")
-            .map((l: string) => l.trim())
-            .filter(Boolean),
-        });
-      }
+      const payload = {
+        bulan,
+        tahun,
+        tanggal,
+        task,
+        type,
+        content,
+        notes,
+        peoples: peoples
+          .split(",")
+          .map((l: string) => l.trim())
+          .filter(Boolean),
+      };
+
+
+      await updateDoc(doc(db, "calendar", data.id), payload);
+
 
       onSuccess();
       handleClose();
     } catch (err) {
-      console.error(err);
+      setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
       setLoading(false);
     }
@@ -242,314 +266,324 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       <Modal open={open} onClose={handleClose}>
         <h2>Detail Rencana</h2>
 
-
-        <form onSubmit={handleSubmit} >
-
-
-        {editMode ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-            <div>
-              <label htmlFor="title">📌 Title<span>*</span></label>
-              <input className="w-full"
-                id="title"
-                value={task}
-                onChange={(e) => setTask(e.target.value)}
-                placeholder="Title rencana"
-              />
-            </div>
-
-
-            <div>
-              <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
-              <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="" disabled hidden>Pilih Warna</option>
-                <option value="orange">Oranye</option>
-                <option value="red">Merah</option>
-                <option value="blue">Biru</option>
-                <option value="purple">Purple</option>
-                <option value="green">Hijau</option>
-                <option value="abu">Abu</option>
-              </select>
-            </div>
-
-          </div>
-
-        ) : (<>
-          <label>📝 Title</label>
-          <div className="flex mb-3 items-center pt-1">
-            <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.type] || "bg-gray-200"}`}></div>
-            <div className="pt-1">{task}</div>
-          </div>
-        </>
-        )}
+        {editMode && (
+          <p className="-mt-2 text-xs text-gray-400">
+            Mengedit:{" "}
+            {data?.task
+              ? data.task.length > 15
+                ? `${data.task.slice(0, 15)}...`
+                : data.task
+              : "notfound"}{" "}
+            [
+            {data?.tanggal?.length === 1
+              ? `${hari}, ${tanggal[0]} ${monthLabel} ${tahun}`
+              : `${firstHari} - ${lastHari}, ${startTanggal}-${endTanggal} ${monthLabel} ${tahun}`}
+            ]
+          </p>
+        )
+        }
 
 
-        {editMode ? (
-          <>
-            <label htmlFor="peoples">👥 Pihak Terkait</label>
-            <input
-              id="peoples"
-              placeholder="A, B, .. (dipisah dengan koma)"
-              value={peoples}
-              onChange={(e) => setPeoples(e.target.value)}
-            />
-          </>
-        ) : (
-          data?.peoples?.length > 0 && (
-            <div>
-              <label>👥 Pihak Terkait</label>
-              <div className="mt-2 flex flex-wrap gap-2  mb-4">
-                {peoples.split(",").map((peoples, index) => (
-                  <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
-                    {peoples}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        )}
+        <form onSubmit={handleUpdate} >
 
 
-        {editMode || !data ? (<>
-          <label htmlFor="desc">💬 Deskripsi</label>
-          <textarea
-            id="desc"
-            rows={3}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Deskripsi rencana"
-          /></>
-        ) : (
-          data?.content && (<>
-            <label>💬 Deskripsi</label>
-            <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
-              <p className="whitespace-pre-line mb-0!">{content}</p>
-            </div></>
-          )
-        )}
-
-
-
-        {editMode || !data ? (<>
-          <label htmlFor="notes">📌 Note / Link URL</label>
-          <textarea
-            id="notes"
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes rencana"
-          /></>
-        ) : (
-          data?.notes && (<>
-            <label>📌 Note / Link URL</label>
-            <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
-              <p className="whitespace-pre-line text-blue-500 mb-0!">{notes}</p>
-            </div></>
-          )
-        )}
-
-
-
-
-
-
-
-
-
-
-        {/* BULAN */}
-        <div>
-
-
-          {editMode && (
-            <div className="grid grid-cols-2 gap-4">
-              {/* BULAN */}
-              <div>
-                <label htmlFor="bulan">Bulan<span>*</span></label>
-                <select
-                  id="bulan"
-                  className="w-full"
-                  value={bulan}
-                  onChange={(e) => setBulan(Number(e.target.value))}
-                >
-                  <option value={0} disabled hidden>Pilih Bulan</option>
-                  {months.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* TAHUN */}
-              <div>
-                <label htmlFor="tahun">Tahun<span>*</span></label>
-
-                {editMode || !data ? (
-                  <input
-                    id="tahun"
-                    className="w-full"
-                    value={tahun}
-                    onChange={(e) => setTahun(Number(e.target.value))}
-                  />
-                ) : (
-                  <p className="pt-1">{tahun}</p>
-                )}
-              </div>
-
-
-
-            </div>
-          )}
-        </div>
-
-
-
-
-
-
-
-        {editMode || !data ? (
-          <>
+          {editMode ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
               <div>
-                <label htmlFor="startTgl">Dari Tgl<span>*</span></label>
-                <select id="startTgl"
-                  className="w-full"
-                  value={startTanggal}
-                  onChange={(e) => setStartTanggal(e.target.value)}
-                >
-                  <option value="" disabled hidden>Pilih Start</option>
-                  {availableDates.map((d) => (
-                    <option key={d.day} value={d.day}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
+                <label htmlFor="title">📌 Title<span>*</span></label>
+                <input className="w-full"
+                  id="title"
+                  value={task}
+                  onChange={(e) => setTask(e.target.value)}
+                  placeholder="Title rencana"
+                />
               </div>
+
 
               <div>
-                <label htmlFor="endTgl">Sampai Tgl<span>*</span></label>
-                <select id="endTgl"
-                  className="w-full"
-                  value={endTanggal}
-                  onChange={(e) => setEndTanggal(e.target.value)}
-                >
-                  <option value="" disabled hidden>Pilih End</option>
-                  {filteredEndDates.map((d) => (
-                    <option key={d.day} value={d.day}>
-                      {d.label}
-                    </option>
-                  ))}
+                <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
+                <select className="w-full" id="tipe" value={type} onChange={(e) => setType(e.target.value)}>
+                  <option value="" disabled hidden>Pilih Warna</option>
+                  <option value="orange">Oranye</option>
+                  <option value="red">Merah</option>
+                  <option value="blue">Biru</option>
+                  <option value="purple">Purple</option>
+                  <option value="green">Hijau</option>
+                  <option value="abu">Abu</option>
                 </select>
               </div>
+
+            </div>
+
+          ) : (<>
+            <label>📝 Title</label>
+            <div className="flex mb-3 items-center pt-1">
+              <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.type] || "bg-gray-200"}`}></div>
+              <div className="pt-1">{task}</div>
             </div>
           </>
-        ) : (
-          <>
-            <label>📅 Waktu</label>
-            <p className="py-2">
-              {tanggal.length > 0 && (() => {
-                
-
-                if (tanggal.length === 1) {
-                  const date = new Date(tahun, bulan - 1, tanggal[0]);
-                  const hari = date.toLocaleDateString("id-ID", {
-                    weekday: "long",
-                  });
-
-                  return `${hari}, ${tanggal[0]} ${monthLabel} ${tahun}`;
-                }
-
-                const firstHari = new Date(tahun, bulan - 1, Math.min(...tanggal)).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                });
-                const lastHari = new Date(tahun, bulan - 1, Math.max(...tanggal)).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                });
-
-                return `${firstHari} - ${lastHari}, ${startTanggal}-${endTanggal} ${monthLabel} ${tahun}`;
-              })()}
-            </p>
-          </>
-        )}
+          )}
 
 
+          {editMode ? (
+            <>
+              <label htmlFor="peoples">👥 Pihak Terkait</label>
+              <input
+                id="peoples"
+                placeholder="A, B, .. (dipisah dengan koma)"
+                value={peoples}
+                onChange={(e) => setPeoples(e.target.value)}
+              />
+            </>
+          ) : (
+            data?.peoples?.length > 0 && (
+              <div>
+                <label>👥 Pihak Terkait</label>
+                <div className="mt-2 flex flex-wrap gap-2  mb-4">
+                  {peoples.split(",").map((peoples, index) => (
+                    <div key={index} className="rounded-lg px-3 py-1 bg-gray-100">
+                      {peoples}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+
+
+          {editMode || !data ? (<>
+            <label htmlFor="desc">💬 Deskripsi</label>
+            <textarea
+              id="desc"
+              rows={3}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Deskripsi rencana"
+            /></>
+          ) : (
+            data?.content && (<>
+              <label>💬 Deskripsi</label>
+              <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+                <p className="whitespace-pre-line mb-0!">{content}</p>
+              </div></>
+            )
+          )}
+
+
+
+          {editMode || !data ? (<>
+            <label htmlFor="notes">📌 Note / Link URL</label>
+            <textarea
+              id="notes"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Notes rencana"
+            /></>
+          ) : (
+            data?.notes && (<>
+              <label>📌 Note / Link URL</label>
+              <div className="bg-gray-100 p-2 rounded-lg my-2 mb-4">
+                <p className="whitespace-pre-line text-blue-500 mb-0!">{notes}</p>
+              </div></>
+            )
+          )}
 
 
 
 
 
 
-        {/* EDIT TOGGLE */}
-        {/* USER CONTROLS */}
-        {user && (
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            {/* NOT IN EDIT MODE */}
-            {!editMode && (
-              <>
-                <button type="button"
-                  onClick={() => {
-                    setEditMode(true);
-                  }}
-                >
-                  ✏️ Edit
-                </button>
 
-                <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
-                  onClick={handleDelete}
-                >
-                  <div>🗑️ Delete</div>
-                </button>
-              </>
-            )}
 
-            {/* EDIT MODE */}
+
+
+          {/* BULAN */}
+          <div>
+
+
             {editMode && (
-              <>
-                <button type="button"
-                  onClick={() => {
+              <div className="grid grid-cols-2 gap-4">
+                {/* BULAN */}
+                <div>
+                  <label htmlFor="bulan">Bulan<span>*</span></label>
+                  <select
+                    id="bulan"
+                    className="w-full"
+                    value={bulan}
+                    onChange={(e) => setBulan(Number(e.target.value))}
+                  >
+                    <option value={0} disabled hidden>Pilih Bulan</option>
+                    {months.map((m) => (
+                      <option key={m.value} value={m.value}>
+                        {m.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                    setBulan(data.bulan || today.getMonth() + 1);
-                    setTahun(data.tahun || today.getFullYear());
+                {/* TAHUN */}
+                <div>
+                  <label htmlFor="tahun">Tahun<span>*</span></label>
 
-                    setTanggal(data.tanggal || []);
+                  {editMode || !data ? (
+                    <input
+                      id="tahun"
+                      className="w-full"
+                      value={tahun}
+                      onChange={(e) => setTahun(Number(e.target.value))}
+                    />
+                  ) : (
+                    <p className="pt-1">{tahun}</p>
+                  )}
+                </div>
 
-                    if (data.tanggal?.length > 0) {
-                      const sorted = [...data.tanggal].sort((a, b) => a - b);
 
-                      setStartTanggal(sorted[0]);
-                      setEndTanggal(sorted[sorted.length - 1]);
-                    } else {
-                      setStartTanggal("");
-                      setEndTanggal("");
-                    }
 
-                    setType(data.type || "");
-                    setTask(data.task || "");
-                    setContent(data.content || "");
-                    setNotes(data.notes || "");
-
-                    setEditMode(false);
-                  }}
-                >
-                  ❌ Cancel
-                </button>
-
-                <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
-                  onClick={handleSubmit}
-                  disabled={isInvalid || loading}
-                  style={{
-                    opacity: isInvalid || loading ? 0.5 : 1,
-                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {loading ? "⏳ Loading..." : "💾 Simpan"}
-                </button>
-              </>
+              </div>
             )}
           </div>
-        )}
+
+
+
+
+
+
+
+          {editMode || !data ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+                <div>
+                  <label htmlFor="startTgl">Dari Tgl<span>*</span></label>
+                  <select id="startTgl"
+                    className="w-full"
+                    value={startTanggal}
+                    onChange={(e) => setStartTanggal(e.target.value)}
+                  >
+                    <option value="" disabled hidden>Pilih Start</option>
+                    {availableDates.map((d) => (
+                      <option key={d.day} value={d.day}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="endTgl">Sampai Tgl<span>*</span></label>
+                  <select id="endTgl"
+                    className="w-full"
+                    value={endTanggal}
+                    onChange={(e) => setEndTanggal(e.target.value)}
+                  >
+                    <option value="" disabled hidden>Pilih End</option>
+                    {filteredEndDates.map((d) => (
+                      <option key={d.day} value={d.day}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <label>📅 Waktu</label>
+              <p className="py-2">
+                {tanggal.length > 0 && (() => {
+                  if (tanggal.length === 1) { return `${hari}, ${tanggal[0]} ${monthLabel} ${tahun}`; }
+                  return `${firstHari} - ${lastHari}, ${startTanggal}-${endTanggal} ${monthLabel} ${tahun}`;
+                })()}
+              </p>
+            </>
+          )}
+
+
+
+
+          {formError && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+              <div className="whitespace-pre-line break-words">
+                {formError}
+              </div>
+
+              {Object.keys(errors).length > 0 && (
+                <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                  {errors.task && <li>• {errors.task}</li>}
+                  {errors.type && <li>• {errors.type}</li>}
+                  {errors.tanggal && <li>• {errors.tanggal}</li>}
+                </ul>
+              )}
+            </div>
+          )}
+
+
+
+          {/* EDIT TOGGLE */}
+          {/* USER CONTROLS */}
+          {user && (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              {/* NOT IN EDIT MODE */}
+              {!editMode && (
+                <>
+                  <button type="button"
+                    onClick={() => {
+                      setEditMode(true);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+
+                  <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                    onClick={handleDelete}
+                  >
+                    <div>🗑️ Delete</div>
+                  </button>
+                </>
+              )}
+
+              {/* EDIT MODE */}
+              {editMode && (
+                <>
+                  <button type="button"
+                    onClick={() => {
+
+                      setBulan(data.bulan || today.getMonth() + 1);
+                      setTahun(data.tahun || today.getFullYear());
+
+                      setTanggal(data.tanggal || []);
+
+                      if (data.tanggal?.length > 0) {
+                        const sorted = [...data.tanggal].sort((a, b) => a - b);
+
+                        setStartTanggal(sorted[0]);
+                        setEndTanggal(sorted[sorted.length - 1]);
+                      } else {
+                        setStartTanggal("");
+                        setEndTanggal("");
+                      }
+
+                      setType(data.type || "");
+                      setTask(data.task || "");
+                      setContent(data.content || "");
+                      setNotes(data.notes || "");
+
+                      setEditMode(false);
+                    }}
+                  >
+                    ❌ Cancel
+                  </button>
+
+                  <button type="button"
+                    onClick={handleUpdate}
+                    disabled={loading}
+                    className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-600 hover:text-white! active:bg-gray-800! active:text-white! cursor-pointer"}`}>
+                    {loading ? "⏳ Loading..." : "💾 Simpan"}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
         </form>
 

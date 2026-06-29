@@ -14,16 +14,9 @@ import Navbar from "../components/Navbar";
 // MODALS (UNCHANGED)
 import AddScheduleModal from "../components/AddScheduleModal";
 import EditScheduleModal from "../components/EditScheduleModal";
-import DeleteScheduleModal from "../components/DeleteScheduleModal";
-
-import AddTugasModal from "../components/AddTugasModal";
-import EditTugasModal from "../components/EditTugasModal";
-import DeleteTugasModal from "../components/DeleteTugasModal";
 
 import AddTugasModalAgain from "../components/AddTugasModalAgain";
 import EditTugasModalAgain from "../components/EditTugasModalAgain";
-import DeleteTugasModalAgain from "../components/DeleteTugasModalAgain";
-import Dashboard from "../components/Dashboard";
 
 // MODALS UNTUK CALENDAR
 import AddRencanaModal from "../components/AddRencanaModal";
@@ -899,15 +892,9 @@ export default function Home() {
             {/* MODALS (UNCHANGED) */}
             <AddScheduleModal open={openAdd} onClose={() => setOpenAdd(false)} onSuccess={fetchSchedules} />
             <EditScheduleModal open={openEdit} onClose={() => setOpenEdit(false)} data={selected} onSuccess={fetchSchedules} />
-            <DeleteScheduleModal open={openDelete} onClose={() => setOpenDelete(false)} data={selected} onSuccess={fetchSchedules} />
-
-            <AddTugasModal open={openTugasAdd} data={selected} onClose={() => setOpenTugasAdd(false)} onSuccess={fetchSchedules} />
-            <EditTugasModal open={openTugasEdit} data={selected} onClose={() => setOpenTugasEdit(false)} onSuccess={fetchSchedules} />
-            <DeleteTugasModal open={openTugasDelete} data={selected} onClose={() => setOpenTugasDelete(false)} onSuccess={fetchSchedules} />
 
             <AddTugasModalAgain open={openTugasAddAgain} data={selected} onClose={() => setOpenTugasAddAgain(false)} onSuccess={fetchSchedules} />
             <EditTugasModalAgain open={openTugasEditAgain} data={selected} onClose={() => setOpenTugasEditAgain(false)} onSuccess={fetchSchedules} />
-            <DeleteTugasModalAgain open={openTugasDeleteAgain} data={selected} onClose={() => setOpenTugasDeleteAgain(false)} onSuccess={fetchSchedules} />
 
 
             {/* MODAL UNTUK CALENDAR RENCANA */}

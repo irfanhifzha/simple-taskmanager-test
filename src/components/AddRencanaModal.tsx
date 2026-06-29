@@ -35,7 +35,6 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   const [peoples, setPeoples] = useState("");
 
-  const [_, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // ===== HELPERS =====
@@ -76,7 +75,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     (d) => !startTanggal || d.day >= Number(startTanggal)
   );
 
-  
+
 
   useEffect(() => {
     if (startTanggal && endTanggal) {
@@ -123,10 +122,12 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
     setTanggal([]);
     setBulan(today.getMonth() + 1);
     setTahun(today.getFullYear());
-    setShowInvalid(false);
   };
 
   const handleClose = () => {
+    setErrors({});
+    setFormError(null);
+    setLoading(false);
     resetForm();
     onClose();
   };
@@ -134,16 +135,38 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
 
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!task.trim()) errors.task = "Task wajib diisi";
+    if (!type.trim()) errors.type = "Tipe wajib diisi";
+    if (tanggal.length === 0) errors.tanggal = "Tanggal wajib dipilih";
+
+    return errors;
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+
+
   // ===== SUBMIT =====
   const handleSubmit = async () => {
-    if (isInvalid) {
+    if (loading) return;
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setFormError("Mohon lengkapi form terlebih dahulu");
       return;
     }
 
+    setErrors({});
+    setFormError(null);
     setLoading(true);
 
     try {
-      await addDoc(collection(db, "calendar"), {
+      const payload = {
         bulan,
         tahun,
         tanggal,
@@ -155,12 +178,15 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
           .split(",")
           .map((l: string) => l.trim())
           .filter(Boolean),
-      });
+      };
+
+
+      await addDoc(collection(db, "calendar"), payload);
 
       onSuccess();
       handleClose();
     } catch (err) {
-      console.error(err);
+      setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
       setLoading(false);
     }
@@ -301,20 +327,29 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
         </div>
 
 
+        {formError && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+            <div className="whitespace-pre-line break-words">
+              {formError}
+            </div>
 
+            {Object.keys(errors).length > 0 && (
+              <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                {errors.task && <li>• {errors.task}</li>}
+                {errors.type && <li>• {errors.type}</li>}
+                {errors.tanggal && <li>• {errors.tanggal}</li>}
+              </ul>
+            )}
+          </div>
+        )}
 
 
         {/* BUTTON */}
-        <button
+        <button type="button"
           onClick={handleSubmit}
-          disabled={isInvalid || loading}
-          style={{
-            marginTop: 12,
-            opacity: isInvalid || loading ? 0.5 : 1,
-            cursor: isInvalid || loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "⏳ Loading..." : "💾 Simpan"}
+          disabled={loading}
+          className={`mt-2 border border-blue-200! px-4 py-2 rounded-md transition ${loading ? "bg-blue-300! opacity-50 cursor-not-allowed!" : "hover:bg-blue-600 hover:text-white! active:bg-blue-800! active:text-white! cursor-pointer"}`}>
+          {loading ? "⏳ Loading..." : "+ Tambah Rencana"}
         </button>
       </form>
     </Modal >

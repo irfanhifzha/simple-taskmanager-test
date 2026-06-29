@@ -169,7 +169,7 @@ export default function EditScheduleModal({
 
 
 
-  // ✅ load existing data
+
   useEffect(() => {
     const s = data?.schedule;
 
@@ -259,8 +259,16 @@ export default function EditScheduleModal({
 
   const isInvalid =
     !course.trim() ||
+    !type.trim() ||
     dayIndex === 0 ||
     slots.length === 0;
+
+  const handleClose = () => {
+    setErrors({});
+    setFormError(null);
+    setLoading(false);
+    onClose();
+  };
 
 
   const handleDelete = async () => {
@@ -286,45 +294,74 @@ export default function EditScheduleModal({
   };
 
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!course.trim()) errors.course = "Judul wajib diisi";
+    if (!type.trim()) errors.type = "Tipe wajib diisi";
+    if (dayIndex === 0) errors.dayIndex = "Hari wajib diisi";
+    if (slots.length === 0) errors.slots = "Jam wajib diisi";
+
+    return errors;
+  };
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+
   const handleUpdate = async () => {
-    setLoading(true);
-    if (isInvalid) {
-      setShowInvalid(true);
+    if (loading) return;
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setFormError("Mohon lengkapi form terlebih dahulu");
       return;
     }
 
-    if (!data?.schedule?.id) { setLoading(false); return; }
+    setErrors({});
+    setFormError(null);
+    setLoading(true);
 
-    await updateDoc(doc(db, "schedules", data.schedule.id), {
-      course,
-      room,
-      peoples: peoples
-        .split(",")
-        .map((l: string) => l.trim())
-        .filter(Boolean),
-      type,
-      dayIndex,
-      slots,
-      desc,
-      note,
-      tugasAgain,
-    });
-    setLoading(false);
+    try {
+      const payload = {
+        course,
+        room,
+        peoples: peoples
+          .split(",")
+          .map((l: string) => l.trim())
+          .filter(Boolean),
+        type,
+        dayIndex,
+        slots,
+        desc,
+        note,
+        tugasAgain,
+      };
 
-    onSuccess();
-    onClose();
+      await updateDoc(doc(db, "schedules", data.schedule.id), payload);
+
+      onSuccess();
+      handleClose();
+    } catch (err) {
+      setFormError(`(${err})\n\nGagal menyimpan data`);
+    } finally {
+      setLoading(false);
+    }
   };
 
+
+
+
   return (<>
-    <Modal open={open && !openTugasAddAgain} onClose={onClose}>
+    <Modal open={open && !openTugasAddAgain} onClose={handleClose}>
       <h2>Detail Jadwal</h2>
 
 
 
       {editMode && (
-        <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-          Mengedit: {data?.schedule?.course || "notfound"}{" "}
-          [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+        <p className="-mt-2 text-xs text-gray-400">
+          Mengedit: {data?.schedule.course ? (data.schedule?.course.length > 15 ? `${data.schedule?.course.slice(0, 15)}...` : data.schedule?.course) : "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
           {" "}
           {data?.schedule?.slots?.length > 1
             ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
@@ -635,7 +672,7 @@ export default function EditScheduleModal({
             {!editMode && (
               <>
 
-                <button type="button" className="bg-gray-800! text-white w-full mt-4 flex justify-center"
+                <button type="button" className="bg-blue-600! active:bg-blue-500! text-white w-full mt-4 flex justify-center"
                   onClick={() => {
                     setOpenTugasAddAgain(true);
                   }}
@@ -668,13 +705,31 @@ export default function EditScheduleModal({
             {/* EDIT MODE */}
             {editMode && (<>
 
-              <button type="button" className="bg-gray-800! text-white w-full mt-4 flex justify-center"
+              <button type="button" className="bg-blue-600! active:bg-blue-500! text-white w-full mt-4 flex justify-center"
                 onClick={() => {
                   setOpenTugasAddAgain(true);
                 }}
               >
                 <div>+ Tambah Task</div>
               </button>
+
+
+              {formError && (
+                <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+                  <div className="whitespace-pre-line break-words">
+                    {formError}
+                  </div>
+
+                  {Object.keys(errors).length > 0 && (
+                    <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                      {errors.course && <li>• {errors.course}</li>}
+                      {errors.type && <li>• {errors.type}</li>}
+                      {errors.dayIndex && <li>• {errors.dayIndex}</li>}
+                      {errors.slots && <li>• {errors.slots}</li>}
+                    </ul>
+                  )}
+                </div>
+              )}
 
 
 
@@ -698,14 +753,10 @@ export default function EditScheduleModal({
                   ❌ Cancel
                 </button>
 
-                <button className="border-gray-300! hover:bg-gray-600 hover:text-white! active:bg-gray-700! active:text-white!"
+                <button type="button"
                   onClick={handleUpdate}
-                  disabled={isInvalid || loading}
-                  style={{
-                    opacity: isInvalid || loading ? 0.5 : 1,
-                    cursor: isInvalid || loading ? "not-allowed" : "pointer",
-                  }}
-                >
+                  disabled={loading}
+                  className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-600 hover:text-white! active:bg-gray-800! active:text-white! cursor-pointer"}`}>
                   {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
               </div>
