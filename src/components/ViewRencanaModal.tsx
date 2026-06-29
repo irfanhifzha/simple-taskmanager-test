@@ -4,13 +4,12 @@ import {
   addDoc,
   collection,
   updateDoc,
-  doc
+  doc,
+  deleteDoc
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-
-import DeleteRencanaModal from "../components/DeleteRencanaModal";
 
 const months = [
   { label: "Januari", value: 1 },
@@ -49,8 +48,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
   const [editMode, setEditMode] = useState(false);
 
-  const [openDeleteRencana, setOpenDeleteRencana] = useState(false);
-  const [selectedDelete, setSelectedDelete] = useState<any>(null);
+  const monthLabel = months.find(m => m.value === bulan)?.label || bulan;
+
 
   const statusStyles: Record<string, string> = {
     "blue": "bg-blue-600",
@@ -171,6 +170,25 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   };
 
 
+  const handleDelete = async () => {
+    if (!data?.id) return;
+
+    // waktu
+
+    const confirmed = window.confirm(
+      `Delete "${data?.task?.length > 13 ? `${data.task.slice(0, 13)}...` : data?.task || "null"} [${data?.tanggal?.length > 1 ? `${startTanggal}-${endTanggal}` : `${startTanggal}` || "null" } ${monthLabel} ${tahun}]" dari rencana?`
+    );
+
+    if (confirmed) {
+      await deleteDoc(doc(db, "calendar", data.id));
+
+      onSuccess();
+      onClose();
+    }
+  };
+
+
+
 
   // CREATE / UPDATE
   const handleSubmit = async () => {
@@ -225,7 +243,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
         <h2>Detail Rencana</h2>
 
 
-        {/* <form onSubmit={handleSubmit} > */}
+        <form onSubmit={handleSubmit} >
 
 
         {editMode ? (
@@ -432,7 +450,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             <label>📅 Waktu</label>
             <p className="py-2">
               {tanggal.length > 0 && (() => {
-                const monthLabel = months.find(m => m.value === bulan)?.label || bulan;
+                
 
                 if (tanggal.length === 1) {
                   const date = new Date(tahun, bulan - 1, tanggal[0]);
@@ -443,17 +461,14 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                   return `${hari}, ${tanggal[0]} ${monthLabel} ${tahun}`;
                 }
 
-                const firstDate = new Date(tahun, bulan - 1, Math.min(...tanggal));
-                const lastDate = new Date(tahun, bulan - 1, Math.max(...tanggal));
-
-                const firstHari = firstDate.toLocaleDateString("id-ID", {
+                const firstHari = new Date(tahun, bulan - 1, Math.min(...tanggal)).toLocaleDateString("id-ID", {
                   weekday: "long",
                 });
-                const lastHari = lastDate.toLocaleDateString("id-ID", {
+                const lastHari = new Date(tahun, bulan - 1, Math.max(...tanggal)).toLocaleDateString("id-ID", {
                   weekday: "long",
                 });
 
-                return `${firstHari} - ${lastHari}, ${Math.min(...tanggal)}-${Math.max(...tanggal)} ${monthLabel} ${tahun}`;
+                return `${firstHari} - ${lastHari}, ${startTanggal}-${endTanggal} ${monthLabel} ${tahun}`;
               })()}
             </p>
           </>
@@ -473,7 +488,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             {/* NOT IN EDIT MODE */}
             {!editMode && (
               <>
-                <button
+                <button type="button"
                   onClick={() => {
                     setEditMode(true);
                   }}
@@ -481,11 +496,8 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
                   ✏️ Edit
                 </button>
 
-                <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
-                  onClick={() => {
-                    setSelectedDelete(data);
-                    setOpenDeleteRencana(true);
-                  }}
+                <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                  onClick={handleDelete}
                 >
                   <div>🗑️ Delete</div>
                 </button>
@@ -495,7 +507,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
             {/* EDIT MODE */}
             {editMode && (
               <>
-                <button
+                <button type="button"
                   onClick={() => {
 
                     setBulan(data.bulan || today.getMonth() + 1);
@@ -539,21 +551,11 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           </div>
         )}
 
-        {/* </form> */}
+        </form>
 
       </Modal>
 
-      {/* DELETE MODAL */}
-      <DeleteRencanaModal
-        open={openDeleteRencana}
-        data={selectedDelete}
-        onClose={() => setOpenDeleteRencana(false)}
-        onSuccess={() => {
-          setOpenDeleteRencana(false);
-          onSuccess();
-          onClose();
-        }}
-      />
+
 
     </>
   );

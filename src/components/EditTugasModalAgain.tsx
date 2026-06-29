@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import { updateDoc, doc, arrayRemove, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase";
 
-const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
 export default function EditTugasModalAgain({
   open,
@@ -51,12 +51,34 @@ export default function EditTugasModalAgain({
   }, [open]);
 
 
-  // ✅ validation
+
   const isInvalid =
     !titleTugasAgain.trim() ||
-    !h1TugasAgain.trim();
+    !statusTugasAgain.trim();
 
   const [loading, setLoading] = useState(false);
+
+
+  const handleDelete = async () => {
+    if (!data?.schedule?.id || !data?.tugas?.id) return;
+
+    const confirmed = window.confirm(
+      `Delete task "${data?.tugas.titleTugasAgain?.length > 20 ? `${data.tugas.titleTugasAgain.slice(0, 20)}...` : data?.tugas?.titleTugasAgain || "null"}" dari jadwal '${data?.schedule.course?.length > 20 ? `${data.schedule?.course.slice(0, 15)}...` : data?.schedule?.course || "null"}'?`
+    );
+
+    if (confirmed) {
+
+      const ref = doc(db, "schedules", data.schedule.id);
+      
+      await updateDoc(ref, {
+        tugasAgain: arrayRemove(data.tugas)
+      });
+
+      onSuccess();
+      onClose();
+    }
+  };
+
 
 
 
@@ -102,17 +124,17 @@ export default function EditTugasModalAgain({
   return (
     <Modal open={open} onClose={onClose}>
       <h2>Detail Task ke-{(data?.index ?? 0) + 1}</h2>
-      
+
       {editMode && (
-      <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-        Mengedit task dari: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
-        {" "}
-        {data?.schedule?.slots?.length > 1
-          ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
-          : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
-        }
-        ]
-      </p>
+        <p style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
+          Mengedit task dari: {data?.schedule?.course || "notfound"}  [Hari {dayLabels[data?.schedule?.dayIndex - 1] || "null"},
+          {" "}
+          {data?.schedule?.slots?.length > 1
+            ? `Jam ${data.schedule.slots.at(0)}.00 - ${data.schedule.slots.at(-1)}.00`
+            : `Jam ${data?.schedule?.slots?.at(0) ?? "?"}.00`
+          }
+          ]
+        </p>
       )}
 
       <form onSubmit={handleUpdate}>
@@ -189,12 +211,12 @@ export default function EditTugasModalAgain({
           ))}
 
         {editMode ? (<>
-        <label htmlFor="note2">✍️ Note</label>
-        <textarea id="note2" rows={3}
-          placeholder="Note"
-          value={note2TugasAgain}
-          onChange={(e) => setNote2(e.target.value)}
-        /></>) : (
+          <label htmlFor="note2">✍️ Note</label>
+          <textarea id="note2" rows={3}
+            placeholder="Note"
+            value={note2TugasAgain}
+            onChange={(e) => setNote2(e.target.value)}
+          /></>) : (
           data?.tugas?.note2TugasAgain && (
             <div>
               <label>✍️ Note</label>
@@ -211,7 +233,7 @@ export default function EditTugasModalAgain({
             {/* NOT IN EDIT MODE */}
             {!editMode && (
               <>
-                <button
+                <button type="button"
                   onClick={() => {
                     setEditMode(true);
                   }}
@@ -219,10 +241,8 @@ export default function EditTugasModalAgain({
                   ✏️ Edit
                 </button>
 
-                <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
-                  onClick={() => {
-
-                  }}
+                <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                  onClick={handleDelete}
                 >
                   <div>🗑️ Delete</div>
                 </button>
@@ -232,7 +252,7 @@ export default function EditTugasModalAgain({
             {/* EDIT MODE */}
             {editMode && (
               <>
-                <button
+                <button type="button"
                   onClick={() => {
                     const t = data?.tugas;
                     setStatus(t.statusTugasAgain || "");

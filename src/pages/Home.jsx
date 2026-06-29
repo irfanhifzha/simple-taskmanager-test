@@ -200,10 +200,10 @@ export default function Home() {
                             + Tambah Jadwal
                         </button>
 
-                        <button className="px-3 py-2 border border-gray-200 outline-none  rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        {/* <button className="p-3 py-2 border border-gray-200 outline-none rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                             onClick={() => setEditMode(prev => !prev)}>
-                            {editMode ? "🔒 Exit Edit Mode" : "✏️ Update Data"}
-                        </button>
+                            {editMode ? "🛠️" : "🚀"}
+                        </button> */}
                     </>
                 )}
 
@@ -244,7 +244,7 @@ export default function Home() {
                                             {s && (
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
-                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease active:-translate-y-1 wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer" : ""} ${colorClasses[s.type] ?? "border border-black bg-white"}`}
+                                                <div className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer" : ""} ${colorClasses[s.type] ?? "border border-black bg-white"}`}
                                                     onClick={!editMode ? () => { setSelected({ schedule: s, login: isLoggedIn }); setOpenEdit(true); } : undefined}>
 
                                                     {/* LIVE BADGE (ONLY FOR ACTIVE CLASS) */}
@@ -256,62 +256,7 @@ export default function Home() {
                                                     )}
 
 
-                                                    {/* CRUD BUTTONS (UNCHANGED) */}
-                                                    {user && editMode && (
-                                                        <div className="flex gap-2 mt-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelected(s);
-                                                                    setOpenEdit(true);
-                                                                }}
-                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                            >
-                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                    edit</span>
-                                                            </button>
-
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelected(s);
-                                                                    setOpenDelete(true);
-                                                                }}
-                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  outline-none active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                            >
-                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                    delete</span>
-                                                            </button>
-
-                                                            {s.titleTugas ? (
-                                                                s.titleTugasAgain ? (
-                                                                    <button disabled
-                                                                        className="bg-white p-0 shadow-md hover:shadow-lg text-gray-400 rounded-md w-[25px] h-[25px] border border-gray-200"
-                                                                    >
-                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">warning</span>
-                                                                    </button>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setSelected(s);
-                                                                            setOpenTugasAddAgain(true);
-                                                                        }}
-                                                                        className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                    >
-                                                                        <span className="material-symbols-rounded text-[17px]/[1.5]!">playlist_add</span>
-                                                                    </button>
-                                                                )
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelected(s);
-                                                                        setOpenTugasAdd(true);
-                                                                    }}
-                                                                    className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-blue-500 rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                >
-                                                                    <span className="material-symbols-rounded text-[17px]/[1.5]!">add</span>
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
+                                                    
 
                                                     {/* CONTENT (UNCHANGED) */}
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
@@ -337,40 +282,7 @@ export default function Home() {
                                                                     className={`text-black! bg-white px-3 py-2 mt-2 rounded-lg text-black transition duration-200 eases ${!editMode ? "cursor-pointer active:scale-97 active:brightness-90 hover:-translate-y-0.5 bg-white!" : ""} ${colorOutline[s.type] ?? "border border-black bg-white"}`} onClick={!editMode ? (e) => { e.stopPropagation(); setSelected({ schedule: s, tugas: t, index, login: isLoggedIn }); setOpenTugasEditAgain(true); } : undefined}
                                                                 >
 
-                                                                    {/* edit/delete */}
-                                                                    {user && editMode && (
-                                                                        <div className="flex gap-2 mb-3">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelected({
-                                                                                        schedule: s,
-                                                                                        tugas: t,
-                                                                                    });
-                                                                                    setOpenTugasEditAgain(true);
-                                                                                }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                            >
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                                    edit
-                                                                                </span>
-                                                                            </button>
-
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelected({
-                                                                                        schedule: s,
-                                                                                        tugas: t,
-                                                                                    });
-                                                                                    setOpenTugasDeleteAgain(true);
-                                                                                }}
-                                                                                className="bg-white p-0 shadow-md hover:shadow-lg cursor-pointer text-black rounded-md w-[25px] h-[25px] border border-gray-200 hover:-translate-y-0.5 hover:border-blue-600 transition duration-200 ease  active:scale-95 active:bg-gray-100 active:border-blue-600"
-                                                                            >
-                                                                                <span className="material-symbols-rounded text-[17px]/[1.5]!">
-                                                                                    delete
-                                                                                </span>
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
+                                                                    
 
                                                                     {/* title + status */}
                                                                     <div className="flex mb-2 font-bold text-xs items-center">

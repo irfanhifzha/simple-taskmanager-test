@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import { updateDoc, doc, arrayUnion } from "firebase/firestore";
 import { db } from "../firebase";
 
-const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
 export default function AddTugasModalAgain({
   open,

@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import Modal from "./Modal";
-import { updateDoc, doc, getDocs, collection } from "firebase/firestore";
+import { updateDoc, doc, getDocs, collection, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
+
+import AddTugasModalAgain from "../components/AddTugasModalAgain";
 
 const slotOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
-const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
 const days = [
   { label: "Senin", value: 1 },
@@ -42,6 +44,8 @@ export default function EditScheduleModal({
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
 
+  const [openTugasAddAgain, setOpenTugasAddAgain] = useState(false);
+  const selectedSchedule = data?.schedule ?? null;
 
 
 
@@ -162,6 +166,9 @@ export default function EditScheduleModal({
     "abu": "bg-gray-500",
   };
 
+
+
+
   // ✅ load existing data
   useEffect(() => {
     const s = data?.schedule;
@@ -256,6 +263,28 @@ export default function EditScheduleModal({
     slots.length === 0;
 
 
+  const handleDelete = async () => {
+    if (!data?.schedule?.id) return;
+
+    const confirmed = window.confirm(
+      `Delete "${data?.schedule?.course?.length > 13
+        ? `${data.schedule.course.slice(0, 13)}...`
+        : data?.schedule?.course || "null"
+      } [${dayLabels?.[data?.schedule?.dayIndex - 1] || "null"
+      }, ${(data?.schedule?.slots || []).length > 1
+        ? `Jam ${(data?.schedule?.slots || []).at(0)}.00 - ${(data?.schedule?.slots || []).at(-1)}.00`
+        : `Jam ${(data?.schedule?.slots || []).at(0) ?? "?"}.00`
+      }]" dari jadwal?`
+    );
+
+    if (confirmed) {
+      await deleteDoc(doc(db, "schedules", data.schedule.id));
+
+      onSuccess();
+      onClose();
+    }
+  };
+
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -286,9 +315,10 @@ export default function EditScheduleModal({
     onClose();
   };
 
-  return (
-    <Modal open={open} onClose={onClose}>
+  return (<>
+    <Modal open={open && !openTugasAddAgain} onClose={onClose}>
       <h2>Detail Jadwal</h2>
+
 
 
       {editMode && (
@@ -376,11 +406,11 @@ export default function EditScheduleModal({
             />
           </>
         ) : (
-          data?.schedule?.room && (
+          data?.schedule && (
             <div>
               <label>🕒 Waktu</label>
               <p className="pt-1">
-                Hari {days.find(d => d.value === dayIndex)?.label}, Jam{" "}
+                {days.find(d => d.value === dayIndex)?.label}, Jam{" "}
                 {slots.length > 1
                   ? `${Math.min(...slots)} - ${Math.max(...slots)}`
                   : `${slots[0]}`}
@@ -521,7 +551,7 @@ export default function EditScheduleModal({
 
             <div className="pt-4 mt-2 border-t-1 border-black">
               <div className="text-gray-500 text-sm pointer-events-none">📂 Daftar task [{tugasAgain.length}]</div>
-              <div className="px-4 py-1 bg-gray-100 mt-2 mb-2 pb-3 rounded-lg">
+              <div className="px-4 py-2 bg-gray-100 mt-2 mb-2 pb-3 rounded-lg">
                 {tugasAgain?.map((task, index) => (
                   <div key={index}>
                     <div className="flex flex-col mb-1">
@@ -559,7 +589,7 @@ export default function EditScheduleModal({
                       ref={(el) => {
                         if (el) itemRefs.current.set(task.id, el);
                       }}
-                      className={`border border-gray-200 bg-white mt-2 p-1 px-3 rounded-lg relative flex flex-col mb-1 select-none transition-all duration-150 ${isDragging && dragIndex === index ? "opacity-40 scale-[0.97]" : ""} ${isDragging ? "cursor-grabbing" : ""}`}
+                      className={`border border-gray-200 bg-white mt-2 p-1 px-3 rounded-lg relative flex flex-col mb-1 transition-all duration-150 ${isDragging && dragIndex === index ? "opacity-40 scale-[0.97]" : ""} ${isDragging ? "cursor-grabbing" : ""}`}
                     >
 
                       <div
@@ -576,10 +606,10 @@ export default function EditScheduleModal({
 
                         <div
                           className={`w-[10px] h-[10px] rounded-full inline-block me-2 translate-y-0.5 ${statusStyles[task.statusTugasAgain] || "bg-gray-200"}`}></div>
-                        <div>{task.titleTugasAgain}</div>
+                        <div className="pe-15 truncate">{task.titleTugasAgain}</div>
                       </div>
                       {task.h1TugasAgain &&
-                        (<div className="-mt-1 ps-5 flex gap-0.5 w-full text-gray-600/60 text-xs">
+                        (<div className="-mt-1 ps-5 flex gap-0.5 w-full text-gray-600/60 text-xs pe-15">
                           {task.h1TugasAgain && (<div className="truncate">{task.h1TugasAgain}</div>)}
                           {task.note1TugasAgain && (<div className="truncate">({task.note1TugasAgain})</div>)}
                         </div>)}
@@ -605,11 +635,19 @@ export default function EditScheduleModal({
             {!editMode && (
               <>
 
+                <button type="button" className="bg-gray-800! text-white w-full mt-4 flex justify-center"
+                  onClick={() => {
+                    setOpenTugasAddAgain(true);
+                  }}
+                >
+                  <div>+ Tambah Task</div>
+                </button>
+
 
 
 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <button
+                  <button type="button"
                     onClick={() => {
                       setEditMode(true);
                     }}
@@ -617,10 +655,8 @@ export default function EditScheduleModal({
                     ✏️ Edit
                   </button>
 
-                  <button className="border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
-                    onClick={() => {
-
-                    }}
+                  <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                    onClick={handleDelete}
                   >
                     <div>🗑️ Delete</div>
                   </button>
@@ -632,12 +668,18 @@ export default function EditScheduleModal({
             {/* EDIT MODE */}
             {editMode && (<>
 
-
+              <button type="button" className="bg-gray-800! text-white w-full mt-4 flex justify-center"
+                onClick={() => {
+                  setOpenTugasAddAgain(true);
+                }}
+              >
+                <div>+ Tambah Task</div>
+              </button>
 
 
 
               <div className="grid grid-cols-2 gap-4 mt-4">
-                <button
+                <button type="button"
                   onClick={() => {
                     const s = data?.schedule;
                     setCourse(s.course || "");
@@ -669,13 +711,7 @@ export default function EditScheduleModal({
               </div>
 
 
-              <button className="bg-gray-800! text-white! w-full mt-4"
-                onClick={() => {
 
-                }}
-              >
-                <div>+ Tambah Task</div>
-              </button>
 
 
 
@@ -685,6 +721,16 @@ export default function EditScheduleModal({
 
 
       </form>
+
     </Modal >
+
+    <AddTugasModalAgain open={openTugasAddAgain} data={selectedSchedule} onClose={() => { setOpenTugasAddAgain(false); onClose(); }}
+      onSuccess={() => {
+        setOpenTugasAddAgain(false);
+        onSuccess();
+        onClose();
+      }} />
+
+  </>
   );
 }
