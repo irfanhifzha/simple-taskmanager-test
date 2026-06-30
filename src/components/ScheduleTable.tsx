@@ -200,7 +200,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                     <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                                     <span>
                                                                         {" "}
-                                                                        Live {currentHour}.00 | Jam {s.slots.at(0)}.00 - {s.slots.at(-1)}.00
+                                                                        Live {currentHour}.00 | Jam {Math.min(...s.slots)}.00 - {Math.max(...s.slots)}.00
                                                                     </span>
                                                                 </div>
                                                             )}
