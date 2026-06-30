@@ -18,7 +18,10 @@ const months = [
   { label: "Desember", value: 12 },
 ];
 
-export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
+export default function AddRencanaModal({ open, onClose, onSuccess, category }: any) {
+
+  const kategori = category;
+
   const today = new Date();
   const [bulan, setBulan] = useState<number>(today.getMonth() + 1);
   const [tahun, setTahun] = useState<number>(today.getFullYear());
@@ -119,7 +122,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
 
   // ===== RESET =====
   const resetForm = () => {
-    setTanggal([]);
+    setStartTanggal(String(today.getDate()));
     setBulan(today.getMonth() + 1);
     setTahun(today.getFullYear());
   };
@@ -178,10 +181,11 @@ export default function AddRencanaModal({ open, onClose, onSuccess }: any) {
           .split(",")
           .map((l: string) => l.trim())
           .filter(Boolean),
+        kategori,
       };
 
 
-      await addDoc(collection(db, "calendar"), payload);
+      await addDoc(collection(db, "calendars"), payload);
 
       onSuccess();
       handleClose();

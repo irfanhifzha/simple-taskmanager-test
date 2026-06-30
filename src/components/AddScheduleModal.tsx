@@ -14,7 +14,10 @@ const days = [
 
 const slotOptions = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
-export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
+export default function AddScheduleModal({ open, onClose, onSuccess, category }: any) {
+
+  const kategori = category;
+  
   const [course, setCourse] = useState("");
   const [room, setRoom] = useState("");
   const [peoples, setPeoples] = useState("");
@@ -25,8 +28,10 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
   const [desc, setDesc] = useState("");
   const [note, setNote] = useState("");
 
-
   
+
+
+
   const isInvalid =
     !course.trim() ||
     !type.trim() ||
@@ -59,11 +64,12 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
       const day = d.dayIndex;
       const s = d.slots || [];
 
+      const existingCategory = d.kategori;
+
 
       s.forEach((slot: number) => {
-        // ✅ NEW KEY STRUCTURE (IMPORTANT FIX)
         occupied.add(
-          `${day}-${slot}`
+          `${existingCategory}-${day}-${slot}`
         );
       });
     });
@@ -84,7 +90,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
 
 
   const toggleSlot = (slot: number) => {
-    const key = `${dayIndex}-${slot}`;
+    const key = `${kategori}-${dayIndex}-${slot}`;
 
     if (occupiedSlots.has(key)) return;
 
@@ -144,6 +150,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         type,
         desc,
         note,
+        kategori,
       };
 
 
@@ -255,7 +262,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: any) {
         <input id="jam" disabled value={[...slots].sort((a, b) => a - b).join(", ")} className="flex w-full h-8"></input>
         <div className="flex flex-wrap w-full gap-1 mt-1 mb-1">
           {slotOptions.map((slot) => {
-            const key = `${dayIndex}-${slot}`;
+            const key = `${kategori}-${dayIndex}-${slot}`;
             const isBlocked = occupiedSlots.has(key);
             const isSelected = slots.includes(slot);
 

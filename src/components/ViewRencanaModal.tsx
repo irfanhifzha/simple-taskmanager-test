@@ -194,7 +194,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     );
 
     if (confirmed) {
-      await deleteDoc(doc(db, "calendar", data.id));
+      await deleteDoc(doc(db, "calendars", data.id));
 
       onSuccess();
       onClose();
@@ -248,7 +248,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
       };
 
 
-      await updateDoc(doc(db, "calendar", data.id), payload);
+      await updateDoc(doc(db, "calendars", data.id), payload);
 
 
       onSuccess();

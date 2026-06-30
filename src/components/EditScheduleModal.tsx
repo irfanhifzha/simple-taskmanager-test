@@ -20,10 +20,13 @@ const days = [
 
 export default function EditScheduleModal({
   open,
-  onClose,
   data,
+  category,
+  onClose,
   onSuccess,
 }: any) {
+
+  const kategori = category;
 
   const [course, setCourse] = useState("");
   const [room, setRoom] = useState("");
@@ -46,6 +49,8 @@ export default function EditScheduleModal({
 
   const [openTugasAddAgain, setOpenTugasAddAgain] = useState(false);
   const selectedSchedule = data?.schedule ?? null;
+
+  
 
 
 
@@ -217,9 +222,12 @@ export default function EditScheduleModal({
 
       const day = d.dayIndex;
 
+      const existingCategory = d.kategori;
+
+
 
       (d.slots || []).forEach((slot: number) => {
-        occupied.add(`${day}-${slot}`);
+        occupied.add(`${existingCategory}-${day}-${slot}`);
       });
     });
 
@@ -246,7 +254,7 @@ export default function EditScheduleModal({
 
   const toggleSlot = (slot: number) => {
 
-    const key = `${dayIndex}-${slot}`;
+    const key = `${kategori}-${dayIndex}-${slot}`;
 
     if (occupiedSlots.has(key)) return;
 
@@ -559,7 +567,7 @@ export default function EditScheduleModal({
 
           <div className="flex flex-wrap w-full gap-1 mt-1 mb-3">
             {slotOptions.map((slot) => {
-              const key = `${dayIndex}-${slot}`;
+              const key = `${kategori}-${dayIndex}-${slot}`;
               const isBlocked = occupiedSlots.has(key);
               const isSelected = slots.includes(slot);
 
