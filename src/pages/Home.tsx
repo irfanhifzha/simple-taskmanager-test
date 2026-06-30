@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import type { User } from "firebase/auth";
 
 // COMPONENTS
 import Navbar from "../components/Navbar";
@@ -23,6 +24,8 @@ import AddRencanaModal from "../components/AddRencanaModal";
 import ViewRencanaModal from "../components/ViewRencanaModal";
 
 
+
+
 export default function Home() {
 
     useEffect(() => {
@@ -30,8 +33,8 @@ export default function Home() {
     }, []);
 
 
-    const [user, setUser] = useState(null);
-    const [schedule, setSchedule] = useState([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [schedule, setSchedule] = useState<schedule[]>([]);
 
     const [editMode, setEditMode] = useState(false);
     const [tugasVisibility, setTugasVisibility] = useState(true);
@@ -50,7 +53,14 @@ export default function Home() {
     const [openTugasEditAgain, setOpenTugasEditAgain] = useState(false);
     const [openTugasDeleteAgain, setOpenTugasDeleteAgain] = useState(false);
 
-    const [selected, setSelected] = useState(null);
+    type Selected = {
+        schedule: schedule;
+        tugas?: TugasAgain;
+        index?: number;
+        login?: boolean;
+    };
+
+    const [selected, setSelected] = useState<Selected | null>(null);
 
     const days = weekendVisibility
         ? [1, 2, 3, 4, 5, 6, 7]
@@ -77,6 +87,7 @@ export default function Home() {
         "abu": "bg-gray-500 before:border-t-gray-500 [&_div]:bg-gray-700/50",
     };
 
+
     const colorClasses = {
         green: "border border-green-200 bg-green-100 text-green-700 active:bg-green-300/40 active:border-green-300",
         blue: "border border-blue-200 bg-blue-100 text-blue-800 active:bg-blue-300/50 active:border-blue-300",
@@ -84,7 +95,7 @@ export default function Home() {
         orange: "border border-orange-200 bg-orange-100 text-orange-700 active:bg-orange-200 active:border-orange-300",
         purple: "border border-purple-200 bg-purple-100 text-purple-700 active:bg-purple-200 active:border-purple-300",
         abu: "border border-gray-300 bg-gray-200 text-gray-700 active:bg-gray-300 active:border-gray-300",
-    };
+    } as const;
 
     const colorOutline = {
         green: "border border-green-300 bg-green-100 text-green-700 hover:border-green-600 active:border-green-600",
@@ -93,7 +104,52 @@ export default function Home() {
         orange: "border border-orange-300 bg-orange-100 text-orange-700 hover:border-orange-400 active:border-orange-400",
         purple: "border border-purple-300 bg-purple-100 text-purple-700 hover:border-purple-400 active:border-purple-400",
         abu: "border border-gray-400 bg-gray-100 text-gray-700 hover:border-gray-500 active:border-gray-400",
+    } as const;
+
+
+
+    // const getColorClass = (
+    //     type:  "green" | "blue" | "red" | "orange" | "purple" | "abu",
+    //     mode: "fill" | "outline" = "fill"
+    // ) => {
+    //     const map = mode === "outline" ? colorOutline : colorClasses;
+
+    //     return map[type] ?? "border border-black bg-white";
+    // };
+
+    // ${getColorClass(s.type, "outline")}
+
+
+    type TugasAgain = {
+        id: number;
+        titleTugasAgain: string;
+        note1TugasAgain: string;
+        note2TugasAgain: string;
+        statusTugasAgain: "green" | "blue" | "red" | "orange" | "purple" | "abu";
+        h1TugasAgain: string;
     };
+
+
+    type schedule = {
+        id: string;
+
+        dayIndex: number;
+        slots: number[];
+
+        course: string;
+        room: string;
+        peoples: string[];
+
+        type: "green" | "blue" | "red" | "orange" | "purple" | "abu";
+
+        note: string;
+        desc: string;
+
+        tugasAgain: TugasAgain[];
+    };
+
+
+
 
 
 
@@ -111,7 +167,7 @@ export default function Home() {
 
     const currentDayIndex = () => {
         const day = now.getDay();
-        // JS: Sunday=0 ... Saturday=6
+        // React: Sunday=0 ... Saturday=6
         // your system: Monday=1 ... Friday=5
 
         if (day === 0 || day === 6) return -1;
@@ -151,7 +207,7 @@ export default function Home() {
         const data = snap.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+        })) as schedule[];
 
         setSchedule(data);
     };
@@ -161,7 +217,7 @@ export default function Home() {
     }, []);
 
     // SESSION LOOKUP (SIMPLE, NO RESTRICTION)
-    const getSession = (data, dayIndex, hour) => {
+    const getSession = (data: schedule[], dayIndex: number, hour: number) => {
         return data.find(
             s =>
                 s.dayIndex === dayIndex &&
@@ -170,7 +226,7 @@ export default function Home() {
         ) || null;
     };
 
-    const renderTable = (title, data) => (
+    const renderTable = (title: string, data: schedule[]) => (
         <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
             <p className="text-black text-md font-bold">{title}</p>
 
@@ -234,6 +290,7 @@ export default function Home() {
 
                                     return (
                                         <td key={day}>
+
                                             {s && (
 
                                                 // sini task mau fit(bisa banyak) atau full(satu doang full)?
@@ -249,7 +306,7 @@ export default function Home() {
                                                     )}
 
 
-                                                    
+
 
                                                     {/* CONTENT (UNCHANGED) */}
                                                     <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">{s.course}</p>
@@ -275,7 +332,7 @@ export default function Home() {
                                                                     className={`text-black! bg-white px-3 py-2 mt-2 rounded-lg text-black transition duration-200 eases ${!editMode ? "cursor-pointer active:scale-97 active:brightness-90 hover:-translate-y-0.5 bg-white!" : ""} ${colorOutline[s.type] ?? "border border-black bg-white"}`} onClick={!editMode ? (e) => { e.stopPropagation(); setSelected({ schedule: s, tugas: t, index, login: isLoggedIn }); setOpenTugasEditAgain(true); } : undefined}
                                                                 >
 
-                                                                    
+
 
                                                                     {/* title + status */}
                                                                     <div className="flex mb-2 font-bold text-xs items-center">
@@ -335,21 +392,27 @@ export default function Home() {
 
     // NEW CALENDAR
 
-    const Calendar = {
-        id: undefined,
+    type calendar = {
+        id: string;
 
-        tahun: 0,
+        bulan: number;
+        tahun: number;
+        tanggal: number[];
 
-        bulan: 0,
-        tanggal: [],
+        task: string;
+        content: string;
+        peoples: string[];
 
-        task: "",
-        type: "",
-        content: "",
+        type: "green" | "blue" | "red" | "orange" | "purple" | "abu";
+
+        notes: string;
     };
 
+
+
+
     // firestore calendar data
-    const [calendar, setCalendar] = useState([]);
+    const [calendar, setCalendar] = useState<calendar[]>([]);
 
     // current displayed month
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -364,12 +427,11 @@ export default function Home() {
         const data_calendar = snap_calendar.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+        })) as calendar[];
 
         setCalendar(
             data_calendar.filter(
-                d =>
-                    d.tahun === currentDate.getFullYear()
+                d => d.tahun === currentDate.getFullYear()
             )
         );
     };
@@ -379,7 +441,7 @@ export default function Home() {
     }, [currentDate.getFullYear()]);
 
     // FIND EVENT FOR SPECIFIC DATE
-    const getCalendar = (data, bulan, tgl) => {
+    const getCalendar = (data: calendar[], bulan: number, tgl: number): calendar[] => {
         return data.filter(
             (s) =>
                 s.bulan === bulan &&
@@ -389,10 +451,7 @@ export default function Home() {
     };
 
     // BUILD CALENDAR MATRIX
-    const buildCalendar = (
-        year,
-        month
-    ) => {
+    const buildCalendar = (year: number, month: number): (number | null)[][] => {
 
         const firstDay = new Date(
             year,
@@ -458,8 +517,17 @@ export default function Home() {
     const calendarDays = weeks.flat();
 
 
-    const longEvents = [];
-    const rowOffsets = {};
+    type LongEvent = calendar & {
+        row: number;
+        col: number;
+        span: number;
+        topOffset: number;
+        isStart: boolean;
+        isEnd: boolean;
+    };
+
+    const longEvents: LongEvent[] = [];
+    const rowOffsets: Record<number, number> = {};
 
     const GAP_STACK_NORMAL = 32;
     const GAP_STACK_PIC = 70;
@@ -528,7 +596,7 @@ export default function Home() {
 
     // new const for button crud
 
-    const [selected_cal, setSelected_cal] = useState(null);
+    const [selected_cal, setSelected_cal] = useState<calendar | null>(null);
 
     const [openAddRencana, setOpenAddRencana] = useState(false);
     // const [openDeleteRencana, setOpenDeleteRencana] = useState(false);
@@ -726,9 +794,11 @@ export default function Home() {
                                                                                 setOpenViewRencana(true);
                                                                             }}>
 
-                                                                                <div className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:-translate-y-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:-top-1 before:left-10 before:w-0 before:h-0 before:rotate-45 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent ${statusBorder[item.type] || "bg-gray-400"} hover:brightness-105 active:brightness-80 active:scale-99`}>
+                                                                                <div className={`relative flex justify-center items-center select-text gap-1 px-2.5 w-fit min-w-0 cursor-pointer hover:-translate-y-0.5 rounded-lg text-white transition ease hover:brightness-105 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"}`}>
+                                                                                    {/* Arrow */}
+                                                                                    <div className={`z-2 absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${statusStyles[item.type] || "bg-gray-400"}`}/>
                                                                                     {item.peoples.map((person, idx) => (
-                                                                                        <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
+                                                                                        <div key={idx} className="z-4 text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">
                                                                                             {person}
                                                                                         </div>
 
