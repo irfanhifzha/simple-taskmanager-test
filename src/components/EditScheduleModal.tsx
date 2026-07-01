@@ -18,6 +18,10 @@ const days = [
   { label: "Sabtu", value: 6 }, { label: "Minggu", value: 7 },
 ];
 
+import {
+    statusStyles,
+} from "../types/scheduleTypes";
+
 export default function EditScheduleModal({
   open,
   data,
@@ -43,7 +47,6 @@ export default function EditScheduleModal({
 
   const [editMode, setEditMode] = useState(false);
 
-  const [showInvalid, setShowInvalid] = useState(false);
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
 
@@ -162,17 +165,6 @@ export default function EditScheduleModal({
 
 
 
-  const statusStyles: Record<string, string> = {
-    "blue": "bg-blue-600",
-    "red": "bg-red-600",
-    "green": "bg-green-600",
-    "orange": "bg-orange-600",
-    "purple": "bg-purple-500",
-    "abu": "bg-gray-500",
-  };
-
-
-
 
 
   useEffect(() => {
@@ -237,7 +229,6 @@ export default function EditScheduleModal({
   useEffect(() => {
     if (open) {
       loadConflicts();
-      setShowInvalid(false);
     }
   }, [open, dayIndex, data?.id]);
 
@@ -265,11 +256,7 @@ export default function EditScheduleModal({
     );
   };
 
-  const isInvalid =
-    !course.trim() ||
-    !type.trim() ||
-    dayIndex === 0 ||
-    slots.length === 0;
+
 
   const handleClose = () => {
     setErrors({});
@@ -700,7 +687,7 @@ export default function EditScheduleModal({
                     ✏️ Edit
                   </button>
 
-                  <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-600 hover:text-white! active:bg-red-700! active:text-white!"
+                  <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-700 hover:text-white! active:bg-red-800! active:text-white!"
                     onClick={handleDelete}
                   >
                     <div>🗑️ Delete</div>
@@ -764,7 +751,7 @@ export default function EditScheduleModal({
                 <button type="button"
                   onClick={handleUpdate}
                   disabled={loading}
-                  className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-600 hover:text-white! active:bg-gray-800! active:text-white! cursor-pointer"}`}>
+                  className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-800 hover:text-white! active:bg-gray-900! active:text-white! cursor-pointer"}`}>
                   {loading ? "⏳ Loading..." : "💾 Simpan"}
                 </button>
               </div>

@@ -13,6 +13,11 @@ type Props = {
     user: User | null;
 };
 
+type Selected = {
+    item: CalendarEvent;
+    login?: boolean;
+};
+
 type LongEvent = CalendarEvent & {
     row: number;
     col: number;
@@ -52,6 +57,8 @@ function buildCalendar(year: number, month: number): (number | null)[][] {
 }
 
 export default function CalendarView({ kategori, user }: Props) {
+    const isLoggedIn = !!user;
+
     const [calendar, setCalendar] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -143,7 +150,8 @@ export default function CalendarView({ kategori, user }: Props) {
         return result;
     }, [calendar, year, month, calendarDays]);
 
-    const [selectedCal, setSelectedCal] = useState<CalendarEvent | null>(null);
+
+    const [selectedCal, setSelectedCal] = useState<Selected | null>(null);
     const [openAddRencana, setOpenAddRencana] = useState(false);
     const [openViewRencana, setOpenViewRencana] = useState(false);
 
@@ -209,13 +217,13 @@ export default function CalendarView({ kategori, user }: Props) {
                                     const longEventsAreaHeight =
                                         weekLongEvents.length > 0
                                             ? Math.max(
-                                                  ...weekLongEvents.map(
-                                                      (e) =>
-                                                          15 +
-                                                          e.topOffset +
-                                                          (e.peoples?.length > 0 ? GAP_STACK_PIC : GAP_STACK_NORMAL)
-                                                  )
-                                              )
+                                                ...weekLongEvents.map(
+                                                    (e) =>
+                                                        15 +
+                                                        e.topOffset +
+                                                        (e.peoples?.length > 0 ? GAP_STACK_PIC : GAP_STACK_NORMAL)
+                                                )
+                                            )
                                             : 0;
 
                                     const cellWidth = 100 / 7;
@@ -236,9 +244,8 @@ export default function CalendarView({ kategori, user }: Props) {
                                                 return (
                                                     <div
                                                         key={dayIdx}
-                                                        className={`relative border-r border-gray-200 px-2 pb-2 min-h-[110px] ${
-                                                            day === null ? "bg-gray-100" : "bg-white"
-                                                        }`}
+                                                        className={`relative border-r border-gray-200 px-2 pb-2 min-h-[110px] ${day === null ? "bg-gray-100" : "bg-white"
+                                                            }`}
                                                     >
                                                         {day && (
                                                             <>
@@ -264,7 +271,7 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                         >
                                                                             <div
                                                                                 onClick={() => {
-                                                                                    setSelectedCal(item);
+                                                                                    setSelectedCal({ item, login: isLoggedIn });
                                                                                     setOpenViewRencana(true);
                                                                                 }}
                                                                                 className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-95"
@@ -279,19 +286,17 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                                 <div
                                                                                     className="h-8 w-full flex justify-center gap-4 text-[10px] mt-3 px-1 pointer-events-auto"
                                                                                     onClick={() => {
-                                                                                        setSelectedCal(item);
+                                                                                        setSelectedCal({ item, login: isLoggedIn });
                                                                                         setOpenViewRencana(true);
                                                                                     }}
                                                                                 >
                                                                                     <div
-                                                                                        className={`relative flex justify-center items-center select-text gap-1 px-2.5 w-fit min-w-0 cursor-pointer hover:-translate-y-0.5 rounded-lg text-white transition ease hover:brightness-105 active:brightness-80 active:scale-99 ${
-                                                                                            statusStyles[item.type] || "bg-gray-400"
-                                                                                        }`}
+                                                                                        className={`relative flex justify-center items-center select-text gap-1 px-2.5 w-fit min-w-0 cursor-pointer hover:-translate-y-0.5 rounded-lg text-white transition ease hover:brightness-105 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"
+                                                                                            }`}
                                                                                     >
                                                                                         <div
-                                                                                            className={`z-2 absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${
-                                                                                                statusStyles[item.type] || "bg-gray-400"
-                                                                                            }`}
+                                                                                            className={`z-2 absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${statusStyles[item.type] || "bg-gray-400"
+                                                                                                }`}
                                                                                         />
                                                                                         {item.peoples.map((person, idx) => (
                                                                                             <div
@@ -318,7 +323,7 @@ export default function CalendarView({ kategori, user }: Props) {
                                                     <div
                                                         key={`${item.id}-${item.row}-${i}`}
                                                         onClick={() => {
-                                                            setSelectedCal(item);
+                                                            setSelectedCal({ item, login: isLoggedIn });
                                                             setOpenViewRencana(true);
                                                         }}
                                                         style={{
@@ -329,15 +334,14 @@ export default function CalendarView({ kategori, user }: Props) {
                                                         className={`absolute ${item.isStart ? "ps-1.5" : ""} ${item.isEnd ? "pe-1.5" : ""}`}
                                                     >
                                                         <div
-                                                            className={`h-7 px-2 ps-3 pointer-events-auto flex items-center justify-start text-white shadow cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${
-                                                                statusStyles[item.type] || "bg-gray-400"
-                                                            } ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}
+                                                            className={`h-7 px-2 ps-3 pointer-events-auto flex items-center justify-start text-white shadow cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-99 ${statusStyles[item.type] || "bg-gray-400"
+                                                                } ${item.isStart ? "rounded-l-lg" : ""} ${item.isEnd ? "rounded-r-lg" : ""}`}
                                                         >
                                                             {item.isStart && (
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        setSelectedCal(item);
+                                                                        setSelectedCal({ item, login: isLoggedIn });
                                                                         setOpenViewRencana(true);
                                                                     }}
                                                                     className="text-sm cursor-pointer overflow-hidden"
@@ -350,9 +354,8 @@ export default function CalendarView({ kategori, user }: Props) {
                                                         {item.peoples.length > 0 && item.isStart && (
                                                             <div className="h-8 w-full flex gap-4 text-[10px] mt-1 ps-6 pe-2 overflow-hidden pointer-events-auto">
                                                                 <div
-                                                                    className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:translate-x-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${
-                                                                        statusBorder[item.type] || "bg-gray-400"
-                                                                    } hover:brightness-105 active:brightness-80 active:scale-99`}
+                                                                    className={`select-text relative flex gap-1 items-center px-2.5 w-fit min-w-0 cursor-pointer hover:translate-x-0.5 rounded-lg text-white transition ease before:content-[''] before:absolute before:top-0 before:left-0 before:-translate-x-1/2 before:w-0 before:h-0 before:border-t-[15px] before:border-r-[15px] before:border-r-transparent before:rotate-90 ${statusBorder[item.type] || "bg-gray-400"
+                                                                        } hover:brightness-105 active:brightness-80 active:scale-99`}
                                                                 >
                                                                     {item.peoples.map((person, idx) => (
                                                                         <div key={idx} className="text-black! bg-white! truncate min-w-0 px-2 py-0.5 rounded-md">

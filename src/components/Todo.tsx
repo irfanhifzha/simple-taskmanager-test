@@ -16,7 +16,7 @@ import {
 } from "../types/scheduleTypes";
 
 import TodoModal from "./TodoModal";
-import TodoModalView from "./TodoModal";
+import TodoModalView from "./TodoModalUpdate";
 
 
 
@@ -37,9 +37,6 @@ export type TodoEvent = {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 };
-
-
-
 
 export type TodoStatus = "todo" | "progress" | "done";
 
@@ -99,15 +96,15 @@ export default function TodoBoard({ kategori, user }: Props) {
 
     const themeClasses: Record<string, { card: string; title: string }> = {
         blueStat: {
-            card: "border border-blue-200 bg-blue-100",
-            title: "text-blue-600",
+            card: "bg-red-600",
+            title: "text-red-600",
         },
         yellowStat: {
-            card: "border border-orange-200 bg-orange-100",
-            title: "text-orange-600",
+            card: "bg-blue-600",
+            title: "text-blue-600",
         },
         greenStat: {
-            card: "border border-green-200 bg-green-100",
+            card: "bg-green-600",
             title: "text-green-600",
         },
     };
@@ -141,9 +138,18 @@ export default function TodoBoard({ kategori, user }: Props) {
                 <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 max-lg:w-[850px]">
                     <thead>
                         <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
-                            {todoColumns.map((col) => (
-                                <th key={col.key}>{col.label}</th>
-                            ))}
+                            {todoColumns.map((col) => {
+                                const theme = themeClasses[col.theme];
+
+                                return (
+                                    <th key={col.key}>
+
+                                        {col.label}
+                                        <span className={`w-[10px] h-[10px] rounded-full inline-block ms-2 ${theme.card || "bg-gray-200"}`} />
+
+                                    </th>
+                                );
+                            })}
                         </tr>
                     </thead>
 
@@ -173,8 +179,8 @@ export default function TodoBoard({ kategori, user }: Props) {
                                                         key={task.id}
                                                         className={`flex flex-col gap-2 flex-wrap p-3 rounded-lg transition duration-200 ease hover:-translate-y-0.5 active:scale-98 ${colorClasses[task.tipe] ?? "border border-black bg-white"} ${!editMode ? "cursor-pointer" : ""}`}
                                                     >
-                                                        <div className={`h-5 w-5 border-5! rounded-md bg-white! ${theme.card}`}></div>
-                                                        {task.title && <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""} mt-2 text-lg font-bold`}>{task.title}</button>}
+                                                        <div className={`h-2 w-full rounded-md ${theme.card}`}></div>
+                                                        {task.title && <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""} mt-1 text-lg font-bold`}>{task.title}</button>}
                                                         {task.subtitle && <p className={`-mt-1 text-xs font-semibold`}>{task.subtitle}</p>}
                                                         {task.peoples.length > 0 && (
                                                             <div className="flex flex-wrap gap-1">

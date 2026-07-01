@@ -12,7 +12,7 @@ import { db } from "../firebase";
 import Modal from "./Modal";
 
 
-export default function TodoModal({ open, onClose, onSubmit }: any) {
+export default function TodoModal({ open, onClose }: any) {
 
     const [loading, setLoading] = useState(false);
 
@@ -70,7 +70,7 @@ export default function TodoModal({ open, onClose, onSubmit }: any) {
         try {
             await addDoc(collection(db, "todos"), {
                 ...rest,
-                peoples: people
+                peoples: (peoples || "")
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
@@ -95,10 +95,10 @@ export default function TodoModal({ open, onClose, onSubmit }: any) {
         order: 0,
         tipe: "",
         note: "",
-        people: "",
+        peoples: "",
     });
 
-    const { people, ...rest } = form;
+    const { peoples, ...rest } = form;
 
 
 
@@ -170,7 +170,7 @@ export default function TodoModal({ open, onClose, onSubmit }: any) {
                     id="people"
                     name="people"
                     placeholder="A, B, .. (dipisah dengan koma)"
-                    value={form.people}
+                    value={form.peoples}
                     onChange={handleChange}
                 />
 

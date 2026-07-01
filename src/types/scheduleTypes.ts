@@ -48,7 +48,7 @@ export type CalendarEvent = {
     kategori: Category;
 };
 
-export const statusStyles: Record<StatusColor, string> = {
+export const statusStyles: Record<string, string> = {
     blue: "bg-blue-600",
     red: "bg-red-600",
     green: "bg-green-600",
@@ -57,7 +57,7 @@ export const statusStyles: Record<StatusColor, string> = {
     abu: "bg-gray-500",
 };
 
-export const statusBorder: Record<StatusColor, string> = {
+export const statusBorder: Record<string, string> = {
     green: "bg-green-600 before:border-t-green-600 [&_div]:bg-green-800/50",
     blue: "bg-blue-600 before:border-t-blue-600 [&_div]:bg-blue-800",
     red: "bg-red-600 before:border-t-red-600 [&_div]:bg-red-800/50",
@@ -66,7 +66,7 @@ export const statusBorder: Record<StatusColor, string> = {
     abu: "bg-gray-500 before:border-t-gray-500 [&_div]:bg-gray-700/50",
 };
 
-export const colorClasses: Record<StatusColor, string> = {
+export const colorClasses: Record<string, string> = {
     green: "border border-green-200 bg-green-100 text-green-700 active:bg-green-300/40 active:border-green-300",
     blue: "border border-blue-200 bg-blue-100 text-blue-800 active:bg-blue-300/50 active:border-blue-300",
     red: "border border-red-200 bg-red-100 text-red-700 active:bg-red-300/50 active:border-red-300",
@@ -75,11 +75,18 @@ export const colorClasses: Record<StatusColor, string> = {
     abu: "border border-gray-300 bg-gray-200 text-gray-700 active:bg-gray-300 active:border-gray-300",
 };
 
-export const colorOutline: Record<StatusColor, string> = {
+export const colorOutline: Record<string, string> = {
     green: "border border-green-300 bg-green-100 text-green-700 hover:border-green-600 active:border-green-600",
     blue: "border border-blue-300 bg-blue-100 text-blue-800 hover:border-blue-400 active:border-blue-400",
     red: "border border-red-300 bg-red-100 text-red-700 hover:border-red-400 active:border-red-400",
     orange: "border border-orange-300 bg-orange-100 text-orange-700 hover:border-orange-400 active:border-orange-400",
     purple: "border border-purple-300 bg-purple-100 text-purple-700 hover:border-purple-400 active:border-purple-400",
     abu: "border border-gray-400 bg-gray-100 text-gray-700 hover:border-gray-500 active:border-gray-400",
+};
+
+
+export const statusStylesStatus: Record<string, string> = {
+    "todo": "bg-orange-600",
+    "progress": "bg-blue-600",
+    "done": "bg-green-600",
 };

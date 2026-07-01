@@ -129,6 +129,13 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
     onClose();
   };
 
+  
+  useEffect(() => {
+    setTanggal([]);
+    setStartTanggal("");
+    setEndTanggal("");
+  }, [bulan, tahun]);
+
 
 
 
