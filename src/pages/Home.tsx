@@ -11,7 +11,7 @@ import Todo from "../components/Todo";
 
 export default function Home() {
     useEffect(() => {
-        document.title = "Task Manager Kelas A";
+        document.title = "Simple Task Manager";
     }, []);
 
     const [user, setUser] = useState<User | null>(null);

@@ -29,6 +29,7 @@ import {
     useDroppable,
     useSensor,
     useSensors,
+    MeasuringStrategy,
     type DragStartEvent,
     type DragOverEvent,
     type DragEndEvent,
@@ -258,7 +259,7 @@ function SortableTaskCard({
 }
 
 /* ---------- Droppable column body ---------- */
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+function DroppableColumn({ id, children, isEmpty }: { id: string; children: React.ReactNode; isEmpty: boolean }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     return (
         <div
@@ -266,6 +267,11 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
             className={`flex flex-col gap-3 min-h-[60px] rounded-lg transition-colors duration-200 ${isOver ? "bg-gray-100" : ""
                 }`}
         >
+            {isEmpty && (
+                <div className="h-[60px] rounded-lg border border-dashed border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">
+                    Kosong
+                </div>
+            )}
             {children}
         </div>
     );
@@ -381,27 +387,25 @@ export default function TodoBoard({ kategori, user }: Props) {
         if (!activeTaskItem) return;
 
         const overStatus = resolveStatus(overId) ?? (activeTaskItem.status as TodoStatus);
+        const statusChanged = activeTaskItem.status !== overStatus;
 
-        // capture this BEFORE reordering — was the status actually changed vs the original doc?
-        const originalTask = activeTask; // activeTask was set on drag start, holds the pre-drag snapshot
-        const statusChanged = originalTask ? originalTask.status !== overStatus : false;
+        const columnTasks = tasks
+            .filter((t) => t.status === overStatus && t.id !== activeId) // exclude active first
+            .slice();
 
-        const columnTasks = tasks.filter((t) => t.status === overStatus);
-        const oldIndex = columnTasks.findIndex((t) => t.id === activeId);
         const overTaskIndex = columnTasks.findIndex((t) => t.id === overId);
-        const newIndex = overTaskIndex >= 0 ? overTaskIndex : columnTasks.length - 1;
+        const insertIndex = overTaskIndex >= 0 ? overTaskIndex : columnTasks.length;
 
-        if (oldIndex === -1) return;
-
-        const reordered =
-            oldIndex === newIndex ? columnTasks : arrayMove(columnTasks, oldIndex, newIndex);
+        // build the moved task with its new status, then splice into position
+        const movedTask = { ...activeTaskItem, status: overStatus };
+        columnTasks.splice(insertIndex, 0, movedTask);
 
         setTasks((prev) => {
-            const others = prev.filter((t) => t.status !== overStatus);
-            return [...others, ...reordered];
+            const others = prev.filter((t) => t.status !== overStatus && t.id !== activeId);
+            return [...others, ...columnTasks];
         });
 
-        persistColumn(reordered, statusChanged ? activeId : undefined);
+        persistColumn(columnTasks, statusChanged ? activeId : undefined);
     }
 
     return (
@@ -434,6 +438,11 @@ export default function TodoBoard({ kategori, user }: Props) {
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDragEnd={handleDragEnd}
+                    measuring={{
+                        droppable: {
+                            strategy: MeasuringStrategy.BeforeDragging,
+                        },
+                    }}
                 >
                     <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
                         <table className={`relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200  ${editMode ? "max-lg:w-[1000px]" : " max-lg:w-[850px]"}`}>
@@ -472,7 +481,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                                                         items={colTasks.map((t) => t.id)}
                                                         strategy={verticalListSortingStrategy}
                                                     >
-                                                        <DroppableColumn id={`col-${col.key}`}>
+                                                        <DroppableColumn id={`col-${col.key}`} isEmpty={colTasks.length === 0}>
                                                             {colTasks.map((task) => (
                                                                 <SortableTaskCard
                                                                     key={task.id}
