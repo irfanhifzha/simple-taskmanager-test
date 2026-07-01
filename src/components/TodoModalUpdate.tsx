@@ -22,8 +22,6 @@ export default function TodoModal({ open, onClose, data }: any) {
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e: any) => {
-        console.log(e.target.name, e.target.value);
-
         setForm({
             ...form,
             [e.target.name]: e.target.value,
@@ -49,7 +47,7 @@ export default function TodoModal({ open, onClose, data }: any) {
         );
 
         if (confirmed) {
-            await deleteDoc(doc(db, "calendars", data.task.id));
+            await deleteDoc(doc(db, "todos", data.task.id));
 
             onClose();
         }
@@ -268,6 +266,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                         <label htmlFor="desc">💬 Deskripsi</label>
                         <textarea
                             id="desc"
+                            name="desc"
                             rows={4}
                             placeholder="Deskripsi rencana"
                             value={form.desc}
@@ -291,6 +290,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                     <textarea
                         rows={4}
                         id="note"
+                        name="note"
                         placeholder="Note rencana / Link url"
                         value={form.note}
                         onChange={handleChange}
