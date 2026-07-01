@@ -70,7 +70,7 @@ export default function TodoModal({ open, onClose }: any) {
         try {
             await addDoc(collection(db, "todos"), {
                 ...rest,
-                peoples: (peoples || "")
+                peoples: (people || "")
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
@@ -95,10 +95,10 @@ export default function TodoModal({ open, onClose }: any) {
         order: 0,
         tipe: "",
         note: "",
-        peoples: "",
+        people: "",
     });
 
-    const { peoples, ...rest } = form;
+    const { people, ...rest } = form;
 
 
 
@@ -124,7 +124,7 @@ export default function TodoModal({ open, onClose }: any) {
                     onChange={handleChange}
                 />
 
-                <label htmlFor="subtitle">📢 Subheading<span>*</span></label>
+                <label htmlFor="subtitle">📢 Subheading</label>
                 <input
                     id="subtitle"
                     name="subtitle"
@@ -165,12 +165,12 @@ export default function TodoModal({ open, onClose }: any) {
 
 
 
-                <label htmlFor="people">👥 Pihak Terkait</label>
+                <label htmlFor="peoples">👥 Pihak Terkait</label>
                 <input
-                    id="people"
+                    id="peoples"
                     name="people"
                     placeholder="A, B, .. (dipisah dengan koma)"
-                    value={form.peoples}
+                    value={form.people}
                     onChange={handleChange}
                 />
 

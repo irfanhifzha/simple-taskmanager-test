@@ -113,7 +113,7 @@ export default function TodoBoard({ kategori, user }: Props) {
 
     return (<>
         <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
-
+            <p className="text-black text-md font-bold">Kanban Board</p>
 
 
 

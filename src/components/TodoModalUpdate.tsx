@@ -22,6 +22,8 @@ export default function TodoModal({ open, onClose, data }: any) {
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e: any) => {
+        console.log(e.target.name, e.target.value);
+
         setForm({
             ...form,
             [e.target.name]: e.target.value,
@@ -86,7 +88,7 @@ export default function TodoModal({ open, onClose, data }: any) {
         try {
             await updateDoc(doc(db, "todos", data.task.id), {
                 ...rest,
-                peoples: (peoples || "")
+                peoples: (people || "")
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
@@ -111,26 +113,23 @@ export default function TodoModal({ open, onClose, data }: any) {
         order: 0,
         tipe: "",
         note: "",
-        peoples: "",
+        people: "",
     });
 
-    const { peoples, ...rest } = form;
+    const { people, ...rest } = form;
 
 
     // LOAD DATA
     useEffect(() => {
-        if (open && data?.task) {
+        if (!open || !data?.task) return;
 
+        setForm({
+            ...data.task,
+            people: (data.task.peoples || []).join(", "),
+        });
 
-            setForm({
-                ...data.task,
-                peoples: (data.task.peoples || []).join(", "),
-            });
-
-            setEditMode(false);
-        }
-    }, [open, data]);
-
+        setEditMode(false);
+    }, [open]);
 
 
 
@@ -238,8 +237,9 @@ export default function TodoModal({ open, onClose, data }: any) {
                         <label htmlFor="peoples">👥 Pihak Terkait</label>
                         <input
                             id="peoples"
+                            name="people"
                             placeholder="A, B, .. (dipisah dengan koma)"
-                            value={form.peoples}
+                            value={form.people}
                             onChange={handleChange}
                         />
                     </>
@@ -248,7 +248,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                         <div>
                             <label>👥 Pihak Terkait</label>
                             <div className="mt-2 flex flex-wrap gap-2  mb-4">
-                                {form.peoples
+                                {form.people
                                     ?.split(", ")
                                     .filter(Boolean)
                                     .map((person, index) => (
