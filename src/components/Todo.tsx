@@ -92,7 +92,7 @@ function TaskCardContent({ task, theme }: { task: TodoEvent; theme: { card: stri
         <>
             <div className={`h-2 w-full rounded-md ${theme.card}`}></div>
             {task.title && (
-                <button className="flex justify-start mt-1 text-lg font-bold pointer-events-none">
+                <button className="flex justify-start text-start select-text! mt-1 text-lg font-bold">
                     {task.title}
                 </button>
             )}
@@ -108,6 +108,30 @@ function TaskCardContent({ task, theme }: { task: TodoEvent; theme: { card: stri
             )}
             {task.desc && <p className="font-medium brightness-50 whitespace-pre-line">{task.desc}</p>}
             {task.note && <p className="text-blue-500 whitespace-pre-line">{task.note}</p>}
+            {task.status === "progress" &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
+                    <p className=" text-gray-700 whitespace-pre-line">
+                        Dimulai dari -{" "}
+                        {task?.updatedAt ? (() => {
+                            const d = task.updatedAt.toDate();
+                            return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                        })() : ""}
+                    </p>
+                </div>)
+            }
+            {task.status === "done" &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
+                    <p className=" text-gray-700 whitespace-pre-line">
+                        Selesai pada -{" "}
+                        {task?.updatedAt ? (() => {
+                            const d = task.updatedAt.toDate();
+                            return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                        })() : ""}
+                    </p>
+                </div>)
+            }
         </>
     );
 }
@@ -148,7 +172,7 @@ function SortableTaskCard({
             {...(editMode ? attributes : {})}
             {...(editMode ? listeners : {})}
             onClick={!editMode ? onOpen : undefined}
-            className={`flex flex-col gap-2 flex-wrap p-3 rounded-lg transition! duration-200 ease hover:-translate-y-0.5 active:scale-98 touch-none
+            className={`flex flex-col gap-2 flex-wrap p-3 rounded-lg transition! duration-200 ease hover:-translate-y-0.5 active:scale-98
                 ${colorClasses[task.tipe] ?? "border border-black bg-white"}
                 ${editMode ? "cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md" : "cursor-pointer"}`}
         >

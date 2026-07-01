@@ -90,8 +90,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
+                editAt: serverTimestamp(),
             });
 
 
@@ -168,7 +167,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                         <div>
                             <label>🚩 Status</label>
                             <div className="flex mb-3 items-center pt-1">
-                                <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStylesStatus[data?.task?.status] || "bg-gray-200"}`}></div>
+                                <div className={`w-[30px] h-[10px] rounded-lg inline-block me-2 translate-y-0.5 ${statusStylesStatus[data?.task?.status] || "bg-gray-200"}`}></div>
                                 <div className="pt-1">{form.status?.charAt(0).toUpperCase() + form.status?.slice(1)}</div>
                             </div>
                         </div>
@@ -177,7 +176,7 @@ export default function TodoModal({ open, onClose, data }: any) {
 
                 {editMode ? (
                     <div>
-                        <label htmlFor="subtitle">📢 Subheading<span>*</span></label>
+                        <label htmlFor="subtitle">📢 Subheading</label>
                         <input className="w-full"
                             id="subtitle"
                             name="subtitle"
@@ -306,6 +305,49 @@ export default function TodoModal({ open, onClose, data }: any) {
                             </div>
                         )
                     )}
+
+
+
+
+
+
+                {!editMode && (
+
+                    data?.task?.createdAt && (
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <label>📪 Dibuat Pada</label>
+                                <div className="mt-1 py-1">
+                                    <p className="text-gray-400">{data.task.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} {data.task.createdAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label>✒️ Diedit Pada</label>
+                                <div className="mt-1 py-1">
+                                    <p className="text-gray-400">
+                                        {data.task.editAt ? (() => {
+                                            const date = data.task.editAt.toDate();
+                                            return `${date.toLocaleDateString('id-ID', {
+                                                weekday: 'long',
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric',
+                                            })} ${date.toLocaleTimeString('en-GB', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}`;
+                                        })() : 'Belum pernah diedit'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+
+                )}
+
+
+
 
                 {formError && (
                     <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">

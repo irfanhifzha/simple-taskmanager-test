@@ -205,7 +205,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                 </div>
                                                             )}
 
-                                                            <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""} font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line`}>
+                                                            <button className={`flex justify-start text-start select-text! ${!editMode ? "cursor-pointer" : ""} font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line`}>
                                                                 {s.course}
                                                             </button>
                                                             {s.room && <p>{s.room}</p>}
