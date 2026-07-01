@@ -87,55 +87,124 @@ type Selected = {
     login?: boolean;
 };
 
+const truncate = (text: string, max = 80) =>
+    text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
+
+const truncateVIEW = (text: string, max = 200) =>
+    text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
+
 /* ---------- Shared card content ---------- */
-function TaskCardContent({ task, theme }: { task: TodoEvent; theme: { card: string; title: string } }) {
+function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: TodoEvent; theme: { card: string; title: string } }) {
     return (
         <>
             <div className={`h-2 w-full rounded-md ${theme.card}`}></div>
+
             {task.title && (
                 <button className={`flex justify-start text-start select-text! mt-1 text-lg font-bold cursor-pointer`}>
-                    {task.title}
+                    {editMode ? truncate(task.title) : truncateVIEW(task.title)}
                 </button>
             )}
-            {task.subtitle && <p className="-mt-1 text-xs font-semibold">{task.subtitle}</p>}
+
+            {task.subtitle && (
+                <p className="-mt-1 text-xs font-semibold">
+                    {editMode ? truncate(task.subtitle) : truncateVIEW(task.subtitle)}
+                </p>
+            )}
+
             {task.peoples.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                     {task.peoples.map((person, idx) => (
                         <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit">
-                            {person}
+                            {editMode ? truncate(person) : truncateVIEW(person)}
                         </div>
                     ))}
                 </div>
             )}
-            {task.desc && <p className="font-medium brightness-50 whitespace-pre-line">{task.desc}</p>}
-            {task.note && <p className="text-blue-500 whitespace-pre-line">{task.note}</p>}
+
+            {(task.desc || task.note) && (
+                <div className="flex flex-col gap-2 bg-white px-3 py-2 rounded-lg text-black">
+                    {task.desc && (
+                        <p className="font-medium brightness-50 whitespace-pre-line">
+                            {editMode ? truncate(task.desc) : truncateVIEW(task.desc)}
+                        </p>
+                    )}
+                    {task.note && (
+                        <p className="text-blue-500 whitespace-pre-line">
+                            {editMode ? truncate(task.note) : truncateVIEW(task.note)}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {task.status === "todo" && task.createdAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
                     <p className=" text-gray-700">
-                        Dibuat pada -{" "}
+                        Dibuat pada - {" "}
                         {task?.createdAt ? (() => {
                             const d = task.createdAt.toDate();
-                            return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                            const date = `${d.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${d.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
                         })() : ""}
                     </p>
                 </div>)
             }
+
             {task.status === "progress" && task.startAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                     <p className=" text-gray-700">
-                        Dimulai dari -{" "}
-                        {task.startAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} {task.startAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        Dimulai dari - {" "}
+                        {!editMode
+                            ? truncate(`${task.startAt.toDate().toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`)
+                            : truncateVIEW(`${task.startAt.toDate().toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`)}
                     </p>
                 </div>)
             }
+
             {task.status === "done" && task.startAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
                     <p className=" text-gray-700">
-                        Selesai pada -{" "}
-                        {task.startAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} {task.startAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                        Selesai pada - {" "}
+                        {editMode
+                            ? truncate(`${task.startAt.toDate().toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`)
+                            : truncateVIEW(`${task.startAt.toDate().toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`)}
                     </p>
                 </div>)
             }
@@ -183,7 +252,7 @@ function SortableTaskCard({
                 ${colorClasses[task.tipe] ?? "border border-black bg-white"}
                 ${editMode ? "[&_button]:cursor-grab! cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md touch-none" : "cursor-pointer"}`}
         >
-            <TaskCardContent task={task} theme={theme} />
+            <TaskCardContent task={task} theme={theme} editMode={editMode} />
         </div>
     );
 }
@@ -440,6 +509,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                                         todoColumns.find((c) => c.key === activeTask.status)?.theme ?? "blueStat"
                                         ]
                                     }
+                                    editMode={editMode}
                                 />
                             </div>
                         ) : null}

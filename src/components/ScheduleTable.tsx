@@ -181,6 +181,9 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                         {days.map((day) => {
                                             const s = getSession(schedule, day, hour);
 
+                                            const truncate = (text: string, max = 40) =>
+                                                text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
+
                                             return (
                                                 <td key={day}>
                                                     {s && (
@@ -189,9 +192,9 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                             onClick={
                                                                 !editMode
                                                                     ? () => {
-                                                                          setSelected({ schedule: s, login: isLoggedIn });
-                                                                          setOpenEdit(true);
-                                                                      }
+                                                                        setSelected({ schedule: s, login: isLoggedIn });
+                                                                        setOpenEdit(true);
+                                                                    }
                                                                     : undefined
                                                             }
                                                         >
@@ -206,20 +209,20 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                             )}
 
                                                             <button className={`flex justify-start text-start select-text! ${!editMode ? "cursor-pointer" : ""} font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line`}>
-                                                                {s.course}
+                                                                {truncate(s.course)}
                                                             </button>
-                                                            {s.room && <p>{s.room}</p>}
+                                                            {s.room && <p>{truncate(s.room)}</p>}
                                                             {s.peoples.length > 0 && (
                                                                 <div className="flex flex-wrap gap-1">
                                                                     {s.peoples.map((person, idx) => (
                                                                         <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit">
-                                                                            {person}
+                                                                            {truncate(person)}
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             )}
-                                                            {s.desc && <p className="font-medium brightness-50 whitespace-pre-line">{s.desc}</p>}
-                                                            {s.note && <p className="text-blue-500 whitespace-pre-line">{s.note}</p>}
+                                                            {s.desc && <p className="font-medium brightness-50 whitespace-pre-line">{truncate(s.desc)}</p>}
+                                                            {s.note && <p className="text-blue-500 whitespace-pre-line">{truncate(s.note)}</p>}
 
                                                             {tugasVisibility && s.tugasAgain?.length > 0 && (
                                                                 <div className="space-y-2">
@@ -230,10 +233,10 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                             onClick={
                                                                                 !editMode
                                                                                     ? (e) => {
-                                                                                          e.stopPropagation();
-                                                                                          setSelected({ schedule: s, tugas: t, index, login: isLoggedIn });
-                                                                                          setOpenTugasEditAgain(true);
-                                                                                      }
+                                                                                        e.stopPropagation();
+                                                                                        setSelected({ schedule: s, tugas: t, index, login: isLoggedIn });
+                                                                                        setOpenTugasEditAgain(true);
+                                                                                    }
                                                                                     : undefined
                                                                             }
                                                                         >
@@ -241,19 +244,19 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                                 <div
                                                                                     className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"}`}
                                                                                 />
-                                                                                <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""}`}>{t.titleTugasAgain}</button>
+                                                                                <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""}`}>{truncate(t.titleTugasAgain)}</button>
                                                                             </div>
 
                                                                             {t.h1TugasAgain && (
-                                                                                <p className="font-bold mb-2 whitespace-pre-line">{t.h1TugasAgain}</p>
+                                                                                <p className="font-bold mb-2 whitespace-pre-line">{truncate(t.h1TugasAgain)}</p>
                                                                             )}
 
                                                                             {t.note1TugasAgain && (
-                                                                                <p className="mb-2 whitespace-pre-line">{t.note1TugasAgain}</p>
+                                                                                <p className="mb-2 whitespace-pre-line">{truncate(t.note1TugasAgain)}</p>
                                                                             )}
 
                                                                             {t.note2TugasAgain && (
-                                                                                <p className="text-blue-500! mb-2 whitespace-pre-line">{t.note2TugasAgain}</p>
+                                                                                <p className="text-blue-500! mb-2 whitespace-pre-line">{truncate(t.note2TugasAgain)}</p>
                                                                             )}
                                                                         </div>
                                                                     ))}

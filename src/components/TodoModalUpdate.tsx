@@ -185,7 +185,7 @@ export default function TodoModal({ open, onClose, data }: any) {
 
                         <div>
                             <label>🚩 Status</label>
-                            <div className="flex mb-3 items-center pt-1">
+                            <div className="flex mb-3 items-center py-1">
                                 <div className={`mt-0.5 px-3 py-0.5 rounded-lg inline-block me-2 ${statusStylesStatus[data?.task?.status] || "bg-gray-200"}`}>
                                     <div className="text-white text-sm">{form.status?.charAt(0).toUpperCase() + form.status?.slice(1)}</div>
                                 </div>
@@ -205,7 +205,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                             onChange={handleChange}
                         />
                     </div>) : (
-                    data?.task?.desc && (
+                    data?.task?.subtitle && (
                         <div>
                             <label>📢 Subheading</label>
                             <div className="mt-1 py-1">

@@ -167,14 +167,14 @@ export default function CalendarView({ kategori, user }: Props) {
                         className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
                     >
-                        ⮜ Prev
+                        {"<-"} Prev
                     </button>
 
                     <button
                         className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
                     >
-                        Next ⮞
+                        Next {"->"}
                     </button>
 
                     <button
