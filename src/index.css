@@ -48,7 +48,7 @@ form {
 /* input css */
 label {
   display: flex;
-  gap: 0s;
+  gap: 0;
   font-size: 0.875rem;
   color: #6b7280;
 }

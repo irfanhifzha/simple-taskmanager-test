@@ -41,9 +41,7 @@ export default function TodoModal({ open, onClose, data }: any) {
 
 
         const confirmed = window.confirm(
-            // `Delete "${data?.task?.length > 13 ? `${data.task.slice(0, 13)}...` : data?.task || "null"} [${data?.tanggal?.length > 1 ? `${startTanggal}-${endTanggal}` : `${startTanggal}` || "null"} ${monthLabel} ${tahun}]" dari rencana?`
-
-            `Delete This?`
+            `Delete "${data?.task?.title.length > 13 ? `${data.task.title.slice(0, 13)}...` : data?.task.title || "null"} [${data?.task?.status ? data.task.status : "null"}]" dari kanban?`
         );
 
         if (confirmed) {
@@ -145,70 +143,18 @@ export default function TodoModal({ open, onClose, data }: any) {
             <form onSubmit={handleUpdate}>
 
                 {editMode ? (
-                    <div>
-                        <label htmlFor="title">📝 Title<span>*</span></label>
-                        <input className="w-full"
-                            id="title"
-                            name="title"
-                            value={form.title}
-                            placeholder="Title todo"
-                            onChange={handleChange}
-                        />
-                    </div>) : (
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-                        <div>
-                            <label>📝 Judul</label>
-                            <div className="flex mb-3 items-center pt-1">
-                                <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.task?.tipe] || "bg-gray-200"}`}></div>
-                                <div className="pt-1">{form.title}</div>
-                            </div>
-                        </div>
 
                         <div>
-                            <label>🚩 Status</label>
-                            <div className="flex mb-3 items-center pt-1">
-                                <div className={`w-[30px] h-[10px] rounded-lg inline-block me-2 translate-y-0.5 ${statusStylesStatus[data?.task?.status] || "bg-gray-200"}`}></div>
-                                <div className="pt-1">{form.status?.charAt(0).toUpperCase() + form.status?.slice(1)}</div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {editMode ? (
-                    <div>
-                        <label htmlFor="subtitle">📢 Subheading</label>
-                        <input className="w-full"
-                            id="subtitle"
-                            name="subtitle"
-                            value={form.subtitle}
-                            placeholder="Subheading todo"
-                            onChange={handleChange}
-                        />
-                    </div>) : (
-                    data?.task?.desc && (
-                        <div>
-                            <label>📢 Subheading</label>
-                            <div className="mt-1 py-1">
-                                <p className="whitespace-pre-line">{form.subtitle}</p>
-                            </div>
-                        </div>
-                    )
-                )}
-
-                {editMode && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
-                        <div>
-                            <label htmlFor="status">🚩 Status<span>*</span></label>
-                            <select className="w-full"
-                                id="status"
-                                name="status"
-                                value={form.status}
+                            <label htmlFor="title">📝 Title<span>*</span></label>
+                            <input className="w-full"
+                                id="title"
+                                name="title"
+                                value={form.title}
+                                placeholder="Title"
                                 onChange={handleChange}
-                            >
-                                <option value="todo">Todo</option>
-                                <option value="progress">Progress</option>
-                                <option value="done">Done</option>
-                            </select>
+                            />
                         </div>
 
                         <div>
@@ -223,9 +169,53 @@ export default function TodoModal({ open, onClose, data }: any) {
                                 <option value="abu">Abu</option>
                             </select>
                         </div>
+
+                    </div>
+
+
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
+                        <div>
+                            <label>📝 Judul</label>
+                            <div className="flex mb-3 items-center pt-1">
+                                <div className={`w-[10px] h-[10px] rounded-[100%] inline-block me-2 translate-y-0.5 ${statusStyles[data?.task?.tipe] || "bg-gray-200"}`}></div>
+                                <div className="pt-1">{form.title}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>🚩 Status</label>
+                            <div className="flex mb-3 items-center pt-1">
+                                <div className={`mt-0.5 px-3 py-0.5 rounded-lg inline-block me-2 ${statusStylesStatus[data?.task?.status] || "bg-gray-200"}`}>
+                                    <div className="text-white text-sm">{form.status?.charAt(0).toUpperCase() + form.status?.slice(1)}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
+                {editMode ? (
+                    <div>
+                        <label htmlFor="subtitle">📢 Subheading</label>
+                        <input className="w-full"
+                            id="subtitle"
+                            name="subtitle"
+                            value={form.subtitle}
+                            placeholder="Subheading"
+                            onChange={handleChange}
+                        />
+                    </div>) : (
+                    data?.task?.desc && (
+                        <div>
+                            <label>📢 Subheading</label>
+                            <div className="mt-1 py-1">
+                                <p className="whitespace-pre-line">{form.subtitle}</p>
+                            </div>
+                        </div>
+                    )
+                )}
+
+        
 
 
 
@@ -284,27 +274,28 @@ export default function TodoModal({ open, onClose, data }: any) {
                 )}
 
 
-                {editMode ? (<>
-                    <label htmlFor="note">📌 Note / Link URL</label>
-                    <textarea
-                        rows={4}
-                        id="note"
-                        name="note"
-                        placeholder="Note rencana / Link url"
-                        value={form.note}
-                        onChange={handleChange}
-                    />
-                </>)
-                    : (
-                        data?.task?.note && (
-                            <div>
-                                <label>📌 Note / Link URL</label>
-                                <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
-                                    <p className="mb-0! whitespace-pre-line text-blue-500">{form.note}</p>
-                                </div>
+                {editMode ? (
+                    <>
+                        <label htmlFor="note">📌 Note / Link URL</label>
+                        <textarea
+                            rows={4}
+                            id="note"
+                            name="note"
+                            placeholder="Note rencana / Link url"
+                            value={form.note}
+                            onChange={handleChange}
+                        />
+                    </>
+                ) : (
+                    data?.task?.note && (
+                        <div>
+                            <label>📌 Note / Link URL</label>
+                            <div className="rounded-lg p-3 bg-gray-100 mb-4 mt-2">
+                                <p className="mb-0! whitespace-pre-line text-blue-500">{form.note}</p>
                             </div>
-                        )
-                    )}
+                        </div>
+                    )
+                )}
 
 
 
@@ -318,14 +309,14 @@ export default function TodoModal({ open, onClose, data }: any) {
                             <div>
                                 <label>📪 Dibuat Pada</label>
                                 <div className="mt-1 py-1">
-                                    <p className="text-gray-400">{data.task.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} {data.task.createdAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+                                    <p className="text-gray-400 text-xs">{data.task.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} {data.task.createdAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                             </div>
 
                             <div>
                                 <label>✒️ Diedit Pada</label>
                                 <div className="mt-1 py-1">
-                                    <p className="text-gray-400">
+                                    <p className="text-gray-400 text-xs">
                                         {data.task.editAt ? (() => {
                                             const date = data.task.editAt.toDate();
                                             return `${date.toLocaleDateString('id-ID', {

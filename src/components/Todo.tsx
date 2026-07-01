@@ -57,6 +57,7 @@ export type TodoEvent = {
 
     createdAt: Timestamp;
     updatedAt: Timestamp;
+    startAt?: Timestamp;
 };
 
 export type TodoStatus = "todo" | "progress" | "done" | "archived";
@@ -92,7 +93,7 @@ function TaskCardContent({ task, theme }: { task: TodoEvent; theme: { card: stri
         <>
             <div className={`h-2 w-full rounded-md ${theme.card}`}></div>
             {task.title && (
-                <button className="flex justify-start text-start select-text! mt-1 text-lg font-bold">
+                <button className={`flex justify-start text-start select-text! mt-1 text-lg font-bold cursor-pointer`}>
                     {task.title}
                 </button>
             )}
@@ -108,27 +109,33 @@ function TaskCardContent({ task, theme }: { task: TodoEvent; theme: { card: stri
             )}
             {task.desc && <p className="font-medium brightness-50 whitespace-pre-line">{task.desc}</p>}
             {task.note && <p className="text-blue-500 whitespace-pre-line">{task.note}</p>}
-            {task.status === "progress" &&
+            {task.status === "todo" && task.createdAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
-                    <p className=" text-gray-700 whitespace-pre-line">
-                        Dimulai dari -{" "}
-                        {task?.updatedAt ? (() => {
-                            const d = task.updatedAt.toDate();
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
+                    <p className=" text-gray-700">
+                        Dibuat pada -{" "}
+                        {task?.createdAt ? (() => {
+                            const d = task.createdAt.toDate();
                             return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
                         })() : ""}
                     </p>
                 </div>)
             }
-            {task.status === "done" &&
+            {task.status === "progress" && task.startAt &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
+                    <p className=" text-gray-700">
+                        Dimulai dari -{" "}
+                        {task.startAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} {task.startAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                </div>)
+            }
+            {task.status === "done" && task.startAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700 whitespace-pre-line">
+                    <p className=" text-gray-700">
                         Selesai pada -{" "}
-                        {task?.updatedAt ? (() => {
-                            const d = task.updatedAt.toDate();
-                            return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-                        })() : ""}
+                        {task.startAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} {task.startAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 </div>)
             }
@@ -174,7 +181,7 @@ function SortableTaskCard({
             onClick={!editMode ? onOpen : undefined}
             className={`flex flex-col gap-2 flex-wrap p-3 rounded-lg transition! duration-200 ease hover:-translate-y-0.5 active:scale-98
                 ${colorClasses[task.tipe] ?? "border border-black bg-white"}
-                ${editMode ? "cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md" : "cursor-pointer"}`}
+                ${editMode ? "[&_button]:cursor-grab! cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md touch-none" : "cursor-pointer"}`}
         >
             <TaskCardContent task={task} theme={theme} />
         </div>
@@ -242,14 +249,20 @@ export default function TodoBoard({ kategori, user }: Props) {
         archived: tasks.filter((t) => t.status === "archived"),
     };
 
-    async function persistColumn(columnTasks: TodoEvent[]) {
+    async function persistColumn(columnTasks: TodoEvent[], statusChangedTaskId?: string) {
         const batch = writeBatch(db);
         columnTasks.forEach((t, idx) => {
-            batch.update(doc(db, "todos", t.id), {
+            const data: Record<string, unknown> = {
                 order: idx * 10,
                 status: t.status,
                 updatedAt: Timestamp.now(),
-            });
+            };
+
+            if (t.id === statusChangedTaskId) {
+                data.startAt = Timestamp.now();
+            }
+
+            batch.update(doc(db, "todos", t.id), data);
         });
         try {
             await batch.commit();
@@ -287,7 +300,6 @@ export default function TodoBoard({ kategori, user }: Props) {
 
         setTasks((prev) => prev.map((t) => (t.id === activeId ? { ...t, status: overStatus } : t)));
     }
-
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
         setActiveTask(null);
@@ -300,6 +312,10 @@ export default function TodoBoard({ kategori, user }: Props) {
         if (!activeTaskItem) return;
 
         const overStatus = resolveStatus(overId) ?? (activeTaskItem.status as TodoStatus);
+
+        // capture this BEFORE reordering — was the status actually changed vs the original doc?
+        const originalTask = activeTask; // activeTask was set on drag start, holds the pre-drag snapshot
+        const statusChanged = originalTask ? originalTask.status !== overStatus : false;
 
         const columnTasks = tasks.filter((t) => t.status === overStatus);
         const oldIndex = columnTasks.findIndex((t) => t.id === activeId);
@@ -316,7 +332,7 @@ export default function TodoBoard({ kategori, user }: Props) {
             return [...others, ...reordered];
         });
 
-        persistColumn(reordered);
+        persistColumn(reordered, statusChanged ? activeId : undefined);
     }
 
     return (
@@ -337,7 +353,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                             className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                             onClick={() => setEditMode((prev) => !prev)}
                         >
-                            {editMode ? "🗃️ Ubah Urutan" : "📋 View Mode"}
+                            {editMode ? "🗃️ Rearrange" : "📋 View Mode"}
                         </button>
                     </div>
                 )}
@@ -351,7 +367,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                     onDragEnd={handleDragEnd}
                 >
                     <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
-                        <table className="relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200 max-lg:w-[850px]">
+                        <table className={`relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200  ${editMode ? "max-lg:w-[1000px]" : " max-lg:w-[850px]"}`}>
                             <thead>
                                 <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
                                     {visibleColumns.map((col) => {
