@@ -156,29 +156,29 @@ export default function CalendarView({ kategori, user }: Props) {
 
                 <div className="flex gap-3 mb-[10px] flex-wrap">
                     <button
-                        className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
                     >
-                        Prev
+                        ⮜ Prev
                     </button>
 
                     <button
-                        className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
                     >
-                        Next
+                        Next ⮞
                     </button>
 
                     <button
-                        className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setCurrentDate(new Date())}
                     >
-                        Today
+                        📅 Today
                     </button>
 
                     {user && (
                         <button
-                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
+                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={() => setOpenAddRencana(true)}
                         >
                             + Tambah Rencana
@@ -269,8 +269,8 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                                 }}
                                                                                 className="w-fit cursor-pointer transition ease hover:-translate-y-0.5 hover:brightness-105 active:-translate-y-0.5 active:brightness-80 active:scale-95"
                                                                             >
-                                                                                <div
-                                                                                    className={`w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
+                                                                                <button
+                                                                                    className={`cursor-pointer flex justify-center w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
                                                                                 />
                                                                                 <div className="text-xs text-center line-clamp-3 break-all">{item.task}</div>
                                                                             </div>

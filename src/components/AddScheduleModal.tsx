@@ -32,12 +32,6 @@ export default function AddScheduleModal({ open, onClose, onSuccess, category }:
 
 
 
-  const isInvalid =
-    !course.trim() ||
-    !type.trim() ||
-    dayIndex === 0 ||
-    slots.length === 0;
-
   const resetForm = () => {
     setType("");
     setDayIndex(0);

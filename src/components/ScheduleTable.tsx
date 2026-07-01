@@ -115,14 +115,14 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
                 <div className="flex gap-3 mb-[10px] flex-wrap">
                     <button
-                        className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setTugasVisibility((prev) => !prev)}
                     >
                         {tugasVisibility ? "👀 Hide Task" : "🔍 Show Task"}
                     </button>
 
                     <button
-                        className="px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                         onClick={() => setWeekendVisibility((prev) => !prev)}
                     >
                         {weekendVisibility ? "💼 Hide Weekend" : "🗓️ Show Weekend"}
@@ -130,7 +130,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
                     {user && (
                         <button
-                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 outline-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
+                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={() => setOpenAdd(true)}
                         >
                             + Tambah Jadwal
@@ -205,9 +205,9 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                 </div>
                                                             )}
 
-                                                            <p className="font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line">
+                                                            <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""} font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line`}>
                                                                 {s.course}
-                                                            </p>
+                                                            </button>
                                                             {s.room && <p>{s.room}</p>}
                                                             {s.peoples.length > 0 && (
                                                                 <div className="flex flex-wrap gap-1">
@@ -241,7 +241,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                                 <div
                                                                                     className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"}`}
                                                                                 />
-                                                                                <div>{t.titleTugasAgain}</div>
+                                                                                <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""}`}>{t.titleTugasAgain}</button>
                                                                             </div>
 
                                                                             {t.h1TugasAgain && (

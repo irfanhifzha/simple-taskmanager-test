@@ -32,7 +32,7 @@ export default function Home() {
                         <p className="font-bold text-lg uppercase">Simple task manager thingy</p>
                     </div>
 
-                    <Todo/>
+                    <Todo kategori="ClassA" user={user}/>
 
                     <CalendarView kategori="ClassA" user={user} />
                     <ScheduleTable kategori="ClassA" user={user} />

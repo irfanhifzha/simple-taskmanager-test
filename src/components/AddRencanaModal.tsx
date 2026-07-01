@@ -114,13 +114,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
     }
   }, [open]);
 
-  // ===== VALIDATION =====
-  const isInvalid =
-    !task.trim() ||
-    !type.trim() ||
-    tanggal.length === 0;
 
-  // ===== RESET =====
   const resetForm = () => {
     setStartTanggal(String(today.getDate()));
     setBulan(today.getMonth() + 1);
