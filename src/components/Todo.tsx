@@ -58,7 +58,14 @@ export type TodoEvent = {
 
     createdAt: Timestamp;
     updatedAt: Timestamp;
-    startAt?: Timestamp;
+
+    progressStartAt?: Timestamp; // set once when status first becomes "progress"
+    doneAt?: Timestamp;          // set once when status becomes "done"
+
+    progressTarget?: Timestamp;  // optional planning field, filled in modal
+    doneTarget?: Timestamp;      // optional planning field, filled in modal
+
+    editAt?: Timestamp;
 };
 
 export type TodoStatus = "todo" | "progress" | "done" | "archived";
@@ -158,54 +165,30 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                 </div>)
             }
 
-            {task.status === "progress" && task.startAt &&
+            {task.status === "progress" && task.progressStartAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
-                    <p className=" text-gray-700">
+                    <p className="text-gray-700">
                         Dimulai dari - {" "}
-                        {!editMode
-                            ? truncate(`${task.startAt.toDate().toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`)
-                            : truncateVIEW(`${task.startAt.toDate().toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`)}
+                        {(() => {
+                            const d = task.progressStartAt.toDate();
+                            const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
+                        })()}
                     </p>
                 </div>)
             }
 
-            {task.status === "done" && task.startAt &&
+            {task.status === "done" && task.doneAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700">
+                    <p className="text-gray-700">
                         Selesai pada - {" "}
-                        {editMode
-                            ? truncate(`${task.startAt.toDate().toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`)
-                            : truncateVIEW(`${task.startAt.toDate().toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${task.startAt.toDate().toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`)}
+                        {(() => {
+                            const d = task.doneAt.toDate();
+                            const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
+                        })()}
                     </p>
                 </div>)
             }
@@ -300,6 +283,8 @@ export default function TodoBoard({ kategori, user }: Props) {
         ? todoColumns
         : todoColumns.filter((col) => col.key !== "archived");
 
+    // const visibleColumns = todoColumns
+
 
     useEffect(() => {
         const q = query(collection(db, "todos"), orderBy("order", "asc"));
@@ -324,7 +309,11 @@ export default function TodoBoard({ kategori, user }: Props) {
         archived: tasks.filter((t) => t.status === "archived"),
     };
 
-    async function persistColumn(columnTasks: TodoEvent[], statusChangedTaskId?: string) {
+    async function persistColumn(
+        columnTasks: TodoEvent[],
+        statusChangedTaskId?: string,
+        newStatus?: TodoStatus
+    ) {
         const batch = writeBatch(db);
         columnTasks.forEach((t, idx) => {
             const data: Record<string, unknown> = {
@@ -334,7 +323,11 @@ export default function TodoBoard({ kategori, user }: Props) {
             };
 
             if (t.id === statusChangedTaskId) {
-                data.startAt = Timestamp.now();
+                if (newStatus === "progress") {
+                    data.progressStartAt = Timestamp.now();
+                } else if (newStatus === "done") {
+                    data.doneAt = Timestamp.now();
+                }
             }
 
             batch.update(doc(db, "todos", t.id), data);
@@ -405,7 +398,7 @@ export default function TodoBoard({ kategori, user }: Props) {
             return [...others, ...columnTasks];
         });
 
-        persistColumn(columnTasks, statusChanged ? activeId : undefined);
+        persistColumn(columnTasks, statusChanged ? activeId : undefined, overStatus);
     }
 
     return (

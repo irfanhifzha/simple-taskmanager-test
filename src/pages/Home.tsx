@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import ScheduleTable from "../components/ScheduleTable";
 import Todo from "../components/Todo";
+import TodoGantt from "../components/TodoGantt";
 
 export default function Home() {
     useEffect(() => {
@@ -33,6 +34,8 @@ export default function Home() {
                     </div>
 
                     <Todo kategori="ClassA" user={user}/>
+
+                    <TodoGantt/>
 
                     <CalendarView kategori="ClassA" user={user} />
                     <ScheduleTable kategori="ClassA" user={user} />
