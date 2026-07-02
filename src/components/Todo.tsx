@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     collection,
     onSnapshot,
@@ -57,13 +57,8 @@ export type TodoEvent = {
     peoples: string[];
 
     createdAt: Timestamp;
-    updatedAt: Timestamp;
 
-    progressStartAt?: Timestamp; // set once when status first becomes "progress"
-    doneAt?: Timestamp;          // set once when status becomes "done"
-
-    progressTarget?: Timestamp;  // optional planning field, filled in modal
-    doneTarget?: Timestamp;      // optional planning field, filled in modal
+    doneAt?: Timestamp;
 
     editAt?: Timestamp;
 };
@@ -144,7 +139,66 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                 </div>
             )}
 
-            {task.status === "todo" && task.createdAt &&
+
+            {task.createdAt &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
+                    <p className=" text-gray-700">
+                        Dibuat pada - {" "}
+                        {task?.createdAt ? (() => {
+                            const d = task.createdAt.toDate();
+                            const date = `${d.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${d.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
+                        })() : ""}
+                    </p>
+                </div>)}
+            {task.doneAt &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
+                    <p className=" text-gray-700">
+                        Selesai pada - {" "}
+                        {task?.doneAt ? (() => {
+                            const d = task.doneAt.toDate();
+                            const date = `${d.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${d.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
+                        })() : ""}
+                    </p>
+                </div>)}
+            {task.editAt &&
+                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-gray-600! transition-all duration-200"></div>
+                    <p className=" text-gray-700">
+                        EDIT - {" "}
+                        {task?.editAt ? (() => {
+                            const d = task.editAt.toDate();
+                            const date = `${d.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })} ${d.toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            return editMode ? truncate(date) : truncateVIEW(date);
+                        })() : ""}
+                    </p>
+                </div>)}
+
+            {/* {task.status === "todo" && task.createdAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
                     <p className=" text-gray-700">
@@ -165,13 +219,13 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                 </div>)
             }
 
-            {task.status === "progress" && task.progressStartAt &&
+            {task.status === "progress" && task.startAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                     <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                     <p className="text-gray-700">
                         Dimulai dari - {" "}
                         {(() => {
-                            const d = task.progressStartAt.toDate();
+                            const d = task.startAt.toDate();
                             const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
                             return editMode ? truncate(date) : truncateVIEW(date);
                         })()}
@@ -179,19 +233,45 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                 </div>)
             }
 
-            {task.status === "done" && task.doneAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
-                    <p className="text-gray-700">
-                        Selesai pada - {" "}
-                        {(() => {
-                            const d = task.doneAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })()}
-                    </p>
-                </div>)
-            }
+            {task.status === "done" && (
+                task.doneAt ? (<>
+                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200"></div>
+                        <p className="text-gray-700">
+                            Dimulai pada - {" "}
+                            {(() => {
+                                const d = task.startAt?.toDate();
+                                if (!d) return "-";
+                                const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })()}
+                        </p>
+                    </div>
+                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
+                        <p className="text-gray-700">
+                            Selesai pada - {" "}
+                            {(() => {
+                                const d = task.doneAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })()}
+                        </p>
+                    </div>
+                </>) : (
+                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
+                        <p className="text-gray-700">
+                            Dibuat pada - {" "}
+                            {(() => {
+                                const d = task.createdAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })()}
+                        </p>
+                    </div>
+                )
+            )} */}
         </>
     );
 }
@@ -319,13 +399,10 @@ export default function TodoBoard({ kategori, user }: Props) {
             const data: Record<string, unknown> = {
                 order: idx * 10,
                 status: t.status,
-                updatedAt: Timestamp.now(),
             };
 
             if (t.id === statusChangedTaskId) {
-                if (newStatus === "progress") {
-                    data.progressStartAt = Timestamp.now();
-                } else if (newStatus === "done") {
+                if (newStatus === "done") {
                     data.doneAt = Timestamp.now();
                 }
             }
@@ -339,15 +416,21 @@ export default function TodoBoard({ kategori, user }: Props) {
         }
     }
 
-    function resolveStatus(overId: string): TodoStatus | null {
+
+    const dragOverRAF = useRef<number | null>(null);
+    const isDraggingRef = useRef(false);
+
+    // --- replace resolveStatus so it doesn't rely on the possibly-stale `tasks` closure ---
+    function resolveStatus(overId: string, taskList: TodoEvent[]): TodoStatus | null {
         if (overId.startsWith("col-")) {
             return overId.replace("col-", "") as TodoStatus;
         }
-        const overTask = tasks.find((t) => t.id === overId);
+        const overTask = taskList.find((t) => t.id === overId);
         return overTask ? (overTask.status as TodoStatus) : null;
     }
 
     function handleDragStart(event: DragStartEvent) {
+        isDraggingRef.current = true;
         const task = tasks.find((t) => t.id === event.active.id);
         setActiveTask(task ?? null);
     }
@@ -360,15 +443,46 @@ export default function TodoBoard({ kategori, user }: Props) {
         const overId = over.id as string;
         if (activeId === overId) return;
 
-        const activeTaskItem = tasks.find((t) => t.id === activeId);
-        if (!activeTaskItem) return;
+        // Guard #1: never let more than one pending update queue up.
+        // If a frame is already scheduled, just drop this event — the next
+        // animation frame will pick up wherever the pointer actually is.
+        if (dragOverRAF.current !== null) return;
 
-        const overStatus = resolveStatus(overId);
-        if (!overStatus || activeTaskItem.status === overStatus) return;
+        dragOverRAF.current = requestAnimationFrame(() => {
+            dragOverRAF.current = null;
 
-        setTasks((prev) => prev.map((t) => (t.id === activeId ? { ...t, status: overStatus } : t)));
+            // Guard #2: if the drag ended while this frame was pending, bail.
+            if (!isDraggingRef.current) return;
+
+            setTasks((prev) => {
+                const activeTaskItem = prev.find((t) => t.id === activeId);
+                if (!activeTaskItem) return prev;
+
+                const overStatus = resolveStatus(overId, prev);
+
+                // Guard #3: only touch state if the status is actually changing.
+                // This is the check that stops the "flapping" loop where a card
+                // sitting right on a column boundary keeps toggling back and
+                // forth between two statuses forever.
+                if (!overStatus || activeTaskItem.status === overStatus) return prev;
+
+                return prev.map((t) =>
+                    t.id === activeId ? { ...t, status: overStatus } : t
+                );
+            });
+        });
     }
+
     function handleDragEnd(event: DragEndEvent) {
+        isDraggingRef.current = false;
+
+        // Cancel any in-flight rAF so a stale frame can't fire after drop
+        // and mutate state out from under handleDragEnd.
+        if (dragOverRAF.current !== null) {
+            cancelAnimationFrame(dragOverRAF.current);
+            dragOverRAF.current = null;
+        }
+
         const { active, over } = event;
         setActiveTask(null);
         if (!over) return;
@@ -379,27 +493,37 @@ export default function TodoBoard({ kategori, user }: Props) {
         const activeTaskItem = tasks.find((t) => t.id === activeId);
         if (!activeTaskItem) return;
 
-        const overStatus = resolveStatus(overId) ?? (activeTaskItem.status as TodoStatus);
-        const statusChanged = activeTaskItem.status !== overStatus;
+        const overStatus = resolveStatus(overId, tasks) ?? (activeTaskItem.status as TodoStatus);
+        // capture this BEFORE reordering — was the status actually changed vs the original doc?
+        const originalTask = activeTask; // activeTask was set on drag start, holds the pre-drag snapshot
+        const statusChanged = originalTask ? originalTask.status !== overStatus : false;
 
-        const columnTasks = tasks
-            .filter((t) => t.status === overStatus && t.id !== activeId) // exclude active first
-            .slice();
-
+        const columnTasks = tasks.filter((t) => t.status === overStatus);
+        const oldIndex = columnTasks.findIndex((t) => t.id === activeId);
         const overTaskIndex = columnTasks.findIndex((t) => t.id === overId);
-        const insertIndex = overTaskIndex >= 0 ? overTaskIndex : columnTasks.length;
+        const newIndex = overTaskIndex >= 0 ? overTaskIndex : columnTasks.length - 1;
 
-        // build the moved task with its new status, then splice into position
-        const movedTask = { ...activeTaskItem, status: overStatus };
-        columnTasks.splice(insertIndex, 0, movedTask);
+        if (oldIndex === -1) return;
+
+        const reordered =
+            oldIndex === newIndex ? columnTasks : arrayMove(columnTasks, oldIndex, newIndex);
 
         setTasks((prev) => {
-            const others = prev.filter((t) => t.status !== overStatus && t.id !== activeId);
-            return [...others, ...columnTasks];
+            const others = prev.filter((t) => t.status !== overStatus);
+            return [...others, ...reordered];
         });
 
         persistColumn(columnTasks, statusChanged ? activeId : undefined, overStatus);
     }
+
+    // --- also add cleanup so a pending rAF doesn't fire after unmount ---
+    useEffect(() => {
+        return () => {
+            if (dragOverRAF.current !== null) {
+                cancelAnimationFrame(dragOverRAF.current);
+            }
+        };
+    }, []);
 
     return (
         <>
