@@ -58,9 +58,12 @@ export type TodoEvent = {
 
     createdAt: Timestamp;
 
+    startAt?: Timestamp;
     doneAt?: Timestamp;
-
     editAt?: Timestamp;
+
+    progressTarget?: Timestamp;
+    doneTarget?: Timestamp;
 };
 
 export type TodoStatus = "todo" | "progress" | "done" | "archived";
@@ -139,64 +142,84 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                 </div>
             )}
 
-
-            {task.createdAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700">
-                        Dibuat pada - {" "}
-                        {task?.createdAt ? (() => {
-                            const d = task.createdAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${d.toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })() : ""}
-                    </p>
-                </div>)}
-            {task.doneAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700">
-                        Selesai pada - {" "}
-                        {task?.doneAt ? (() => {
-                            const d = task.doneAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${d.toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })() : ""}
-                    </p>
-                </div>)}
-            {task.editAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-gray-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700">
-                        EDIT - {" "}
-                        {task?.editAt ? (() => {
-                            const d = task.editAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${d.toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })() : ""}
-                    </p>
-                </div>)}
+            <div className="flex flex-col gap-2 [&_p]:text-[10px]!">
+                {task.createdAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
+                        <p className=" text-gray-700">
+                            Dibuat pada - {" "}
+                            {task?.createdAt ? (() => {
+                                const d = task.createdAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })} ${d.toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })() : ""}
+                        </p>
+                    </div>)}
+                {task.startAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
+                        <p className=" text-gray-700">
+                            Dimulai pada - {" "}
+                            {task?.startAt ? (() => {
+                                const d = task.startAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })} ${d.toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })() : ""}
+                        </p>
+                    </div>)}
+                {task.doneAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
+                        <p className=" text-gray-700">
+                            Selesai pada - {" "}
+                            {task?.doneAt ? (() => {
+                                const d = task.doneAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })} ${d.toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })() : ""}
+                        </p>
+                    </div>)}
+                {task.editAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-gray-600! transition-all duration-200"></div>
+                        <p className=" text-gray-700">
+                            EDIT - {" "}
+                            {task?.editAt ? (() => {
+                                const d = task.editAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })} ${d.toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })() : ""}
+                        </p>
+                    </div>)}
+            </div>
 
             {/* {task.status === "todo" && task.createdAt &&
                 (<div className="flex items-center bg-white px-2 py-1 rounded-md">
@@ -399,10 +422,17 @@ export default function TodoBoard({ kategori, user }: Props) {
             const data: Record<string, unknown> = {
                 order: idx * 10,
                 status: t.status,
+                // editAt: Timestamp.now(),
             };
 
             if (t.id === statusChangedTaskId) {
-                if (newStatus === "done") {
+                if (
+                    newStatus === "progress" ||
+                    newStatus === "todo" ||
+                    newStatus === "archived"
+                ) {
+                    data.startAt = Timestamp.now();
+                } else if (newStatus === "done") {
                     data.doneAt = Timestamp.now();
                 }
             }
@@ -536,7 +566,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                             onClick={() => setIsOpen(true)}
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold w-fit"
                         >
-                            + Add Card
+                            + Tambah Todo
                         </button>
 
                         <button

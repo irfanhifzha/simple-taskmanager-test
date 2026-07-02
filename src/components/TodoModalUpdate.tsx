@@ -4,6 +4,8 @@ import {
     updateDoc,
     doc,
     serverTimestamp,
+    Timestamp,
+    deleteField,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -29,6 +31,11 @@ export default function TodoModal({ open, onClose, data }: any) {
     };
 
     const handleClose = () => {
+        setProgressDate("");
+        setProgressTime("");
+        setDoneDate("");
+        setDoneTime("");
+
         setErrors({});
         setFormError(null);
         setLoading(false);
@@ -82,14 +89,29 @@ export default function TodoModal({ open, onClose, data }: any) {
         setLoading(true);
 
         try {
-            await updateDoc(doc(db, "todos", data.task.id), {
+
+            const dataToUpdate: any = {
                 ...rest,
                 peoples: (people || "")
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
                 editAt: serverTimestamp(),
-            });
+            };
+
+            if (progressTarget instanceof Timestamp) {
+                dataToUpdate.progressTarget = progressTarget;
+            } else if (progressTarget === null) {
+                dataToUpdate.progressTarget = deleteField();
+            }
+
+            if (doneTarget instanceof Timestamp) {
+                dataToUpdate.doneTarget = doneTarget;
+            } else if (doneTarget === null) {
+                dataToUpdate.doneTarget = deleteField();
+            }
+
+            await updateDoc(doc(db, "todos", data.task.id), dataToUpdate);
 
 
             handleClose();
@@ -115,19 +137,62 @@ export default function TodoModal({ open, onClose, data }: any) {
 
 
     // LOAD DATA
-    useEffect(() => {
-        if (!open || !data?.task) return;
+    const loadTask = () => {
+        if (!data?.task) return;
 
         setForm({
             ...data.task,
             people: (data.task.peoples || []).join(", "),
         });
 
+        const progress = timestampToDateTime(data.task.progressTarget);
+        const done = timestampToDateTime(data.task.doneTarget);
+
+        setProgressDate(progress.date);
+        setProgressTime(progress.time);
+
+        setDoneDate(done.date);
+        setDoneTime(done.time);
+
         setEditMode(false);
+    };
+
+    useEffect(() => {
+        if (!open) return;
+        loadTask();
     }, [open]);
 
 
 
+    // OPTIONAL TARGET
+    const [progressDate, setProgressDate] = useState("");
+    const [progressTime, setProgressTime] = useState("");
+
+    const [doneDate, setDoneDate] = useState("");
+    const [doneTime, setDoneTime] = useState("");
+
+    function toTimestamp(date: string, time: string) {
+        if (!date || !time) return null;
+
+        return Timestamp.fromDate(new Date(`${date}T${time}`));
+    }
+
+    const progressTarget = toTimestamp(progressDate, progressTime);
+    const doneTarget = toTimestamp(doneDate, doneTime);
+
+
+
+    // OPTIONAL TARGET LOAD HELPER
+    function timestampToDateTime(ts?: Timestamp) {
+        if (!ts) return { date: "", time: "" };
+
+        const d = ts.toDate();
+
+        const date = d.toISOString().split("T")[0];
+        const time = d.toTimeString().slice(0, 5); // HH:MM
+
+        return { date, time };
+    }
 
 
 
@@ -215,7 +280,15 @@ export default function TodoModal({ open, onClose, data }: any) {
                     )
                 )}
 
-        
+
+
+
+
+
+
+
+
+
 
 
 
@@ -301,6 +374,100 @@ export default function TodoModal({ open, onClose, data }: any) {
 
 
 
+                {/* OPTIONAL TARGET */}
+                {editMode && form.status == "todo" && (
+                    <div className="pt-4 mt-2 border-t-1 border-black">
+
+                        <div className="text-gray-500 text-sm pointer-events-none mb-3">📂 Rencana Todo (Optional)</div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
+                                onClick={() => {
+                                    setProgressDate("");
+                                    setProgressTime("");
+                                }}
+                            >Clear Target Progress</button>
+                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
+                                onClick={() => {
+                                    setDoneDate("");
+                                    setDoneTime("");
+                                }}
+                            >Clear Target Done</button>
+                        </div>
+                        <div className="flex w-full flex-wrap">
+                            <div>
+                                <label htmlFor="progressTarget">Target Progress</label>
+                                <div className="flex gap-3">
+                                    <input
+                                        id="progressTarget"
+                                        type="date"
+                                        value={progressDate}
+                                        onChange={(e) => setProgressDate(e.target.value)}
+                                    />
+
+                                    <input
+                                        type="time"
+                                        value={progressTime}
+                                        onChange={(e) => setProgressTime(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="doneTarget">Target Done</label>
+
+                                <div className="flex gap-3">
+                                    <input
+                                        id="doneTarget"
+                                        type="date"
+                                        value={doneDate}
+                                        onChange={(e) => setDoneDate(e.target.value)}
+                                    />
+
+                                    <input
+                                        type="time"
+                                        value={doneTime}
+                                        onChange={(e) => setDoneTime(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {editMode && form.status == "progress" && (
+                    <div className="pt-4 mt-2 border-t-1 border-black">
+                        <div className="text-gray-500 text-sm pointer-events-none mb-2">📂 Rencana Progress (Optional)</div>
+
+                        <label htmlFor="doneTarget">Target Done</label>
+                        <div className="flex gap-3 w-full">
+                            <input
+                                id="doneTarget"
+                                type="date"
+                                value={doneDate}
+                                onChange={(e) => setDoneDate(e.target.value)}
+                            />
+
+                            <input
+                                type="time"
+                                value={doneTime}
+                                onChange={(e) => setDoneTime(e.target.value)}
+                            />
+
+                        </div>
+
+                    </div>
+                )}
+
+
+
+
+
+
+
+
+
+
+
 
                 {!editMode && (
 
@@ -336,6 +503,10 @@ export default function TodoModal({ open, onClose, data }: any) {
                     )
 
                 )}
+
+
+
+
 
 
 
@@ -385,17 +556,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                         {/* EDIT MODE */}
                         {editMode && (
                             <>
-                                <button type="button"
-                                    onClick={() => {
-
-                                        setForm({
-                                            ...data.task,
-                                            peoples: (data.task.peoples || []).join(", "),
-                                        });
-
-                                        setEditMode(false);
-                                    }}
-                                >
+                                <button type="button" onClick={loadTask}>
                                     ❌ Cancel
                                 </button>
 

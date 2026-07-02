@@ -75,7 +75,6 @@ export default function TodoModal({ open, onClose }: any) {
                     .map((p) => p.trim())
                     .filter(Boolean),
                 createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
             });
 
 
@@ -110,44 +109,21 @@ export default function TodoModal({ open, onClose }: any) {
     return (
         <Modal open={open} onClose={handleClose}>
 
-            <h2>+ Tambah Card</h2>
+            <h2>+ Tambah Todo</h2>
 
             <form onSubmit={handleSubmit}>
 
-
-                <label htmlFor="title">📝 Title<span>*</span></label>
-                <input
-                    id="title"
-                    name="title"
-                    value={form.title}
-                    placeholder="Title todo"
-                    onChange={handleChange}
-                />
-
-                <label htmlFor="subtitle">📢 Subheading</label>
-                <input
-                    id="subtitle"
-                    name="subtitle"
-                    value={form.subtitle}
-                    placeholder="Subheading todo"
-                    onChange={handleChange}
-                />
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                     <div>
-                        <label htmlFor="status">🚩 Status<span>*</span></label>
-                        <select className="w-full"
-                            id="status"
-                            name="status"
-                            value={form.status}
+                        <label htmlFor="title">📝 Title<span>*</span></label>
+                        <input className="w-full"
+                            id="title"
+                            name="title"
+                            value={form.title}
+                            placeholder="Title todo"
                             onChange={handleChange}
-                        >
-                            <option value="todo">Todo</option>
-                            <option value="progress">Progress</option>
-                            <option value="done">Done</option>
-                        </select>
+                        />
                     </div>
-
                     <div>
                         <label htmlFor="tipe">🏷️ Tipe<span>*</span></label>
                         <select className="w-full" id="tipe" name="tipe" value={form.tipe} onChange={handleChange}>
@@ -161,6 +137,18 @@ export default function TodoModal({ open, onClose }: any) {
                         </select>
                     </div>
                 </div>
+
+
+                <label htmlFor="subtitle">📢 Subheading</label>
+                <input
+                    id="subtitle"
+                    name="subtitle"
+                    value={form.subtitle}
+                    placeholder="Subheading todo"
+                    onChange={handleChange}
+                />
+
+
 
 
 
@@ -211,6 +199,20 @@ export default function TodoModal({ open, onClose }: any) {
                     </div>
                 )}
 
+                {/* <div>
+                    <label htmlFor="status">🚩 Status<span>*</span></label>
+                    <select className="w-full" disabled
+                        id="status"
+                        name="status"
+                        value={form.status}
+                        onChange={handleChange}
+                    >
+                        <option value="todo">Todo</option>
+                        <option value="progress">Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div> */}
+
 
 
 
@@ -218,7 +220,7 @@ export default function TodoModal({ open, onClose }: any) {
                     onClick={handleSubmit}
                     disabled={loading}
                     className={`mt-2 border border-blue-200! px-4 py-2 rounded-md transition ${loading ? "bg-blue-300! opacity-50 cursor-not-allowed!" : "hover:bg-blue-600 hover:text-white! active:bg-blue-800! active:text-white! cursor-pointer"}`}>
-                    {loading ? "⏳ Loading..." : "+ Tambah Card"}
+                    {loading ? "⏳ Loading..." : "+ Tambah Todo"}
                 </button>
 
 
