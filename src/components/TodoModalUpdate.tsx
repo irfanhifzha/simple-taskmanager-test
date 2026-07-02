@@ -437,6 +437,14 @@ export default function TodoModal({ open, onClose, data }: any) {
                 {editMode && form.status == "progress" && (
                     <div className="pt-4 mt-2 border-t-1 border-black">
                         <div className="text-gray-500 text-sm pointer-events-none mb-2">📂 Rencana Progress (Optional)</div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
+                                onClick={() => {
+                                    setDoneDate("");
+                                    setDoneTime("");
+                                }}
+                            >Clear Target Done</button>
+                        </div>
 
                         <label htmlFor="doneTarget">Target Done</label>
                         <div className="flex gap-3 w-full">

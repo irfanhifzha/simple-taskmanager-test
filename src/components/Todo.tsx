@@ -20,6 +20,8 @@ import {
 import TodoModal from "./TodoModal";
 import TodoModalView from "./TodoModalUpdate";
 
+import TodoGantt from "../components/TodoGantt";
+
 import {
     DndContext,
     DragOverlay,
@@ -93,7 +95,7 @@ type Selected = {
     login?: boolean;
 };
 
-const truncate = (text: string, max = 80) =>
+const truncate = (text: string, max = 20) =>
     text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
 
 const truncateVIEW = (text: string, max = 200) =>
@@ -143,7 +145,9 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
             )}
 
             <div className="flex flex-col gap-2 [&_p]:text-[10px]!">
-                {task.createdAt &&
+
+
+                {/* {task.createdAt &&
                     (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                         <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
                         <p className=" text-gray-700">
@@ -218,83 +222,86 @@ function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: T
                                 return editMode ? truncate(date) : truncateVIEW(date);
                             })() : ""}
                         </p>
-                    </div>)}
-            </div>
+                    </div>)} */}
 
-            {/* {task.status === "todo" && task.createdAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
-                    <p className=" text-gray-700">
-                        Dibuat pada - {" "}
-                        {task?.createdAt ? (() => {
-                            const d = task.createdAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })} ${d.toLocaleTimeString('en-GB', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })() : ""}
-                    </p>
-                </div>)
-            }
 
-            {task.status === "progress" && task.startAt &&
-                (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                    <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
-                    <p className="text-gray-700">
-                        Dimulai dari - {" "}
-                        {(() => {
-                            const d = task.startAt.toDate();
-                            const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-                            return editMode ? truncate(date) : truncateVIEW(date);
-                        })()}
-                    </p>
-                </div>)
-            }
-
-            {task.status === "done" && (
-                task.doneAt ? (<>
-                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
-                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200"></div>
-                        <p className="text-gray-700">
-                            Dimulai pada - {" "}
-                            {(() => {
-                                const d = task.startAt?.toDate();
-                                if (!d) return "-";
-                                const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-                                return editMode ? truncate(date) : truncateVIEW(date);
-                            })()}
-                        </p>
-                    </div>
-                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
-                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
-                        <p className="text-gray-700">
-                            Selesai pada - {" "}
-                            {(() => {
-                                const d = task.doneAt.toDate();
-                                const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-                                return editMode ? truncate(date) : truncateVIEW(date);
-                            })()}
-                        </p>
-                    </div>
-                </>) : (
-                    <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                {task.status === "todo" && task.createdAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
                         <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
-                        <p className="text-gray-700">
+                        <p className=" text-gray-700">
                             Dibuat pada - {" "}
-                            {(() => {
+                            {task?.createdAt ? (() => {
                                 const d = task.createdAt.toDate();
+                                const date = `${d.toLocaleDateString('id-ID', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric'
+                                })} ${d.toLocaleTimeString('en-GB', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}`;
+                                return editMode ? truncate(date) : truncateVIEW(date);
+                            })() : ""}
+                        </p>
+                    </div>)
+                }
+
+                {task.status === "progress" && task.startAt &&
+                    (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                        <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
+                        <p className="text-gray-700">
+                            Dimulai dari - {" "}
+                            {(() => {
+                                const d = task.startAt.toDate();
                                 const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
                                 return editMode ? truncate(date) : truncateVIEW(date);
                             })()}
                         </p>
-                    </div>
-                )
-            )} */}
+                    </div>)
+                }
+
+                {task.status === "done" && (
+                    task.doneAt ? (<>
+                        {task.startAt && (<div className="flex items-center bg-white px-2 py-1 rounded-md">
+                            <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200"></div>
+                            <p className="text-gray-700">
+                                Dimulai pada - {" "}
+                                {(() => {
+                                    const d = task.startAt?.toDate();
+                                    if (!d) return "-";
+                                    const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                    return editMode ? truncate(date) : truncateVIEW(date);
+                                })()}
+                            </p>
+                        </div>)}
+                        <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                            <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-green-600! transition-all duration-200"></div>
+                            <p className="text-gray-700">
+                                Selesai pada - {" "}
+                                {(() => {
+                                    const d = task.doneAt.toDate();
+                                    const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                    return editMode ? truncate(date) : truncateVIEW(date);
+                                })()}
+                            </p>
+                        </div>
+                    </>) : (
+                        <div className="flex items-center bg-white px-2 py-1 rounded-md">
+                            <div className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-red-600! transition-all duration-200"></div>
+                            <p className="text-gray-700">
+                                Dibuat pada - {" "}
+                                {(() => {
+                                    const d = task.createdAt.toDate();
+                                    const date = `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+                                    return editMode ? truncate(date) : truncateVIEW(date);
+                                })()}
+                            </p>
+                        </div>
+                    )
+                )}
+
+
+            </div>
         </>
     );
 }
@@ -368,6 +375,8 @@ export default function TodoBoard({ kategori, user }: Props) {
 
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [viewRoad, setViewRoad] = useState(true);
 
     const [selected, setSelected] = useState<Selected | null>(null);
     const [editMode, setEditMode] = useState(false);
@@ -560,23 +569,36 @@ export default function TodoBoard({ kategori, user }: Props) {
             <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
                 <p className="text-black text-md font-bold">Kanban Board</p>
 
-                {user && (
-                    <div className="flex gap-3 mb-[10px] flex-wrap">
-                        <button
-                            onClick={() => setIsOpen(true)}
-                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold w-fit"
-                        >
-                            + Tambah Todo
-                        </button>
+                <div className="flex gap-3 mb-[10px] flex-wrap">
 
-                        <button
-                            className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                            onClick={() => setEditMode((prev) => !prev)}
-                        >
-                            {editMode ? "🗃️ Rearrange" : "📋 View Mode"}
-                        </button>
-                    </div>
-                )}
+                    <button
+                        className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        onClick={() => setViewRoad((prev) => !prev)}
+                    >
+                        {viewRoad ? "👀 Hide Timeline" : "🔍 Show Timeline"}
+                    </button>
+
+                    {user && (
+                        <>
+
+                            <button
+                                className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                                onClick={() => setEditMode((prev) => !prev)}
+                            >
+                                {editMode ? "🗃️ Ubah Urutan" : "📋 View Mode"}
+                            </button>
+
+                            <button
+                                onClick={() => setIsOpen(true)}
+                                className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold w-fit"
+                            >
+                                + Tambah Todo
+                            </button>
+
+
+                        </>)}
+
+                </div>
 
                 {/* DndContext now wraps the whole table, NOT the <tr> — fixes hydration error */}
                 <DndContext
@@ -672,6 +694,9 @@ export default function TodoBoard({ kategori, user }: Props) {
                     </DragOverlay>
                 </DndContext>
             </div>
+
+
+            {viewRoad && (<TodoGantt />)}
 
             <TodoModal open={isOpen} onClose={() => setIsOpen(false)} />
             <TodoModalView open={openEdit} onClose={() => setOpenEdit(false)} data={selected} />

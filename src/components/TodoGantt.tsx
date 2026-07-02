@@ -16,22 +16,24 @@ function startOfDay(d: Date) {
     return nd;
 }
 
-function startOfHour(d: Date) {
-    const nd = new Date(d);
-    nd.setMinutes(0, 0, 0);
-    return nd;
-}
-
 function diffDays(from: Date, to: Date) {
     return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86400000);
 }
 
 function diffHours(from: Date, to: Date) {
-    return Math.round((startOfHour(to).getTime() - startOfHour(from).getTime()) / 3600000);
+    return Math.round((to.getTime() - from.getTime()) / 3600000);
+}
+
+function isSameDay(a: Date, b: Date) {
+    return startOfDay(a).getTime() === startOfDay(b).getTime();
 }
 
 function fmtDay(d: Date) {
     return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+}
+
+function fmtDayFull(d: Date) {
+    return d.toLocaleDateString("id-ID", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 }
 
 function fmtHour(d: Date) {
@@ -42,6 +44,7 @@ export default function TodoGantt() {
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [granularity, setGranularity] = useState<Granularity>("day");
+    const [focusDate, setFocusDate] = useState<Date>(() => startOfDay(new Date()));
 
     useEffect(() => {
         const q = query(collection(db, "todos"), orderBy("createdAt", "asc"));
@@ -56,71 +59,113 @@ export default function TodoGantt() {
     const visibleTasks = useMemo(() => tasks.filter((t) => t.status !== "archived"), [tasks]);
 
     const unitWidth = UNIT_WIDTH[granularity];
+    const today = new Date();
 
     const { rangeStart, units } = useMemo(() => {
-        const today = new Date();
+        if (granularity === "hour") {
+            // hour mode is always exactly 24 columns for the focused day —
+            // keeps it fast/readable no matter how much task history exists
+            const dayStart = startOfDay(focusDate);
+            const list = Array.from({ length: 24 }, (_, i) => {
+                const d = new Date(dayStart);
+                d.setHours(i);
+                return d;
+            });
+            return { rangeStart: dayStart, units: list };
+        }
+
+        // day mode: span from earliest relevant timestamp to latest, small padding only
         let min = today;
         let max = today;
 
         visibleTasks.forEach((t) => {
             if (t.createdAt && t.createdAt.toDate() < min) min = t.createdAt.toDate();
             if (t.doneAt && t.doneAt.toDate() > max) max = t.doneAt.toDate();
+            if (t.doneTarget && t.doneTarget.toDate() > max) max = t.doneTarget.toDate();
+            if (t.progressTarget && t.progressTarget.toDate() > max) max = t.progressTarget.toDate();
         });
 
-        if (granularity === "day") {
-            const start = startOfDay(min);
-            start.setDate(start.getDate() - 1);
-            const end = startOfDay(max);
-            end.setDate(end.getDate() + 20);
+        const start = startOfDay(min);
+        start.setDate(start.getDate() - 1);
+        const end = startOfDay(max);
+        end.setDate(end.getDate() + 3); // small forward padding, not +20
 
-            const totalDays = diffDays(start, end) + 1;
-            const list = Array.from({ length: totalDays }, (_, i) => {
-                const d = new Date(start);
-                d.setDate(d.getDate() + i);
-                return d;
-            });
-            return { rangeStart: start, units: list };
-        }
-
-        // hour granularity: focus window to keep column count sane
-        const start = startOfHour(min);
-        start.setHours(start.getHours() - 1);
-        const end = startOfHour(max);
-        end.setHours(end.getHours() + 12);
-
-        const totalHours = diffHours(start, end) + 1;
-        const list = Array.from({ length: totalHours }, (_, i) => {
+        const totalDays = diffDays(start, end) + 1;
+        const list = Array.from({ length: totalDays }, (_, i) => {
             const d = new Date(start);
-            d.setHours(d.getHours() + i);
+            d.setDate(d.getDate() + i);
             return d;
         });
         return { rangeStart: start, units: list };
-    }, [visibleTasks, granularity]);
+    }, [visibleTasks, granularity, focusDate]);
 
-    const today = new Date();
     const xFor = (date: Date) =>
         (granularity === "day" ? diffDays(rangeStart, date) : diffHours(rangeStart, date)) * unitWidth;
+
+    const showTodayMarker = granularity === "day" || isSameDay(focusDate, today);
 
     return (
         <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
             <div className="flex items-center justify-between flex-wrap gap-2">
-                <p className="text-black text-md font-bold">Gantt Timeline</p>
+                <p className="text-black text-md font-bold">Gantt Chart / Timeline Overview</p>
 
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setGranularity("day")}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
-                            ${granularity === "day" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
-                    >
-                        📅 Hari
-                    </button>
-                    <button
-                        onClick={() => setGranularity("hour")}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
-                            ${granularity === "hour" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
-                    >
-                        🕐 Jam
-                    </button>
+                <div className="flex items-center gap-3 flex-wrap">
+                    {granularity === "hour" && (
+                        <div className="flex items-center gap-3 text-xs flex-wrap">
+                            {!isSameDay(focusDate, today) && (
+                                <button
+                                    onClick={() => setFocusDate(startOfDay(today))}
+                                    className="px-3 py-2 rounded-full bg-blue-600 text-white hover:shadow-md transition duration-200 ease cursor-pointer"
+                                >
+                                    Hari ini
+                                </button>
+                            )}
+                            <div>
+                                <button
+                                    onClick={() => setFocusDate((d) => {
+                                        const nd = new Date(d);
+                                        nd.setDate(nd.getDate() - 1);
+                                        return nd;
+                                    })}
+                                    className="px-2 py-1 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
+                                >
+                                    {"<-"}
+                                </button>
+                                <span className="px-2 font-medium text-gray-600 min-w-[160px] text-center">
+                                    {fmtDayFull(focusDate)}
+                                </span>
+                                <button
+                                    onClick={() => setFocusDate((d) => {
+                                        const nd = new Date(d);
+                                        nd.setDate(nd.getDate() + 1);
+                                        return nd;
+                                    })}
+                                    className="px-2 py-1 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
+                                >
+                                    {"->"}
+                                </button>
+                            </div>
+
+                        </div>
+                    )}
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setGranularity("hour")}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
+                                ${granularity === "hour" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
+                        >
+                            🕐 Jam
+                        </button>
+                        <button
+                            onClick={() => setGranularity("day")}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
+                                ${granularity === "day" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
+                        >
+                            📅 Hari
+                        </button>
+
+                    </div>
                 </div>
             </div>
 
@@ -155,11 +200,16 @@ export default function TodoGantt() {
                                 <div className="w-[180px] shrink-0 px-2 text-xs truncate" title={task.title}>
                                     {task.title}
                                 </div>
-                                <div className="relative h-full" style={{ width: units.length * unitWidth }}>
-                                    <div
-                                        className="absolute top-0 bottom-0 w-px bg-red-300"
-                                        style={{ left: xFor(today) + unitWidth / 2 }}
-                                    />
+                                <div
+                                    className="relative h-full overflow-hidden"
+                                    style={{ width: units.length * unitWidth }}
+                                >
+                                    {showTodayMarker && (
+                                        <div
+                                            className="absolute top-0 bottom-0 w-px bg-red-300"
+                                            style={{ left: xFor(today) + unitWidth / 2 }}
+                                        />
+                                    )}
                                     <GanttRowBar task={task} xFor={xFor} today={today} unitWidth={unitWidth} />
                                 </div>
                             </div>
@@ -182,18 +232,17 @@ function GanttRowBar({
     today: Date;
     unitWidth: number;
 }) {
-
     if (task.status === "todo") {
         const created = task.createdAt?.toDate();
+        if (!created) return null;
+
         return (
             <>
-                {created && (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-red-600 bg-red-200"
-                        style={{ left: xFor(created) + unitWidth / 2 - 6 }}
-                        title="Dibuat"
-                    />
-                )}
+                <div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-red-600 bg-red-200"
+                    style={{ left: xFor(created) + unitWidth / 2 - 6 }}
+                    title="Dibuat"
+                />
                 {task.progressTarget && task.doneTarget && (
                     <div
                         className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed border-gray-400"
@@ -208,8 +257,8 @@ function GanttRowBar({
                     <div
                         className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed border-gray-400"
                         style={{
-                            left: (xFor(created) + unitWidth / 2),
-                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(task.createdAt.toDate()), 4),
+                            left: (xFor(created) + unitWidth / 2) - 5,
+                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(created), 4) + 5,
                         }}
                         title="Rencana"
                     />
@@ -218,13 +267,11 @@ function GanttRowBar({
         );
     }
 
-
     if (task.status === "progress") {
         const created = task.createdAt?.toDate();
         if (!created) return null;
 
         const start = task.startAt?.toDate();
-
         const plannedEnd = task.doneTarget?.toDate();
 
         const hasPlanned = !!plannedEnd;
@@ -233,77 +280,96 @@ function GanttRowBar({
 
         return (
             <>
-
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-red-600 bg-red-200"
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-blue-600 bg-blue-100"
                     style={{ left: xFor(created) + unitWidth / 2 - 6 }}
                     title="Dibuat"
                 />
 
                 {start ? (
-                    <>
-                        {/* 1. Base progress: start → today */}
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-600"
+                        style={{
+                            left: xFor(start) + unitWidth / 2,
+                            width: Math.max(xFor(today) - xFor(start), 4),
+                        }}
+                        title="Progress"
+                    />
+                ) : (
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-600"
+                        style={{
+                            left: (xFor(created) + unitWidth / 2) - 5,
+                            width: Math.max(xFor(today) - xFor(created), 4) + 5,
+                        }}
+                        title="Progress"
+                    />
+                )}
+
+                {hasFuturePlan && (
+                    start ? (
                         <div
-                            className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-500"
+                            className="absolute top-1/2 -translate-y-1/2 h-3 border border-dashed border-blue-400 rounded-full"
                             style={{
                                 left: xFor(start) + unitWidth / 2,
-                                width: Math.max(xFor(today) - xFor(start), 4),
+                                width: Math.max(xFor(plannedEnd) - xFor(start), 4),
                             }}
-                            title="Progress"
+                            title="Planned window"
                         />
-
-                        {/* 2. Planned future (only if not overdue and exists) */}
-                        {hasFuturePlan && (
-                            <div
-                                className="absolute top-1/2 -translate-y-1/2 h-3 border border-dashed border-blue-400 rounded-full"
-                                style={{
-                                    left: xFor(start) + unitWidth / 2,
-                                    width: Math.max(xFor(plannedEnd) - xFor(start), 4),
-                                }}
-                                title="Planned window"
-                            />
-                        )}
-
-                        {/* 3. Overdue part */}
-                        {isOverdue && plannedEnd && (
-                            <div
-                                className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-red-400"
-                                style={{
-                                    left: xFor(plannedEnd) + unitWidth / 2,
-                                    width: Math.max(xFor(today) - xFor(plannedEnd), 4),
-                                }}
-                                title="Terlambat"
-                            />
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {/* 1. Base progress: createdAt → today */}
-                        < div
-                            className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-500"
+                    ) : (
+                        <div
+                            className="absolute top-1/2 -translate-y-1/2 h-3 border border-dashed border-blue-400 rounded-full"
                             style={{
-                                left: xFor(created) + unitWidth / 2,
-                                width: Math.max(xFor(today) - xFor(created), 4),
+                                left: (xFor(created) + unitWidth / 2) - 5,
+                                width: Math.max(xFor(plannedEnd) - xFor(created), 4) + 5,
                             }}
-                            title="Progress"
+                            title="Planned window"
                         />
-                    </>
+                    )
+                )}
+
+                {isOverdue && plannedEnd && (
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed bg-red-400/50 border-red-600"
+                        style={{
+                            left: xFor(plannedEnd) + unitWidth / 2,
+                            width: Math.max(xFor(today) - xFor(plannedEnd), 4),
+                        }}
+                        title="Terlambat"
+                    />
                 )}
             </>
         );
     }
 
     if (task.status === "done") {
-        const start = (task.createdAt)?.toDate();
+        const created = task.createdAt?.toDate();
+        const start = task.startAt?.toDate();
         const end = task.doneAt?.toDate();
-        if (!start || !end) return null;
+        if (!end) return null;
 
         return (
-            <div
-                className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-green-600"
-                style={{ left: xFor(start) + unitWidth / 2, width: Math.max(xFor(end) - xFor(start), 4) }}
-                title="Selesai"
-            />
+            <>
+                <div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-green-600 bg-green-100"
+                    style={{ left: xFor(created) + unitWidth / 2 - 6 }}
+                    title="Dibuat"
+                />
+
+                {start ? (
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-green-600"
+                        style={{ left: xFor(start) + unitWidth / 2, width: Math.max(xFor(end) - xFor(start), 4) }}
+                        title="Selesai"
+                    />
+                ) : (
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-green-600"
+                        style={{ left: (xFor(created) + unitWidth / 2)-5, width: Math.max(xFor(end) - xFor(created), 4)+5 }}
+                        title="Selesai"
+                    />
+                )}
+            </>
         );
     }
 
