@@ -12,7 +12,7 @@ import { db } from "../firebase";
 import Modal from "./Modal";
 
 
-export default function TodoModal({ open, onClose }: any) {
+export default function TodoModal({ open, onClose, category }: any) {
 
     const [loading, setLoading] = useState(false);
 
@@ -75,6 +75,7 @@ export default function TodoModal({ open, onClose }: any) {
                     .map((p) => p.trim())
                     .filter(Boolean),
                 createdAt: serverTimestamp(),
+                kategori: category,
             });
 
 

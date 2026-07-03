@@ -31,10 +31,7 @@ export default function TodoModal({ open, onClose, data }: any) {
     };
 
     const handleClose = () => {
-        setProgressDate("");
-        setProgressTime("");
-        setDoneDate("");
-        setDoneTime("");
+        setEditMode(false);
 
         setErrors({});
         setFormError(null);
@@ -96,7 +93,6 @@ export default function TodoModal({ open, onClose, data }: any) {
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
-                editAt: serverTimestamp(),
             };
 
             if (progressTarget instanceof Timestamp) {
@@ -145,14 +141,13 @@ export default function TodoModal({ open, onClose, data }: any) {
             people: (data.task.peoples || []).join(", "),
         });
 
-        const progress = timestampToDateTime(data.task.progressTarget);
-        const done = timestampToDateTime(data.task.doneTarget);
+        setProgressTargetLocal(
+            timestampToDateTime(data.task.progressTarget)
+        );
 
-        setProgressDate(progress.date);
-        setProgressTime(progress.time);
-
-        setDoneDate(done.date);
-        setDoneTime(done.time);
+        setDoneTargetLocal(
+            timestampToDateTime(data.task.doneTarget)
+        );
 
         setEditMode(false);
     };
@@ -165,33 +160,32 @@ export default function TodoModal({ open, onClose, data }: any) {
 
 
     // OPTIONAL TARGET
-    const [progressDate, setProgressDate] = useState("");
-    const [progressTime, setProgressTime] = useState("");
+    const [progressTargetLocal, setProgressTargetLocal] = useState("");
+    const [doneTargetLocal, setDoneTargetLocal] = useState("");
 
-    const [doneDate, setDoneDate] = useState("");
-    const [doneTime, setDoneTime] = useState("");
+    function toTimestamp(datetime: string) {
+        if (!datetime) return null;
 
-    function toTimestamp(date: string, time: string) {
-        if (!date || !time) return null;
-
-        return Timestamp.fromDate(new Date(`${date}T${time}`));
+        return Timestamp.fromDate(new Date(datetime));
     }
 
-    const progressTarget = toTimestamp(progressDate, progressTime);
-    const doneTarget = toTimestamp(doneDate, doneTime);
+    const progressTarget = toTimestamp(progressTargetLocal);
+    const doneTarget = toTimestamp(doneTargetLocal);
 
 
 
-    // OPTIONAL TARGET LOAD HELPER
     function timestampToDateTime(ts?: Timestamp) {
-        if (!ts) return { date: "", time: "" };
+        if (!ts) return "";
 
         const d = ts.toDate();
 
-        const date = d.toISOString().split("T")[0];
-        const time = d.toTimeString().slice(0, 5); // HH:MM
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        const hour = String(d.getHours()).padStart(2, "0");
+        const minute = String(d.getMinutes()).padStart(2, "0");
 
-        return { date, time };
+        return `${year}-${month}-${day}T${hour}:${minute}`;
     }
 
 
@@ -375,125 +369,84 @@ export default function TodoModal({ open, onClose, data }: any) {
 
 
                 {/* OPTIONAL TARGET */}
-                {editMode && form.status == "todo" && (
+                {editMode && (
                     <div className="pt-4 mt-2 border-t-1 border-black">
-
                         <div className="text-gray-500 text-sm pointer-events-none mb-3">📂 Rencana Todo (Optional)</div>
                         <div className="flex flex-wrap gap-2 mb-3">
-                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
-                                onClick={() => {
-                                    setProgressDate("");
-                                    setProgressTime("");
-                                }}
-                            >Clear Target Progress</button>
-                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
-                                onClick={() => {
-                                    setDoneDate("");
-                                    setDoneTime("");
-                                }}
-                            >Clear Target Done</button>
+                            <button
+                                type="button"
+                                className="w-fit! py-1! px-3! border-red-500! text-red-500!"
+                                onClick={() => setProgressTargetLocal("")}
+                            >
+                                🗑️ Clear Target Progress
+                            </button>
+
+                            <button
+                                type="button"
+                                className="w-fit! py-1! px-3! border-red-500! text-red-500!"
+                                onClick={() => setDoneTargetLocal("")}
+                            >
+                                🗑️ Clear Target Done
+                            </button>
                         </div>
-                        <div className="flex w-full flex-wrap">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                             <div>
-                                <label htmlFor="progressTarget">Target Progress</label>
-                                <div className="flex gap-3">
-                                    <input
-                                        id="progressTarget"
-                                        type="date"
-                                        value={progressDate}
-                                        onChange={(e) => setProgressDate(e.target.value)}
-                                    />
+                                <label htmlFor="progressTarget">✒️ Target Progress</label>
 
-                                    <input
-                                        type="time"
-                                        value={progressTime}
-                                        onChange={(e) => setProgressTime(e.target.value)}
-                                    />
-                                </div>
+                                <input
+                                    id="progressTarget"
+                                    type="datetime-local"
+                                    value={progressTargetLocal}
+                                    disabled={
+                                        data.task?.status === "progress" ||
+                                        data.task?.status === "done"
+                                    }
+                                    onChange={(e) => setProgressTargetLocal(e.target.value)}
+                                />
                             </div>
 
+
                             <div>
-                                <label htmlFor="doneTarget">Target Done</label>
+                                <label htmlFor="doneTarget">✒️ Target Done</label>
 
-                                <div className="flex gap-3">
-                                    <input
-                                        id="doneTarget"
-                                        type="date"
-                                        value={doneDate}
-                                        onChange={(e) => setDoneDate(e.target.value)}
-                                    />
-
-                                    <input
-                                        type="time"
-                                        value={doneTime}
-                                        onChange={(e) => setDoneTime(e.target.value)}
-                                    />
-                                </div>
+                                <input
+                                    id="doneTarget"
+                                    type="datetime-local"
+                                    value={doneTargetLocal}
+                                    onChange={(e) => setDoneTargetLocal(e.target.value)}
+                                />
                             </div>
+
                         </div>
                     </div>
                 )}
 
-                {editMode && form.status == "progress" && (
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                {!editMode && (data?.task.progressTarget || data?.task.doneTarget) && (
                     <div className="pt-4 mt-2 border-t-1 border-black">
-                        <div className="text-gray-500 text-sm pointer-events-none mb-2">📂 Rencana Progress (Optional)</div>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            <button type="button" className="w-fit! py-1! px-3! border-red-500! text-red-500!"
-                                onClick={() => {
-                                    setDoneDate("");
-                                    setDoneTime("");
-                                }}
-                            >Clear Target Done</button>
-                        </div>
+                        <div className="text-gray-500 text-sm pointer-events-none mb-4">📂 Rencana Todo (Optional)</div>
 
-                        <label htmlFor="doneTarget">Target Done</label>
-                        <div className="flex gap-3 w-full">
-                            <input
-                                id="doneTarget"
-                                type="date"
-                                value={doneDate}
-                                onChange={(e) => setDoneDate(e.target.value)}
-                            />
-
-                            <input
-                                type="time"
-                                value={doneTime}
-                                onChange={(e) => setDoneTime(e.target.value)}
-                            />
-
-                        </div>
-
-                    </div>
-                )}
-
-
-
-
-
-
-
-
-
-
-
-
-                {!editMode && (
-
-                    data?.task?.createdAt && (
                         <div className="grid grid-cols-2 gap-4 mt-2">
                             <div>
-                                <label>📪 Dibuat Pada</label>
-                                <div className="mt-1 py-1">
-                                    <p className="text-gray-400 text-xs">{data.task.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} {data.task.createdAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label>✒️ Diedit Pada</label>
+                                <label>✒️ Target Progress</label>
                                 <div className="mt-1 py-1">
                                     <p className="text-gray-400 text-xs">
-                                        {data.task.editAt ? (() => {
-                                            const date = data.task.editAt.toDate();
+                                        {data?.task.progressTarget ? (() => {
+                                            const date = data.task.progressTarget.toDate();
                                             return `${date.toLocaleDateString('id-ID', {
                                                 weekday: 'long',
                                                 day: 'numeric',
@@ -503,85 +456,108 @@ export default function TodoModal({ open, onClose, data }: any) {
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                             })}`;
-                                        })() : 'Belum pernah diedit'}
+                                        })() : 'Tidak ada'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label>✒️ Target Done</label>
+                                <div className="mt-1 py-1">
+                                    <p className="text-gray-400 text-xs">
+                                        {data?.task.doneTarget ? (() => {
+                                            const date = data.task.doneTarget.toDate();
+                                            return `${date.toLocaleDateString('id-ID', {
+                                                weekday: 'long',
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric',
+                                            })} ${date.toLocaleTimeString('en-GB', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            })}`;
+                                        })() : 'Tidak ada'}
                                     </p>
                                 </div>
                             </div>
                         </div>
-                    )
-
-                )}
-
-
-
-
-
-
-
-
-                {formError && (
-                    <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
-                        <div className="whitespace-pre-line break-words">
-                            {formError}
-                        </div>
-
-                        {Object.keys(errors).length > 0 && (
-                            <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
-                                {errors.title && <li>• {errors.title}</li>}
-                                {errors.status && <li>• {errors.status}</li>}
-                                {errors.tipe && <li>• {errors.tipe}</li>}
-                            </ul>
-                        )}
                     </div>
                 )}
+
+
+
+
+
+
+
+
+                {
+                    formError && (
+                        <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
+                            <div className="whitespace-pre-line break-words">
+                                {formError}
+                            </div>
+
+                            {Object.keys(errors).length > 0 && (
+                                <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs">
+                                    {errors.title && <li>• {errors.title}</li>}
+                                    {errors.status && <li>• {errors.status}</li>}
+                                    {errors.tipe && <li>• {errors.tipe}</li>}
+                                </ul>
+                            )}
+                        </div>
+                    )
+                }
 
 
 
 
                 {/* EDIT TOGGLE */}
                 {/* USER CONTROLS */}
-                {data?.login && (
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                        {/* NOT IN EDIT MODE */}
-                        {!editMode && (
-                            <>
-                                <button type="button"
-                                    onClick={() => {
-                                        setEditMode(true);
-                                    }}
-                                >
-                                    ✏️ Edit
-                                </button>
+                {
+                    data?.login && (
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                            {/* NOT IN EDIT MODE */}
+                            {!editMode && (
+                                <>
+                                    <button type="button"
+                                        onClick={() => {
+                                            setEditMode(true);
+                                        }}
+                                    >
+                                        ✏️ Edit
+                                    </button>
 
-                                <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-700 hover:text-white! active:bg-red-800! active:text-white!"
-                                    onClick={handleDelete}
-                                >
-                                    <div>🗑️ Delete</div>
-                                </button>
-                            </>
-                        )}
+                                    <button type="button" className="active:cursor-default! border-red-300! hover:bg-red-700 hover:text-white! active:bg-red-800! active:text-white!"
+                                        onClick={handleDelete}
+                                    >
+                                        <div>🗑️ Delete</div>
+                                    </button>
+                                </>
+                            )}
 
-                        {/* EDIT MODE */}
-                        {editMode && (
-                            <>
-                                <button type="button" onClick={loadTask}>
-                                    ❌ Cancel
-                                </button>
+                            {/* EDIT MODE */}
+                            {editMode && (
+                                <>
+                                    <button type="button" onClick={loadTask}>
+                                        ❌ Cancel
+                                    </button>
 
-                                <button type="button"
-                                    onClick={handleUpdate}
-                                    disabled={loading}
-                                    className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-800 hover:text-white! active:bg-gray-900! active:text-white! cursor-pointer"}`}>
-                                    {loading ? "⏳ Loading..." : "💾 Simpan"}
-                                </button>
-                            </>
+                                    <button type="button"
+                                        onClick={handleUpdate}
+                                        disabled={loading}
+                                        className={`border border-gray-200! px-4 py-2 rounded-md transition ${loading ? "bg-gray-400! opacity-50 cursor-not-allowed!" : "hover:bg-gray-800 hover:text-white! active:bg-gray-900! active:text-white! cursor-pointer"}`}>
+                                        {loading ? "⏳ Loading..." : "💾 Simpan"}
+                                    </button>
+                                </>
 
 
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )
+                }
 
-            </form>
+            </form >
         </Modal >
     );
 }

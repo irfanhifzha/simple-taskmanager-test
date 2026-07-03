@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, where } from "firebase/firestore";
 import { db } from "../firebase";
 import type { TodoEvent } from "./Todo";
 
@@ -40,14 +40,14 @@ function fmtHour(d: Date) {
     return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function TodoGantt() {
+export default function TodoGantt({ category }: any) {
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [granularity, setGranularity] = useState<Granularity>("day");
     const [focusDate, setFocusDate] = useState<Date>(() => startOfDay(new Date()));
 
     useEffect(() => {
-        const q = query(collection(db, "todos"), orderBy("createdAt", "asc"));
+        const q = query(collection(db, "todos"), where("kategori", "==", category));
         const unsub = onSnapshot(q, (snap) => {
             const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as TodoEvent[];
             setTasks(data);
@@ -235,30 +235,21 @@ function GanttRowBar({
     if (task.status === "todo") {
         const created = task.createdAt?.toDate();
         if (!created) return null;
+        const TargetStart = task.progressTarget?.toDate() ?? created;
 
         return (
             <>
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-red-600 bg-red-200"
-                    style={{ left: xFor(created) + unitWidth / 2 - 6 }}
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-red-600 bg-red-200"
+                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
                     title="Dibuat"
                 />
-                {task.progressTarget && task.doneTarget && (
+                {task.doneTarget && (
                     <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed border-gray-400"
+                        className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full border border-dashed border-gray-400"
                         style={{
-                            left: xFor(task.progressTarget.toDate()) + unitWidth / 2,
-                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(task.progressTarget.toDate()), 4),
-                        }}
-                        title="Rencana"
-                    />
-                )}
-                {!task.progressTarget && task.doneTarget && (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed border-gray-400"
-                        style={{
-                            left: (xFor(created) + unitWidth / 2) - 5,
-                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(created), 4) + 5,
+                            left: xFor(TargetStart) + unitWidth / 2,
+                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(TargetStart), 4),
                         }}
                         title="Rencana"
                     />
@@ -271,7 +262,7 @@ function GanttRowBar({
         const created = task.createdAt?.toDate();
         if (!created) return null;
 
-        const start = task.startAt?.toDate();
+        const start = task.startAt?.toDate() ?? created;
         const plannedEnd = task.doneTarget?.toDate();
 
         const hasPlanned = !!plannedEnd;
@@ -281,56 +272,37 @@ function GanttRowBar({
         return (
             <>
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-blue-600 bg-blue-100"
-                    style={{ left: xFor(created) + unitWidth / 2 - 6 }}
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-blue-600 bg-blue-100"
+                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
                     title="Dibuat"
                 />
 
-                {start ? (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-600"
-                        style={{
-                            left: xFor(start) + unitWidth / 2,
-                            width: Math.max(xFor(today) - xFor(start), 4),
-                        }}
-                        title="Progress"
-                    />
-                ) : (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-blue-600"
-                        style={{
-                            left: (xFor(created) + unitWidth / 2) - 5,
-                            width: Math.max(xFor(today) - xFor(created), 4) + 5,
-                        }}
-                        title="Progress"
-                    />
-                )}
+                <div
+                    className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full bg-blue-600"
+                    style={{
+                        left: (xFor(start) + unitWidth / 2),
+                        width: Math.max(xFor(today) - xFor(created), 4),
+                    }}
+                    title="Progress"
+                />
+
 
                 {hasFuturePlan && (
-                    start ? (
-                        <div
-                            className="absolute top-1/2 -translate-y-1/2 h-3 border border-dashed border-blue-400 rounded-full"
-                            style={{
-                                left: xFor(start) + unitWidth / 2,
-                                width: Math.max(xFor(plannedEnd) - xFor(start), 4),
-                            }}
-                            title="Planned window"
-                        />
-                    ) : (
-                        <div
-                            className="absolute top-1/2 -translate-y-1/2 h-3 border border-dashed border-blue-400 rounded-full"
-                            style={{
-                                left: (xFor(created) + unitWidth / 2) - 5,
-                                width: Math.max(xFor(plannedEnd) - xFor(created), 4) + 5,
-                            }}
-                            title="Planned window"
-                        />
-                    )
+
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 h-4 border border-dashed border-blue-400 rounded-full"
+                        style={{
+                            left: xFor(start) + unitWidth / 2,
+                            width: Math.max(xFor(plannedEnd) - xFor(start), 4),
+                        }}
+                        title="Planned window"
+                    />
+
                 )}
 
                 {isOverdue && plannedEnd && (
                     <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full border border-dashed bg-red-400/50 border-red-600"
+                        className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full border border-dashed bg-red-400/20 border-red-600"
                         style={{
                             left: xFor(plannedEnd) + unitWidth / 2,
                             width: Math.max(xFor(today) - xFor(plannedEnd), 4),
@@ -344,31 +316,44 @@ function GanttRowBar({
 
     if (task.status === "done") {
         const created = task.createdAt?.toDate();
-        const start = task.startAt?.toDate();
+        const start = task.startAt?.toDate() ?? created;
         const end = task.doneAt?.toDate();
         if (!end) return null;
+
+        const TargetStart = task.progressTarget?.toDate() ?? task.startAt?.toDate() ?? created;
+        const plannedEnd = task.doneTarget?.toDate();
+
+        const hasPlanned = !!plannedEnd;
+        const hasFuturePlan = hasPlanned && plannedEnd > today;
 
         return (
             <>
                 <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-1 border-dashed border-green-600 bg-green-100"
-                    style={{ left: xFor(created) + unitWidth / 2 - 6 }}
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-green-600 bg-green-100"
+                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
                     title="Dibuat"
                 />
 
-                {start ? (
+
+                <div
+                    className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full bg-green-600"
+                    style={{ left: xFor(start) + unitWidth / 2, width: Math.max(xFor(end) - xFor(start), 4) }}
+                    title="Selesai"
+                />
+
+                {hasFuturePlan && (
+
                     <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-green-600"
-                        style={{ left: xFor(start) + unitWidth / 2, width: Math.max(xFor(end) - xFor(start), 4) }}
-                        title="Selesai"
+                        className="absolute top-1/2 -translate-y-1/2 h-4 border border-dashed border-green-600/60 rounded-full"
+                        style={{
+                            left: xFor(TargetStart) + unitWidth / 2,
+                            width: Math.max(xFor(plannedEnd) - xFor(TargetStart), 4),
+                        }}
+                        title="Planned window"
                     />
-                ) : (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-3 rounded-full bg-green-600"
-                        style={{ left: (xFor(created) + unitWidth / 2)-5, width: Math.max(xFor(end) - xFor(created), 4)+5 }}
-                        title="Selesai"
-                    />
+
                 )}
+
             </>
         );
     }
