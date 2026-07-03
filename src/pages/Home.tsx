@@ -11,9 +11,6 @@ import Todo from "../components/Todo";
 
 
 export default function Home() {
-    useEffect(() => {
-        document.title = "Simple Task Manager";
-    }, []);
 
     const [user, setUser] = useState<User | null>(null);
 
@@ -27,10 +24,10 @@ export default function Home() {
 
             <Navbar />
 
-            <div className="m-0 p-0 flex flex-col bg-orange-100">
-                <div className="mt-3 flex flex-col h-fit rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 overflow-hidden mx-5 bg-white">
+            <div className="m-0 p-0 flex flex-col">
+                <div className="mt-3 flex flex-col h-fit rounded-2xl gap-2 px-4 py-5 overflow-hidden mx-5 bg-white">
                     <div>
-                        <p className="font-bold text-lg uppercase">Simple task manager thingy</p>
+                        <p className="font-bold text-lg"></p>
                     </div>
 
                     <Todo kategori="ClassA" user={user}/>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import type { TodoEvent } from "./Todo";
 
@@ -40,6 +40,107 @@ function fmtHour(d: Date) {
     return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+/* ---------- Shared bar/marker primitives ---------- */
+
+const DOT = 12; // px — shared diameter for markers AND minimum bar width
+
+/**
+ * Unified time-range renderer. If start/end collapse to (near) the same
+ * point, it centers a circle on that point — exactly matching how a
+ * standalone marker looks, so there's no visual seam between "a moment"
+ * and "a very short range."
+ */
+function TimeBar({
+    start,
+    end,
+    xFor,
+    unitWidth,
+    className,
+    title,
+}: {
+    start: Date;
+    end: Date;
+    xFor: (d: Date) => number;
+    unitWidth: number;
+    className: string;
+    title?: string;
+}) {
+    const startX = xFor(start) + unitWidth / 2;
+    const endX = xFor(end) + unitWidth / 2;
+    const rawWidth = endX - startX;
+
+    let left: number;
+    let width: number;
+
+    if (rawWidth < DOT) {
+        // point-like: center a DOT-sized circle on the start position,
+        // same anchor math a standalone marker would use
+        width = DOT;
+        left = startX - DOT / 2;
+    } else {
+        // real range: left-aligned start, actual width
+        width = rawWidth;
+        left = startX;
+    }
+
+    return (
+        <div
+            className={`absolute top-1/2 -translate-y-1/2 h-3 rounded-full ${className}`}
+            style={{ left, width }}
+            title={title}
+        />
+    );
+}
+
+// Thin wrapper for a single point in time — just a zero-length TimeBar
+function TimeMarker({
+    date,
+    xFor,
+    unitWidth,
+    className,
+    title,
+}: {
+    date: Date;
+    xFor: (d: Date) => number;
+    unitWidth: number;
+    className: string;
+    title?: string;
+}) {
+    return <TimeBar start={date} end={date} xFor={xFor} unitWidth={unitWidth} className={className} title={title} />;
+}
+
+function TargetOverlay({
+    task,
+    xFor,
+    unitWidth,
+    tint,
+}: {
+    task: TodoEvent;
+    xFor: (d: Date) => number;
+    unitWidth: number;
+    tint: "gray" | "blue" | "green";
+}) {
+    const pStart = task.progressTarget?.toDate();
+    const pEnd = task.doneTarget?.toDate();
+
+    const className = {
+        gray: "border border-dashed border-gray-400 bg-white",
+        blue: "border border-dashed border-blue-400 bg-white",
+        green: "border border-dashed border-green-500 bg-white",
+    }[tint];
+
+    if (pStart && pEnd) {
+        return <TimeBar start={pStart} end={pEnd} xFor={xFor} unitWidth={unitWidth} className={className} title="Rencana" />;
+    }
+    if (pStart) {
+        return <TimeMarker date={pStart} xFor={xFor} unitWidth={unitWidth} className={className} title="Target mulai" />;
+    }
+    if (pEnd) {
+        return <TimeMarker date={pEnd} xFor={xFor} unitWidth={unitWidth} className={className} title="Target selesai" />;
+    }
+    return null;
+}
+
 export default function TodoGantt({ category }: any) {
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
     const [loading, setLoading] = useState(true);
@@ -54,7 +155,7 @@ export default function TodoGantt({ category }: any) {
             setLoading(false);
         });
         return () => unsub();
-    }, []);
+    }, [category]);
 
     const visibleTasks = useMemo(() => tasks.filter((t) => t.status !== "archived"), [tasks]);
 
@@ -63,8 +164,6 @@ export default function TodoGantt({ category }: any) {
 
     const { rangeStart, units } = useMemo(() => {
         if (granularity === "hour") {
-            // hour mode is always exactly 24 columns for the focused day —
-            // keeps it fast/readable no matter how much task history exists
             const dayStart = startOfDay(focusDate);
             const list = Array.from({ length: 24 }, (_, i) => {
                 const d = new Date(dayStart);
@@ -74,7 +173,6 @@ export default function TodoGantt({ category }: any) {
             return { rangeStart: dayStart, units: list };
         }
 
-        // day mode: span from earliest relevant timestamp to latest, small padding only
         let min = today;
         let max = today;
 
@@ -88,7 +186,7 @@ export default function TodoGantt({ category }: any) {
         const start = startOfDay(min);
         start.setDate(start.getDate() - 1);
         const end = startOfDay(max);
-        end.setDate(end.getDate() + 3); // small forward padding, not +20
+        end.setDate(end.getDate() + 3);
 
         const totalDays = diffDays(start, end) + 1;
         const list = Array.from({ length: totalDays }, (_, i) => {
@@ -145,7 +243,6 @@ export default function TodoGantt({ category }: any) {
                                     {"->"}
                                 </button>
                             </div>
-
                         </div>
                     )}
 
@@ -164,7 +261,6 @@ export default function TodoGantt({ category }: any) {
                         >
                             📅 Hari
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -176,7 +272,6 @@ export default function TodoGantt({ category }: any) {
             ) : (
                 <div className="w-full overflow-auto rounded-2xl border border-gray-200">
                     <div style={{ width: units.length * unitWidth + 180 }}>
-                        {/* header */}
                         <div className="flex sticky items-center top-0 bg-white z-10 border-b border-gray-200">
                             <div className="w-[180px] flex items-center h-8 shrink-0 px-2 py-1 text-xs font-semibold border-r border-gray-200">
                                 <div>Task</div>
@@ -194,7 +289,6 @@ export default function TodoGantt({ category }: any) {
                             </div>
                         </div>
 
-                        {/* rows */}
                         {visibleTasks.map((task) => (
                             <div key={task.id} className="flex border-b border-gray-100 h-[40px] items-center">
                                 <div className="w-[180px] shrink-0 px-2 text-xs truncate" title={task.title}>
@@ -221,6 +315,7 @@ export default function TodoGantt({ category }: any) {
     );
 }
 
+
 function GanttRowBar({
     task,
     xFor,
@@ -235,25 +330,17 @@ function GanttRowBar({
     if (task.status === "todo") {
         const created = task.createdAt?.toDate();
         if (!created) return null;
-        const TargetStart = task.progressTarget?.toDate() ?? created;
 
         return (
             <>
-                <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-red-600 bg-red-200"
-                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
+                <TimeMarker
+                    date={created}
+                    xFor={xFor}
+                    unitWidth={unitWidth}
+                    className="border border-dashed border-red-600 bg-red-200"
                     title="Dibuat"
                 />
-                {task.doneTarget && (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full border border-dashed border-gray-400"
-                        style={{
-                            left: xFor(TargetStart) + unitWidth / 2,
-                            width: Math.max(xFor(task.doneTarget.toDate()) - xFor(TargetStart), 4),
-                        }}
-                        title="Rencana"
-                    />
-                )}
+                <TargetOverlay task={task} xFor={xFor} unitWidth={unitWidth} tint="gray" />
             </>
         );
     }
@@ -264,49 +351,36 @@ function GanttRowBar({
 
         const start = task.startAt?.toDate() ?? created;
         const plannedEnd = task.doneTarget?.toDate();
-
-        const hasPlanned = !!plannedEnd;
-        const isOverdue = hasPlanned ? today > plannedEnd : false;
-        const hasFuturePlan = hasPlanned && plannedEnd > today;
+        const isOverdue = plannedEnd ? today > plannedEnd : false;
 
         return (
             <>
-                <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-blue-600 bg-blue-100"
-                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
+                <TimeMarker
+                    date={created}
+                    xFor={xFor}
+                    unitWidth={unitWidth}
+                    className="border border-dashed border-blue-600 bg-blue-100"
                     title="Dibuat"
                 />
 
-                <div
-                    className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full bg-blue-600"
-                    style={{
-                        left: (xFor(start) + unitWidth / 2),
-                        width: Math.max(xFor(today) - xFor(created), 4),
-                    }}
+                <TimeBar
+                    start={start}
+                    end={today}
+                    xFor={xFor}
+                    unitWidth={unitWidth}
+                    className="bg-blue-600 border border-blue-700"
                     title="Progress"
                 />
 
-
-                {hasFuturePlan && (
-
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-4 border border-dashed border-blue-400 rounded-full"
-                        style={{
-                            left: xFor(start) + unitWidth / 2,
-                            width: Math.max(xFor(plannedEnd) - xFor(start), 4),
-                        }}
-                        title="Planned window"
-                    />
-
-                )}
+                <TargetOverlay task={task} xFor={xFor} unitWidth={unitWidth} tint="blue" />
 
                 {isOverdue && plannedEnd && (
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full border border-dashed bg-red-400/20 border-red-600"
-                        style={{
-                            left: xFor(plannedEnd) + unitWidth / 2,
-                            width: Math.max(xFor(today) - xFor(plannedEnd), 4),
-                        }}
+                    <TimeBar
+                        start={plannedEnd}
+                        end={today}
+                        xFor={xFor}
+                        unitWidth={unitWidth}
+                        className="border border-dashed bg-red-400/20 border-red-600"
                         title="Terlambat"
                     />
                 )}
@@ -318,42 +392,28 @@ function GanttRowBar({
         const created = task.createdAt?.toDate();
         const start = task.startAt?.toDate() ?? created;
         const end = task.doneAt?.toDate();
-        if (!end) return null;
-
-        const TargetStart = task.progressTarget?.toDate() ?? task.startAt?.toDate() ?? created;
-        const plannedEnd = task.doneTarget?.toDate();
-
-        const hasPlanned = !!plannedEnd;
-        const hasFuturePlan = hasPlanned && plannedEnd > today;
+        if (!created || !start || !end) return null;
 
         return (
             <>
-                <div
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-4 rounded-full border-1 border-dashed border-green-600 bg-green-100"
-                    style={{ left: (xFor(created) + unitWidth / 2 - 6) + 5, width: Math.max(xFor(task.createdAt.toDate()) - xFor(task.createdAt.toDate()), 4) }}
+                <TimeMarker
+                    date={created}
+                    xFor={xFor}
+                    unitWidth={unitWidth}
+                    className="border border-dashed border-green-600 bg-green-100"
                     title="Dibuat"
                 />
 
-
-                <div
-                    className="absolute top-1/2 -translate-y-1/2 h-4 rounded-full bg-green-600"
-                    style={{ left: xFor(start) + unitWidth / 2, width: Math.max(xFor(end) - xFor(start), 4) }}
+                <TimeBar
+                    start={start}
+                    end={end}
+                    xFor={xFor}
+                    unitWidth={unitWidth}
+                    className="bg-green-600 border border-green-700"
                     title="Selesai"
                 />
 
-                {hasFuturePlan && (
-
-                    <div
-                        className="absolute top-1/2 -translate-y-1/2 h-4 border border-dashed border-green-600/60 rounded-full"
-                        style={{
-                            left: xFor(TargetStart) + unitWidth / 2,
-                            width: Math.max(xFor(plannedEnd) - xFor(TargetStart), 4),
-                        }}
-                        title="Planned window"
-                    />
-
-                )}
-
+                <TargetOverlay task={task} xFor={xFor} unitWidth={unitWidth} tint="green" />
             </>
         );
     }

@@ -198,6 +198,13 @@ export default function TodoModal({ open, onClose, data }: any) {
 
             <h2>Detail Card</h2>
 
+            {editMode && (
+                <p className="-mt-2 text-xs text-gray-400">
+                    Mengedit: {data?.task.title ? (data.task?.title.length > 15 ? `${data.task?.title.slice(0, 15)}...` : data.task?.title) : "notfound"}
+                </p>
+            )
+            }
+
 
             <form onSubmit={handleUpdate}>
 
