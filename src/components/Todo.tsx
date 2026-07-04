@@ -105,7 +105,10 @@ const truncateVIEW = (text: string, max = 200) =>
 function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: TodoEvent; theme: { card: string; title: string } }) {
     return (
         <>
-            <div className={`h-2 w-full rounded-md ${theme.card}`}></div>
+            <div className="flex items-center gap-2">
+                <div className={`h-2 w-full rounded-md ${theme.card}`} />
+                {editMode && (<div className={`h-2 w-2 rounded-md ${theme.card} animate-[pulse_0.75s_infinite]`} />)}
+            </div>
 
             {task.title && (
                 <button className={`flex justify-start text-start select-text! mt-1 text-lg font-bold cursor-pointer`}>
@@ -333,26 +336,30 @@ export default function TodoBoard({ kategori, user }: Props) {
 
 
     useEffect(() => {
-        const q = query(collection(db, "todos"), where("kategori", "==", kategori));
+        const q = query(collection(db, "todos"), orderBy("order", "asc"));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map((d) => ({
-                id: d.id,
-                ...d.data(),
-            })) as TodoEvent[];
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const data = snapshot.docs.map((d) => ({
+                    id: d.id,
+                    ...d.data(),
+                })) as TodoEvent[];
 
-            setTasks(data);
-            setLoading(false);
-        });
+                setTasks(data);
+                setLoading(false);
+            },
+            (err) => console.error("todos onSnapshot error:", err)
+        );
 
         return () => unsubscribe();
-    }, []);
+    }, []); // no `kategori` dependency needed now — query doesn't depend on it
 
     const grouped: Record<TodoStatus, TodoEvent[]> = {
-        todo: tasks.filter((t) => t.status === "todo"),
-        progress: tasks.filter((t) => t.status === "progress"),
-        done: tasks.filter((t) => t.status === "done"),
-        archived: tasks.filter((t) => t.status === "archived"),
+        todo: tasks.filter((t) => t.kategori === kategori && t.status === "todo"),
+        progress: tasks.filter((t) => t.kategori === kategori && t.status === "progress"),
+        done: tasks.filter((t) => t.kategori === kategori && t.status === "done"),
+        archived: tasks.filter((t) => t.kategori === kategori && t.status === "archived"),
     };
 
     async function persistColumn(
@@ -389,11 +396,9 @@ export default function TodoBoard({ kategori, user }: Props) {
         }
     }
 
-
     const dragOverRAF = useRef<number | null>(null);
     const isDraggingRef = useRef(false);
 
-    // --- replace resolveStatus so it doesn't rely on the possibly-stale `tasks` closure ---
     function resolveStatus(overId: string, taskList: TodoEvent[]): TodoStatus | null {
         if (overId.startsWith("col-")) {
             return overId.replace("col-", "") as TodoStatus;
@@ -416,32 +421,43 @@ export default function TodoBoard({ kategori, user }: Props) {
         const overId = over.id as string;
         if (activeId === overId) return;
 
-        // Guard #1: never let more than one pending update queue up.
-        // If a frame is already scheduled, just drop this event — the next
-        // animation frame will pick up wherever the pointer actually is.
+        // Guard: never let more than one pending update queue up per frame.
         if (dragOverRAF.current !== null) return;
 
         dragOverRAF.current = requestAnimationFrame(() => {
             dragOverRAF.current = null;
-
-            // Guard #2: if the drag ended while this frame was pending, bail.
             if (!isDraggingRef.current) return;
 
             setTasks((prev) => {
-                const activeTaskItem = prev.find((t) => t.id === activeId);
-                if (!activeTaskItem) return prev;
+                const activeIndex = prev.findIndex((t) => t.id === activeId);
+                if (activeIndex === -1) return prev;
+                const activeTaskItem = prev[activeIndex];
 
                 const overStatus = resolveStatus(overId, prev);
+                if (!overStatus) return prev;
 
-                // Guard #3: only touch state if the status is actually changing.
-                // This is the check that stops the "flapping" loop where a card
-                // sitting right on a column boundary keeps toggling back and
-                // forth between two statuses forever.
-                if (!overStatus || activeTaskItem.status === overStatus) return prev;
+                const overIndex = prev.findIndex((t) => t.id === overId);
 
-                return prev.map((t) =>
-                    t.id === activeId ? { ...t, status: overStatus } : t
-                );
+                // Hovering the empty area of a column (over.id is "col-xxx",
+                // not a specific card) — just flip status, nothing to reorder.
+                if (overIndex === -1) {
+                    if (activeTaskItem.status === overStatus) return prev;
+                    const next = prev.slice();
+                    next[activeIndex] = { ...activeTaskItem, status: overStatus };
+                    return next;
+                }
+
+                // Same column: pure reorder.
+                if (activeTaskItem.status === overStatus) {
+                    if (activeIndex === overIndex) return prev;
+                    return arrayMove(prev, activeIndex, overIndex);
+                }
+
+                // Different column: flip status AND slot it in at the
+                // hovered position in one go.
+                const next = prev.slice();
+                next[activeIndex] = { ...activeTaskItem, status: overStatus };
+                return arrayMove(next, activeIndex, overIndex);
             });
         });
     }
@@ -449,47 +465,33 @@ export default function TodoBoard({ kategori, user }: Props) {
     function handleDragEnd(event: DragEndEvent) {
         isDraggingRef.current = false;
 
-        // Cancel any in-flight rAF so a stale frame can't fire after drop
-        // and mutate state out from under handleDragEnd.
         if (dragOverRAF.current !== null) {
             cancelAnimationFrame(dragOverRAF.current);
             dragOverRAF.current = null;
         }
 
         const { active, over } = event;
+        const draggedTaskSnapshot = activeTask; // captured on drag start
         setActiveTask(null);
-        if (!over) return;
+        if (!over || !draggedTaskSnapshot) return;
 
         const activeId = active.id as string;
-        const overId = over.id as string;
 
-        const activeTaskItem = tasks.find((t) => t.id === activeId);
-        if (!activeTaskItem) return;
+        // `tasks` is already in its correct final shape/order thanks to
+        // handleDragOver — nothing left to compute, just read and persist it.
+        const currentTask = tasks.find((t) => t.id === activeId);
+        if (!currentTask) return;
 
-        const overStatus = resolveStatus(overId, tasks) ?? (activeTaskItem.status as TodoStatus);
-        // capture this BEFORE reordering — was the status actually changed vs the original doc?
-        const originalTask = activeTask; // activeTask was set on drag start, holds the pre-drag snapshot
-        const statusChanged = originalTask ? originalTask.status !== overStatus : false;
+        const statusChanged = draggedTaskSnapshot.status !== currentTask.status;
+        const columnTasks = tasks.filter((t) => t.status === currentTask.status);
 
-        const columnTasks = tasks.filter((t) => t.status === overStatus);
-        const oldIndex = columnTasks.findIndex((t) => t.id === activeId);
-        const overTaskIndex = columnTasks.findIndex((t) => t.id === overId);
-        const newIndex = overTaskIndex >= 0 ? overTaskIndex : columnTasks.length - 1;
-
-        if (oldIndex === -1) return;
-
-        const reordered =
-            oldIndex === newIndex ? columnTasks : arrayMove(columnTasks, oldIndex, newIndex);
-
-        setTasks((prev) => {
-            const others = prev.filter((t) => t.status !== overStatus);
-            return [...others, ...reordered];
-        });
-
-        persistColumn(columnTasks, statusChanged ? activeId : undefined, overStatus);
+        persistColumn(
+            columnTasks,
+            statusChanged ? activeId : undefined,
+            currentTask.status as TodoStatus
+        );
     }
 
-    // --- also add cleanup so a pending rAF doesn't fire after unmount ---
     useEffect(() => {
         return () => {
             if (dragOverRAF.current !== null) {

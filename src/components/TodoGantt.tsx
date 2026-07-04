@@ -3,11 +3,21 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import type { TodoEvent } from "./Todo";
 
+
+type SortKey = "status" | "createdAt" | "startAt";
+
+const STATUS_ORDER: Record<string, number> = {
+    todo: 0,
+    progress: 1,
+    done: 2,
+};
+
+
 type Granularity = "day" | "hour";
 
 const UNIT_WIDTH: Record<Granularity, number> = {
-    day: 50,
-    hour: 40,
+    day: 60,
+    hour: 50,
 };
 
 function startOfDay(d: Date) {
@@ -40,15 +50,12 @@ function fmtHour(d: Date) {
     return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-/* ---------- Shared bar/marker primitives ---------- */
-
-const DOT = 12; // px — shared diameter for markers AND minimum bar width
+const DOT = 12;
 
 /**
- * Unified time-range renderer. If start/end collapse to (near) the same
- * point, it centers a circle on that point — exactly matching how a
- * standalone marker looks, so there's no visual seam between "a moment"
- * and "a very short range."
+ * align="center" — dot centers on the anchor (default, for standalone points)
+ * align="start"  — dot sits fully BEFORE the anchor, flush with a bar that
+ *                   starts at that same anchor (no overlap, no gap)
  */
 function TimeBar({
     start,
@@ -57,6 +64,7 @@ function TimeBar({
     unitWidth,
     className,
     title,
+    align = "center",
 }: {
     start: Date;
     end: Date;
@@ -64,6 +72,7 @@ function TimeBar({
     unitWidth: number;
     className: string;
     title?: string;
+    align?: "center" | "start";
 }) {
     const startX = xFor(start) + unitWidth / 2;
     const endX = xFor(end) + unitWidth / 2;
@@ -73,12 +82,9 @@ function TimeBar({
     let width: number;
 
     if (rawWidth < DOT) {
-        // point-like: center a DOT-sized circle on the start position,
-        // same anchor math a standalone marker would use
         width = DOT;
-        left = startX - DOT / 2;
+        left = align === "start" ? startX - DOT : startX - DOT / 2 + 5;
     } else {
-        // real range: left-aligned start, actual width
         width = rawWidth;
         left = startX;
     }
@@ -92,22 +98,35 @@ function TimeBar({
     );
 }
 
-// Thin wrapper for a single point in time — just a zero-length TimeBar
 function TimeMarker({
     date,
     xFor,
     unitWidth,
     className,
     title,
+    align = "center",
 }: {
     date: Date;
     xFor: (d: Date) => number;
     unitWidth: number;
     className: string;
     title?: string;
+    align?: "center" | "start";
 }) {
-    return <TimeBar start={date} end={date} xFor={xFor} unitWidth={unitWidth} className={className} title={title} />;
+    return (
+        <TimeBar
+            start={date}
+            end={date}
+            xFor={xFor}
+            unitWidth={unitWidth}
+            className={className}
+            title={title}
+            align={align}
+        />
+    );
 }
+
+
 
 function TargetOverlay({
     task,
@@ -122,11 +141,12 @@ function TargetOverlay({
 }) {
     const pStart = task.progressTarget?.toDate();
     const pEnd = task.doneTarget?.toDate();
+    const start = task.startAt?.toDate() ?? task.createdAt?.toDate();
 
     const className = {
-        gray: "border border-dashed border-gray-400 bg-white",
-        blue: "border border-dashed border-blue-400 bg-white",
-        green: "border border-dashed border-green-500 bg-white",
+        gray: "border border-dashed border-gray-400",
+        blue: "border border-dashed border-blue-400",
+        green: "border border-dashed border-green-500",
     }[tint];
 
     if (pStart && pEnd) {
@@ -136,7 +156,7 @@ function TargetOverlay({
         return <TimeMarker date={pStart} xFor={xFor} unitWidth={unitWidth} className={className} title="Target mulai" />;
     }
     if (pEnd) {
-        return <TimeMarker date={pEnd} xFor={xFor} unitWidth={unitWidth} className={className} title="Target selesai" />;
+        return <TimeBar start={start} end={pEnd} xFor={xFor} unitWidth={unitWidth} className={className} title="Target selesai" />;
     }
     return null;
 }
@@ -146,6 +166,8 @@ export default function TodoGantt({ category }: any) {
     const [loading, setLoading] = useState(true);
     const [granularity, setGranularity] = useState<Granularity>("day");
     const [focusDate, setFocusDate] = useState<Date>(() => startOfDay(new Date()));
+
+    const [sortBy, setSortBy] = useState<SortKey>("createdAt");
 
     useEffect(() => {
         const q = query(collection(db, "todos"), where("kategori", "==", category));
@@ -157,7 +179,30 @@ export default function TodoGantt({ category }: any) {
         return () => unsub();
     }, [category]);
 
-    const visibleTasks = useMemo(() => tasks.filter((t) => t.status !== "archived"), [tasks]);
+    const visibleTasks = useMemo(() => {
+        const filtered = tasks.filter((t) => t.status !== "archived");
+
+        const sorted = [...filtered].sort((a, b) => {
+            if (sortBy === "status") {
+                const diff = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
+                if (diff !== 0) return diff;
+                // tie-break within same status by createdAt so it's stable
+                return (a.createdAt?.toMillis() ?? 0) - (b.createdAt?.toMillis() ?? 0);
+            }
+
+            if (sortBy === "startAt") {
+                // tasks without startAt (e.g. still "todo") sort to the end
+                const aTime = a.startAt?.toMillis() ?? Infinity;
+                const bTime = b.startAt?.toMillis() ?? Infinity;
+                return aTime - bTime;
+            }
+
+            // default: createdAt
+            return (a.createdAt?.toMillis() ?? 0) - (b.createdAt?.toMillis() ?? 0);
+        });
+
+        return sorted;
+    }, [tasks, sortBy]);
 
     const unitWidth = UNIT_WIDTH[granularity];
     const today = new Date();
@@ -204,20 +249,63 @@ export default function TodoGantt({ category }: any) {
 
     return (
         <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
-            <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex flex-col gap-4">
                 <p className="text-black text-md font-bold">Gantt Chart / Timeline Overview</p>
 
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap mb-[10px]">
+
+
+                    <div className="flex items-center gap-2 text-xs border border-gray-200 rounded-lg py-2 px-4">
+                        <span className="text-gray-400">Urutkan:</span>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => setSortBy("createdAt")}
+                                className={`px-3 py-2 rounded-full font-semibold border transition duration-200 ease cursor-pointer
+                ${sortBy === "createdAt" ? "bg-gray-800 text-white border-gray-800" : "border-gray-200 hover:shadow-md"}`}
+                            >
+                                Dibuat
+                            </button>
+                            <button
+                                onClick={() => setSortBy("startAt")}
+                                className={`px-3 py-2 rounded-full font-semibold border transition duration-200 ease cursor-pointer
+                ${sortBy === "startAt" ? "bg-gray-800 text-white border-gray-800" : "border-gray-200 hover:shadow-md"}`}
+                            >
+                                Mulai
+                            </button>
+                            <button
+                                onClick={() => setSortBy("status")}
+                                className={`px-3 py-2 rounded-full font-semibold border transition duration-200 ease cursor-pointer
+                ${sortBy === "status" ? "bg-gray-800 text-white border-gray-800" : "border-gray-200 hover:shadow-md"}`}
+                            >
+                                Status
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div className="flex gap-2">
+
+                        <button
+                            onClick={() => setGranularity("day")}
+                            className={`px-3 py-2 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
+                                ${granularity === "day" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
+                        >
+                            📅 Hari
+                        </button>
+
+                        <button
+                            onClick={() => setGranularity("hour")}
+                            className={`px-3 py-2 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
+                                ${granularity === "hour" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
+                        >
+                            🕐 Jam
+                        </button>
+
+                    </div>
+
                     {granularity === "hour" && (
                         <div className="flex items-center gap-3 text-xs flex-wrap">
-                            {!isSameDay(focusDate, today) && (
-                                <button
-                                    onClick={() => setFocusDate(startOfDay(today))}
-                                    className="px-3 py-2 rounded-full bg-blue-600 text-white hover:shadow-md transition duration-200 ease cursor-pointer"
-                                >
-                                    Hari ini
-                                </button>
-                            )}
+
                             <div>
                                 <button
                                     onClick={() => setFocusDate((d) => {
@@ -225,11 +313,11 @@ export default function TodoGantt({ category }: any) {
                                         nd.setDate(nd.getDate() - 1);
                                         return nd;
                                     })}
-                                    className="px-2 py-1 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
+                                    className="px-2 py-2 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
                                 >
                                     {"<-"}
                                 </button>
-                                <span className="px-2 font-medium text-gray-600 min-w-[160px] text-center">
+                                <span className="inline-block w-[165px] flex-shrink-0 px-2 text-center font-medium text-gray-600">
                                     {fmtDayFull(focusDate)}
                                 </span>
                                 <button
@@ -238,30 +326,24 @@ export default function TodoGantt({ category }: any) {
                                         nd.setDate(nd.getDate() + 1);
                                         return nd;
                                     })}
-                                    className="px-2 py-1 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
+                                    className="px-2 py-2 rounded-full border border-gray-200 hover:shadow-md transition duration-200 ease cursor-pointer"
                                 >
                                     {"->"}
                                 </button>
                             </div>
+
+                            {!isSameDay(focusDate, today) && (
+                                <button
+                                    onClick={() => setFocusDate(startOfDay(today))}
+                                    className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                                >
+                                    Hari ini
+                                </button>
+                            )}
+
                         </div>
                     )}
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setGranularity("hour")}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
-                                ${granularity === "hour" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
-                        >
-                            🕐 Jam
-                        </button>
-                        <button
-                            onClick={() => setGranularity("day")}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition duration-200 ease cursor-pointer
-                                ${granularity === "day" ? "bg-blue-600 text-white border-blue-600" : "border-gray-200 hover:shadow-md"}`}
-                        >
-                            📅 Hari
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -339,6 +421,7 @@ function GanttRowBar({
                     unitWidth={unitWidth}
                     className="border border-dashed border-red-600 bg-red-200"
                     title="Dibuat"
+                    align="center"
                 />
                 <TargetOverlay task={task} xFor={xFor} unitWidth={unitWidth} tint="gray" />
             </>
@@ -361,6 +444,7 @@ function GanttRowBar({
                     unitWidth={unitWidth}
                     className="border border-dashed border-blue-600 bg-blue-100"
                     title="Dibuat"
+                    align="center"
                 />
 
                 <TimeBar
@@ -402,6 +486,7 @@ function GanttRowBar({
                     unitWidth={unitWidth}
                     className="border border-dashed border-green-600 bg-green-100"
                     title="Dibuat"
+                    align="center"
                 />
 
                 <TimeBar

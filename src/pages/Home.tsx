@@ -25,7 +25,7 @@ export default function Home() {
             <Navbar />
 
             <div className="m-0 p-0 flex flex-col">
-                <div className="mt-3 flex flex-col h-fit rounded-2xl gap-2 px-4 py-5 overflow-hidden mx-5 bg-white">
+                <div className="flex flex-col h-fit rounded-2xl gap-2 px-4 pb-5 overflow-hidden mx-5 bg-white">
                     <div>
                         <p className="font-bold text-lg"></p>
                     </div>

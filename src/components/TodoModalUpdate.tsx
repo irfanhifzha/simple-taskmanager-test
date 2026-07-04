@@ -410,6 +410,9 @@ export default function TodoModal({ open, onClose, data }: any) {
                                     }
                                     onChange={(e) => setProgressTargetLocal(e.target.value)}
                                 />
+                                <p className="text-xs text-gray-500 mb-1">
+                                    Tap to select a date and time.
+                                </p>
                             </div>
 
 
@@ -422,6 +425,9 @@ export default function TodoModal({ open, onClose, data }: any) {
                                     value={doneTargetLocal}
                                     onChange={(e) => setDoneTargetLocal(e.target.value)}
                                 />
+                                <p className="text-xs text-gray-500 mb-1">
+                                    Tap to select a date and time.
+                                </p>
                             </div>
 
                         </div>
@@ -445,7 +451,7 @@ export default function TodoModal({ open, onClose, data }: any) {
 
                 {!editMode && (data?.task.progressTarget || data?.task.doneTarget) && (
                     <div className="pt-4 mt-2 border-t-1 border-black">
-                        <div className="text-gray-500 text-sm pointer-events-none mb-4">📂 Rencana Todo (Optional)</div>
+                        <div className="text-gray-500 text-sm pointer-events-none mb-4">📂 Rencana Todo</div>
 
                         <div className="grid grid-cols-2 gap-4 mt-2">
                             <div>
