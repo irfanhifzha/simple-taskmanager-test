@@ -251,13 +251,13 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                             }
                                                         >
                                                             {liveMatkul && liveMatkul.id === s.id && (
-                                                                <a href="https://absensi.digitalbdg.ac.id" target="_blank" className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none hover:shadow-md active:shadow-md active:scale-95 transition ease">
+                                                                <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none transition ease">
                                                                     <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                                     <span>
                                                                         {" "}
                                                                         Live {currentHour}.00 | Jam {Math.min(...s.slots)}.00 - {Math.max(...s.slots)}.00
                                                                     </span>
-                                                                </a>
+                                                                </div>
                                                             )}
 
                                                             {!isValidKategori && (
