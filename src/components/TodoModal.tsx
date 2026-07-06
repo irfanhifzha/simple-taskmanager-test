@@ -2,9 +2,6 @@ import { useState } from "react";
 import {
     collection,
     addDoc,
-    deleteDoc,
-    updateDoc,
-    doc,
     serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -52,7 +49,7 @@ export default function TodoModal({ open, onClose, category }: any) {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [formError, setFormError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async () => {
         if (loading) return;
 
         const validationErrors = validateForm();

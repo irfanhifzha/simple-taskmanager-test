@@ -1,17 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import type { User } from "firebase/auth";
 
 import AddRencanaModal from "./AddRencanaModal";
 import ViewRencanaModal from "./ViewRencanaModal";
 
-import { Category, CalendarEvent, statusStyles, statusBorder } from "../types/scheduleTypes";
-
-type Props = {
-    kategori: Category;
-    user: User | null;
-};
+import { Props, CalendarEvent, statusStyles, statusBorder } from "../types/scheduleTypes";
 
 type Selected = {
     item: CalendarEvent;
@@ -57,6 +51,7 @@ function buildCalendar(year: number, month: number): (number | null)[][] {
 }
 
 export default function CalendarView({ kategori, user }: Props) {
+    const isValidKategori = !!kategori;
     const isLoggedIn = !!user;
 
     const [calendar, setCalendar] = useState<CalendarEvent[]>([]);
@@ -71,17 +66,27 @@ export default function CalendarView({ kategori, user }: Props) {
     // when the year or category actually changes.
     const fetchCalendar = useCallback(async () => {
         setLoading(true);
+
         try {
-            const q = query(
-                collection(db, "calendars"),
-                where("kategori", "==", kategori),
-                where("tahun", "==", year)
-            );
+            const constraints = [];
+
+            if (kategori) {
+                constraints.push(where("kategori", "==", kategori));
+            }
+
+            if (year) {
+                constraints.push(where("tahun", "==", year));
+            }
+
+            const q = query(collection(db, "calendars"), ...constraints);
+
             const snap = await getDocs(q);
+
             const data = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
             })) as CalendarEvent[];
+
             setCalendar(data);
         } finally {
             setLoading(false);
@@ -279,7 +284,7 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                                 <button
                                                                                     className={`cursor-pointer flex justify-center w-5 h-5 rounded-full mx-auto mb-1 ${statusStyles[item.type] || "bg-gray-400"}`}
                                                                                 />
-                                                                                <div className="text-xs text-center line-clamp-3 break-all">{item.task}</div>
+                                                                                <div className="text-xs text-center line-clamp-3 break-all">{item.task} {!isValidKategori && (<span className="text-red-700 mx-1 bg-white">[{item.kategori}]</span>)}</div>
                                                                             </div>
 
                                                                             {item.peoples.length > 0 && (
@@ -346,7 +351,7 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                     }}
                                                                     className="text-sm cursor-pointer overflow-hidden"
                                                                 >
-                                                                    <span className="block truncate text-xs select-text">{item.task}</span>
+                                                                    <span className="block truncate text-xs select-text">{item.task} {!isValidKategori && (<span className="text-red-700 bg-white mx-1 px-1.5 rounded-md">[{item.kategori}]</span>)}</span> 
                                                                 </button>
                                                             )}
                                                         </div>

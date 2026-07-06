@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { updateDoc, doc, arrayRemove, arrayUnion } from "firebase/firestore";
+import { updateDoc, doc, arrayRemove, arrayUnion, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
 import {
-    statusStyles,
+  statusStyles,
 } from "../types/scheduleTypes";
 
 export default function EditTugasModalAgain({
@@ -23,7 +23,6 @@ export default function EditTugasModalAgain({
 
   const [editMode, setEditMode] = useState(false);
 
-  const [showInvalid, setShowInvalid] = useState(false);
 
 
   useEffect(() => {
@@ -40,17 +39,7 @@ export default function EditTugasModalAgain({
     setEditMode(false);
   }, [open, data]);
 
-  useEffect(() => {
-    if (open) {
-      setShowInvalid(false);
-    }
-  }, [open]);
 
-
-
-  const isInvalid =
-    !titleTugasAgain.trim() ||
-    !statusTugasAgain.trim();
 
   const [loading, setLoading] = useState(false);
 
@@ -124,6 +113,7 @@ export default function EditTugasModalAgain({
         h1TugasAgain,
         note1TugasAgain,
         note2TugasAgain,
+        editAt: Timestamp.now(),
       };
 
       await updateDoc(ref, {
@@ -262,6 +252,51 @@ export default function EditTugasModalAgain({
                 <p className="mb-0! text-blue-500 whitespace-pre-line">{note2TugasAgain}</p>
               </div>
             </div>)
+        )}
+
+
+        {!editMode && (
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <label>📪 Dibuat Pada</label>
+              <div className="mt-1 py-1">
+                <p className="text-gray-400 text-xs">
+                  {data?.tugas?.createdAt ? (() => {
+                    const date = data.tugas.createdAt.toDate();
+                    return `${date.toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })} ${date.toLocaleTimeString('en-GB', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}`;
+                  })() : 'Tidak diketahui'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label>✒️ Diedit Pada</label>
+              <div className="mt-1 py-1">
+                <p className="text-gray-400 text-xs">
+                  {data?.tugas?.editAt ? (() => {
+                    const date = data.tugas.editAt.toDate();
+                    return `${date.toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })} ${date.toLocaleTimeString('en-GB', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}`;
+                  })() : 'Belum pernah diedit'}
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
 

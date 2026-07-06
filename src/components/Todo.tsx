@@ -6,16 +6,15 @@ import {
     orderBy,
     Timestamp,
     doc,
-    writeBatch,
-    where,
+    writeBatch
 } from "firebase/firestore";
-import type { User } from "firebase/auth";
 import { db } from "../firebase";
 
 import {
-    Category,
+    TodoEvent,
+    TodoStatus,
     colorClasses,
-    StatusColor,
+    Props,
 } from "../types/scheduleTypes";
 
 import TodoModal from "./TodoModal";
@@ -45,30 +44,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export type TodoEvent = {
-    id: string;
-    kategori: Category;
 
-    order: number;
-    status: TodoStatus;
-
-    title: string;
-    subtitle: string;
-    desc: string;
-
-    tipe: StatusColor;
-    note: string;
-    peoples: string[];
-
-    createdAt: Timestamp;
-
-    startAt?: Timestamp;
-    doneAt?: Timestamp;
-    progressTarget?: Timestamp;
-    doneTarget?: Timestamp;
-};
-
-export type TodoStatus = "todo" | "progress" | "done" | "archived";
 
 export const todoColumns: { key: TodoStatus; label: string; theme: string }[] = [
     { key: "todo", label: "Todo", theme: "blueStat" },
@@ -84,11 +60,6 @@ const themeClasses: Record<string, { card: string; title: string }> = {
     grayStat: { card: "bg-gray-400", title: "text-gray-400" },
 };
 
-type Props = {
-    kategori: Category;
-    user: User | null;
-};
-
 type Selected = {
     task: TodoEvent;
     order?: number;
@@ -98,14 +69,15 @@ type Selected = {
 const truncate = (text: string, max = 20) =>
     text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
 
-const truncateVIEW = (text: string, max = 200) =>
+const truncateVIEW = (text: string, max = 900) =>
     text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
 
 /* ---------- Shared card content ---------- */
-function TaskCardContent({ task, theme, editMode }: { editMode: boolean; task: TodoEvent; theme: { card: string; title: string } }) {
+function TaskCardContent({ task, theme, editMode, isValidKategori }: { isValidKategori: boolean; editMode: boolean; task: TodoEvent; theme: { card: string; title: string } }) {
     return (
         <>
             <div className="flex items-center gap-2">
+                {!isValidKategori && (<div className="text-xs text-red-700 bg-white px-2 py-1 rounded-lg">[{task.kategori}]</div>)}
                 <div className={`h-2 w-full rounded-md ${theme.card}`} />
                 {editMode && (<div className={`h-2 w-2 rounded-md ${theme.card} animate-[pulse_0.75s_infinite]`} />)}
             </div>
@@ -248,8 +220,10 @@ function SortableTaskCard({
     task,
     editMode,
     theme,
+    isValidKategori,
     onOpen,
 }: {
+    isValidKategori: boolean;
     task: TodoEvent;
     editMode: boolean;
     theme: { card: string; title: string };
@@ -283,7 +257,7 @@ function SortableTaskCard({
                 ${colorClasses[task.tipe] ?? "border border-black bg-white"}
                 ${editMode ? "[&_button]:cursor-grab! cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md touch-none" : "cursor-pointer"}`}
         >
-            <TaskCardContent task={task} theme={theme} editMode={editMode} />
+            <TaskCardContent task={task} theme={theme} editMode={editMode} isValidKategori={isValidKategori} />
         </div>
     );
 }
@@ -308,6 +282,7 @@ function DroppableColumn({ id, children, isEmpty }: { id: string; children: Reac
 }
 
 export default function TodoBoard({ kategori, user }: Props) {
+    const isValidKategori = !!kategori;
     const isLoggedIn = !!user;
 
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
@@ -355,11 +330,14 @@ export default function TodoBoard({ kategori, user }: Props) {
         return () => unsubscribe();
     }, []); // no `kategori` dependency needed now — query doesn't depend on it
 
+    const filterByKategori = (t: TodoEvent) =>
+        !kategori || t.kategori === kategori;
+
     const grouped: Record<TodoStatus, TodoEvent[]> = {
-        todo: tasks.filter((t) => t.kategori === kategori && t.status === "todo"),
-        progress: tasks.filter((t) => t.kategori === kategori && t.status === "progress"),
-        done: tasks.filter((t) => t.kategori === kategori && t.status === "done"),
-        archived: tasks.filter((t) => t.kategori === kategori && t.status === "archived"),
+        todo: tasks.filter((t) => filterByKategori(t) && t.status === "todo"),
+        progress: tasks.filter((t) => filterByKategori(t) && t.status === "progress"),
+        done: tasks.filter((t) => filterByKategori(t) && t.status === "done"),
+        archived: tasks.filter((t) => filterByKategori(t) && t.status === "archived"),
     };
 
     async function persistColumn(
@@ -597,6 +575,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                                                                         setSelected({ task, login: isLoggedIn });
                                                                         setOpenEdit(true);
                                                                     }}
+                                                                    isValidKategori={isValidKategori}
                                                                 />
                                                             ))}
                                                         </DroppableColumn>
@@ -624,6 +603,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                                         ]
                                     }
                                     editMode={editMode}
+                                    isValidKategori={isValidKategori}
                                 />
                             </div>
                         ) : null}

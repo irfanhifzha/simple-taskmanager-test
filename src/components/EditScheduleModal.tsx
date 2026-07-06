@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import Modal from "./Modal";
-import { updateDoc, doc, getDocs, collection, deleteDoc } from "firebase/firestore";
+import { updateDoc, doc, getDocs, collection, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 import AddTugasModalAgain from "../components/AddTugasModalAgain";
@@ -19,7 +19,7 @@ const days = [
 ];
 
 import {
-    statusStyles,
+  statusStyles,
 } from "../types/scheduleTypes";
 
 export default function EditScheduleModal({
@@ -53,7 +53,7 @@ export default function EditScheduleModal({
   const [openTugasAddAgain, setOpenTugasAddAgain] = useState(false);
   const selectedSchedule = data?.schedule ?? null;
 
-  
+
 
 
 
@@ -73,15 +73,13 @@ export default function EditScheduleModal({
     return map;
   };
 
-  const [dragId, setDragId] = useState<number | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
-  const handlePointerDown = (index: number, id: number) => {
+  const handlePointerDown = (index: number) => {
     setDragIndex(index);
-    setDragId(id);
     setIsDragging(true);
   };
 
@@ -102,7 +100,6 @@ export default function EditScheduleModal({
     if (dragIndex === null || overIndex === null) {
       setIsDragging(false);
       setDragIndex(null);
-      setDragId(null);
       setOverIndex(null);
       return;
     }
@@ -150,7 +147,6 @@ export default function EditScheduleModal({
 
     setIsDragging(false);
     setDragIndex(null);
-    setDragId(null);
     setOverIndex(null);
   };
 
@@ -332,6 +328,7 @@ export default function EditScheduleModal({
         desc,
         note,
         tugasAgain,
+        editAt: serverTimestamp(),
       };
 
       await updateDoc(doc(db, "schedules", data.schedule.id), payload);
@@ -574,7 +571,50 @@ export default function EditScheduleModal({
         </>)
         }
 
-        {/* {tugasAgain && (<div>{JSON.stringify(tugasAgain, null, 2)}</div>)} */}
+
+        {!editMode && (
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <label>📪 Dibuat Pada</label>
+              <div className="mt-1 py-1">
+                <p className="text-gray-400 text-xs">
+                  {data?.schedule?.createdAt ? (() => {
+                    const date = data.schedule.createdAt.toDate();
+                    return `${date.toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })} ${date.toLocaleTimeString('en-GB', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}`;
+                  })() : 'Tidak diketahui'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label>✒️ Diedit Pada</label>
+              <div className="mt-1 py-1">
+                <p className="text-gray-400 text-xs">
+                  {data?.schedule?.editAt ? (() => {
+                    const date = data.schedule.editAt.toDate();
+                    return `${date.toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })} ${date.toLocaleTimeString('en-GB', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}`;
+                  })() : 'Belum pernah diedit'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
 
         {!editMode ? (
@@ -626,7 +666,7 @@ export default function EditScheduleModal({
 
                       <div
                         className="absolute h-full flex w-13 items-center me-3 justify-end top-0 right-0 cursor-grab active:cursor-grabbing touch-none select-none"
-                        onPointerDown={() => handlePointerDown(index, task.id)}>
+                        onPointerDown={() => handlePointerDown(index)}>
                         <div className="text-xs text-gray-400 me-1">{index + 1}</div>
                         <span className="material-symbols-rounded text-xs text-gray-400">
                           unfold_more
@@ -655,6 +695,8 @@ export default function EditScheduleModal({
             </div>
           </div>
         )}
+
+
 
 
 

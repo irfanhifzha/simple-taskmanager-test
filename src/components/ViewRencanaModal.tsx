@@ -1,14 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import Modal from "./Modal";
 import {
-  addDoc,
-  collection,
   updateDoc,
   doc,
-  deleteDoc
+  deleteDoc,
+  serverTimestamp
 } from "firebase/firestore";
-import { db, auth } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../firebase";
 
 import {
   statusStyles,
@@ -253,6 +251,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
           .split(",")
           .map((l: string) => l.trim())
           .filter(Boolean),
+        editAt: serverTimestamp(),
       };
 
 
@@ -508,6 +507,51 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
 
 
+
+
+          {!editMode && (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <label>📪 Dibuat Pada</label>
+                <div className="mt-1 py-1">
+                  <p className="text-gray-400 text-xs">
+                    {data?.item?.createdAt ? (() => {
+                      const date = data.item.createdAt.toDate();
+                      return `${date.toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })} ${date.toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}`;
+                    })() : 'Tidak diketahui'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label>✒️ Diedit Pada</label>
+                <div className="mt-1 py-1">
+                  <p className="text-gray-400 text-xs">
+                    {data?.item?.editAt ? (() => {
+                      const date = data.item.editAt.toDate();
+                      return `${date.toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })} ${date.toLocaleTimeString('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}`;
+                    })() : 'Belum pernah diedit'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {formError && (
             <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">

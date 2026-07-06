@@ -1,7 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import type { User } from "firebase/auth";
 
 import AddScheduleModal from "./AddScheduleModal";
 import EditScheduleModal from "./EditScheduleModal";
@@ -9,7 +8,7 @@ import AddTugasModalAgain from "./AddTugasModalAgain";
 import EditTugasModalAgain from "./EditTugasModalAgain";
 
 import {
-    Category,
+    Props,
     Schedule,
     TugasAgain,
     statusStyles,
@@ -24,20 +23,18 @@ type Selected = {
     login?: boolean;
 };
 
-type Props = {
-    kategori: Category;
-    user: User | null;
-};
-
 const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
 export default function ScheduleTable({ kategori, user }: Props) {
+
+    const isValidKategori = !!kategori;
+
     const isLoggedIn = !!user;
 
     const [schedule, setSchedule] = useState<Schedule[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const [editMode, setEditMode] = useState(false);
+    const [editMode] = useState(false);
     const [tugasVisibility, setTugasVisibility] = useState(true);
     const [weekendVisibility, setWeekendVisibility] = useState(false);
 
@@ -49,22 +46,43 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
     const [selected, setSelected] = useState<Selected | null>(null);
 
+    const [filterKelas, setFilterKelas] = useState<"ALL" | "TRPL" | "BISDIG" | "BISDIGeks">("ALL");
+
+    const [filterTahun, setFilterTahun] = useState<"ALL" | "24" | "25">("ALL");
+
+    const filteredSchedule = useMemo(() => {
+        return schedule.filter(s => {
+            const kelas = s.kategori.slice(0, -2);
+            const tahun = s.kategori.slice(-2);
+
+            return (
+                (filterKelas === "ALL" || kelas === filterKelas) &&
+                (filterTahun === "ALL" || tahun === filterTahun)
+            );
+        });
+    }, [schedule, filterKelas, filterTahun]);
+
     const days = weekendVisibility ? [1, 2, 3, 4, 5, 6, 7] : [1, 2, 3, 4, 5];
 
     // EFFICIENT FETCH: only pull docs belonging to this kategori, instead of the
     // whole "schedules" collection + client-side filtering.
     const fetchSchedules = useCallback(async () => {
         setLoading(true);
+
         try {
-            const q = query(
-                collection(db, "schedules"),
-                where("kategori", "==", kategori)
-            );
+            const schedulesRef = collection(db, "schedules");
+
+            const q = kategori
+                ? query(schedulesRef, where("kategori", "==", kategori))
+                : schedulesRef;
+
             const snap = await getDocs(q);
+
             const data = snap.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),
             })) as Schedule[];
+
             setSchedule(data);
         } finally {
             setLoading(false);
@@ -97,16 +115,16 @@ export default function ScheduleTable({ kategori, user }: Props) {
             s.slots.includes(currentHour)
     );
 
-    const getSession = (data: Schedule[], dayIndex: number, hour: number) => {
-        return (
-            data.find(
-                (s) =>
-                    s.dayIndex === dayIndex &&
-                    Array.isArray(s.slots) &&
-                    s.slots.includes(hour)
-            ) || null
+    const getSession = (data: Schedule[], dayIndex: number, hour: number): Schedule[] => {
+        return data.filter(
+            (s) =>
+                s.dayIndex === dayIndex &&
+                Array.isArray(s.slots) &&
+                s.slots.includes(hour)
         );
     };
+
+
 
     return (
         <>
@@ -135,6 +153,32 @@ export default function ScheduleTable({ kategori, user }: Props) {
                         >
                             + Tambah Jadwal
                         </button>
+                    )}
+
+                    {/* PROGRAM FILTER */}
+                    {!isValidKategori && (
+                        <div className="flex gap-3 h-14">
+                            <select
+                                value={filterKelas}
+                                onChange={(e) => setFilterKelas(e.target.value as any)}
+                                className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
+                            >
+                                <option value="ALL">All Kelas</option>
+                                <option value="TRPL">TRPL</option>
+                                <option value="BISDIG">BISDIG</option>
+                                <option value="BISDIGeks">BISDIG EKSEKUTIF</option>
+                            </select>
+
+                            <select
+                                value={filterTahun}
+                                onChange={(e) => setFilterTahun(e.target.value as any)}
+                                className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
+                            >
+                                <option value="ALL">All Tahun</option>
+                                <option value="24">24</option>
+                                <option value="25">25</option>
+                            </select>
+                        </div>
                     )}
                 </div>
 
@@ -179,16 +223,24 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                         </td>
 
                                         {days.map((day) => {
-                                            const s = getSession(schedule, day, hour);
+                                            const sessions = getSession(
+                                                isValidKategori ? schedule : filteredSchedule,
+                                                day,
+                                                hour
+                                            );
 
-                                            const truncate = (text: string, max = 40) =>
+                                            const visibleSessions =
+                                                isValidKategori ? sessions.slice(0, 1) : sessions;
+
+                                            const truncate = (text: string, max = 900) =>
                                                 text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
 
                                             return (
                                                 <td key={day}>
-                                                    {s && (
-                                                        <div
-                                                            className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer" : ""} ${colorClasses[s.type] ?? "border border-black bg-white"}`}
+                                                    {visibleSessions.map((s, idx) => (
+                                                        // SINGLE ITEM VIEW
+                                                        <div key={idx}
+                                                            className={`animate-[fadeUp_0.5s_ease-out_forwards] relative flex flex-col gap-2 rounded-lg overflow-hidden h-full justify-center m-0 p-2 hover:-translate-y-1 transition duration-200 ease wrap-break-word text-[10px] pb-4 ${!editMode ? "cursor-pointer" : ""} ${colorClasses[s.type] ?? "border border-black bg-white"} ${!isValidKategori ? "h-fit! mb-3" : ""}`}
                                                             onClick={
                                                                 !editMode
                                                                     ? () => {
@@ -199,14 +251,24 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                             }
                                                         >
                                                             {liveMatkul && liveMatkul.id === s.id && (
-                                                                <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none">
+                                                                <a href="https://absensi.digitalbdg.ac.id" target="_blank" className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none hover:shadow-md active:shadow-md active:scale-95 transition ease">
                                                                     <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                                     <span>
                                                                         {" "}
                                                                         Live {currentHour}.00 | Jam {Math.min(...s.slots)}.00 - {Math.max(...s.slots)}.00
                                                                     </span>
+                                                                </a>
+                                                            )}
+
+                                                            {!isValidKategori && (
+                                                                <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-red-700 text-[8px] w-fit select-none">
+                                                                    <span>
+                                                                        {s.kategori}
+                                                                    </span>
                                                                 </div>
                                                             )}
+
+
 
                                                             <button className={`flex justify-start text-start select-text! ${!editMode ? "cursor-pointer" : ""} font-semibold text-sm wrap-break-word mt-2 me-10 whitespace-pre-line`}>
                                                                 {truncate(s.course)}
@@ -263,7 +325,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    )}
+                                                    ))}
                                                 </td>
                                             );
                                         })}

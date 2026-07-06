@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 const days = [
@@ -33,6 +33,11 @@ export default function AddScheduleModal({ open, onClose, onSuccess, category }:
 
 
   const resetForm = () => {
+    setCourse("");
+    setPeoples("");
+    setRoom("");
+    setDesc("");
+    setNote("");
     setType("");
     setDayIndex(0);
     setSlots([]);
@@ -145,6 +150,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess, category }:
         desc,
         note,
         kategori,
+        createdAt: serverTimestamp(),
       };
 
 

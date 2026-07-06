@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 const months = [
@@ -122,6 +122,12 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
   };
 
   const handleClose = () => {
+    setType("");
+    setTask("");
+    setContent("");
+    setNotes("");
+    setPeoples("");
+
     setErrors({});
     setFormError(null);
     setLoading(false);
@@ -183,6 +189,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
           .map((l: string) => l.trim())
           .filter(Boolean),
         kategori,
+        createdAt: serverTimestamp(),
       };
 
 

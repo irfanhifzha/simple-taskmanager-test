@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Modal from "./Modal";
-import { updateDoc, doc, arrayUnion } from "firebase/firestore";
+import { updateDoc, doc, arrayUnion, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
 const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
@@ -18,12 +18,13 @@ export default function AddTugasModalAgain({
   const [note2TugasAgain, setNote2] = useState("");
 
 
-  const isInvalid =
-    !statusTugasAgain.trim() ||
-    !titleTugasAgain.trim()
-
-
   const handleClose = () => {
+    setTitle("");
+    setStatus("");
+    setH1("");
+    setNote1("");
+    setNote2("");
+
     setErrors({});
     setFormError(null);
     setLoading(false);
@@ -73,6 +74,7 @@ export default function AddTugasModalAgain({
           h1TugasAgain,
           note1TugasAgain,
           note2TugasAgain,
+          createdAt: Timestamp.now(),
         }),
       });
 

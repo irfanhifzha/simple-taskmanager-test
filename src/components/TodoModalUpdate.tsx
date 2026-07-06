@@ -70,7 +70,7 @@ export default function TodoModal({ open, onClose, data }: any) {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [formError, setFormError] = useState<string | null>(null);
 
-    const handleUpdate = async (e: any) => {
+    const handleUpdate = async () => {
         if (loading) return;
 
         const validationErrors = validateForm();
@@ -93,6 +93,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                     .split(",")
                     .map((p) => p.trim())
                     .filter(Boolean),
+                editAt: serverTimestamp(),
             };
 
             if (progressTarget instanceof Timestamp) {
@@ -369,6 +370,51 @@ export default function TodoModal({ open, onClose, data }: any) {
                             </div>
                         </div>
                     )
+                )}
+
+
+                {!editMode && (
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label>📪 Dibuat Pada</label>
+                            <div className="mt-1 py-1">
+                                <p className="text-gray-400 text-xs">
+                                    {data?.task?.createdAt ? (() => {
+                                        const date = data.task.createdAt.toDate();
+                                        return `${date.toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                        })} ${date.toLocaleTimeString('en-GB', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}`;
+                                    })() : 'Tidak diketahui'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>✒️ Diedit Pada</label>
+                            <div className="mt-1 py-1">
+                                <p className="text-gray-400 text-xs">
+                                    {data?.task?.editAt ? (() => {
+                                        const date = data.task.editAt.toDate();
+                                        return `${date.toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                        })} ${date.toLocaleTimeString('en-GB', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}`;
+                                    })() : 'Belum pernah diedit'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
 

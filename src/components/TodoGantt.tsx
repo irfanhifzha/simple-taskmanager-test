@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import type { TodoEvent } from "./Todo";
+import type { TodoEvent } from "../types/scheduleTypes";
 
 
 type SortKey = "status" | "createdAt" | "startAt";
@@ -162,6 +162,8 @@ function TargetOverlay({
 }
 
 export default function TodoGantt({ category }: any) {
+    const isValidKategori = !!category;
+
     const [tasks, setTasks] = useState<TodoEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [granularity, setGranularity] = useState<Granularity>("day");
@@ -170,12 +172,31 @@ export default function TodoGantt({ category }: any) {
     const [sortBy, setSortBy] = useState<SortKey>("createdAt");
 
     useEffect(() => {
-        const q = query(collection(db, "todos"), where("kategori", "==", category));
-        const unsub = onSnapshot(q, (snap) => {
-            const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as TodoEvent[];
-            setTasks(data);
-            setLoading(false);
-        });
+        setLoading(true);
+
+        const todosRef = collection(db, "todos");
+
+        const q = category
+            ? query(todosRef, where("kategori", "==", category))
+            : query(todosRef);
+
+        const unsub = onSnapshot(
+            q,
+            (snap) => {
+                const data = snap.docs.map((d) => ({
+                    id: d.id,
+                    ...d.data(),
+                })) as TodoEvent[];
+
+                setTasks(data);
+                setLoading(false);
+            },
+            (err) => {
+                console.error(err);
+                setLoading(false);
+            }
+        );
+
         return () => unsub();
     }, [category]);
 
@@ -337,7 +358,7 @@ export default function TodoGantt({ category }: any) {
                                     onClick={() => setFocusDate(startOfDay(today))}
                                     className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                                 >
-                                    Hari ini
+                                    Today 📅
                                 </button>
                             )}
 
@@ -374,7 +395,7 @@ export default function TodoGantt({ category }: any) {
                         {visibleTasks.map((task) => (
                             <div key={task.id} className="flex border-b border-gray-100 h-[40px] items-center">
                                 <div className="w-[180px] shrink-0 px-2 text-xs truncate" title={task.title}>
-                                    {task.title}
+                                    {task.title} {!isValidKategori && (<span className="text-red-700 px-1 bg-white">[{task.kategori}]</span>)}
                                 </div>
                                 <div
                                     className="relative h-full overflow-hidden"
