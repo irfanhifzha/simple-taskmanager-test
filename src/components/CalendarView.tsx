@@ -182,9 +182,8 @@ export default function CalendarView({ kategori, user }: Props) {
                         Next {"->"}
                     </button>
 
-                    <button
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setCurrentDate(new Date())}
+                    <button onClick={() => setCurrentDate(new Date())} disabled={currentDate.toDateString() === new Date().toDateString()}
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                         📅 Today
                     </button>
@@ -351,7 +350,7 @@ export default function CalendarView({ kategori, user }: Props) {
                                                                     }}
                                                                     className="text-sm cursor-pointer overflow-hidden"
                                                                 >
-                                                                    <span className="block truncate text-xs select-text">{item.task} {!isValidKategori && (<span className="text-red-700 bg-white mx-1 px-1.5 rounded-md">[{item.kategori}]</span>)}</span> 
+                                                                    <span className="block truncate text-xs select-text">{item.task} {!isValidKategori && (<span className="text-red-700 bg-white mx-1 px-1.5 rounded-md">[{item.kategori}]</span>)}</span>
                                                                 </button>
                                                             )}
                                                         </div>

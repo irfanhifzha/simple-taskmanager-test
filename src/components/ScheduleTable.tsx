@@ -108,7 +108,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
     const currentHour = now.getHours();
 
-    const liveMatkul = schedule.find(
+    const liveMatkul = schedule.filter(
         (s) =>
             s.dayIndex === currentDayIndex() &&
             Array.isArray(s.slots) &&
@@ -189,7 +189,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                     >
                         <thead>
                             <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
-                                <th className="sticky z-5 top-0 left-0 bg-white shadow-lg w-[60px] text-gray-400 font-[IBM_Plex_Sans]">
+                                <th className="sticky z-5 top-0 left-0 bg-white shadow-lg w-[60px] text-gray-400">
                                     Jam
                                 </th>
                                 <th>Senin</th>
@@ -218,7 +218,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                             {!loading &&
                                 HOURS.map((hour) => (
                                     <tr key={hour}>
-                                        <td className="sticky z-5 top-0 left-0 bg-white shadow-lg text-center text-gray-400 font-[IBM_Plex_Sans] font-semibold">
+                                        <td className="sticky z-5 top-0 left-0 bg-white shadow-lg text-center text-gray-400 font-semibold">
                                             {hour}:00
                                         </td>
 
@@ -250,7 +250,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                     : undefined
                                                             }
                                                         >
-                                                            {liveMatkul && liveMatkul.id === s.id && (
+                                                            {liveMatkul.some(live => live.id === s.id) &&  (
                                                                 <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none transition ease">
                                                                     <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                                     <span>
@@ -283,7 +283,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                     ))}
                                                                 </div>
                                                             )}
-                                                            {s.desc && <p className="font-medium brightness-50 whitespace-pre-line">{truncate(s.desc)}</p>}
+                                                            {s.desc && <p className="font-medium whitespace-pre-line">{truncate(s.desc)}</p>}
                                                             {s.note && <p className="text-blue-500 whitespace-pre-line">{truncate(s.note)}</p>}
 
                                                             {tugasVisibility && s.tugasAgain?.length > 0 && (
@@ -306,7 +306,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                                                 <div
                                                                                     className={`w-[10px] h-[10px] rounded-full inline-block me-1 ${statusStyles[t.statusTugasAgain] || "bg-gray-200"}`}
                                                                                 />
-                                                                                <button className={`flex justify-start ${!editMode ? "cursor-pointer" : ""}`}>{truncate(t.titleTugasAgain)}</button>
+                                                                                <button className={`flex justify-start text-start! ${!editMode ? "cursor-pointer" : ""}`}>{truncate(t.titleTugasAgain)}</button>
                                                                             </div>
 
                                                                             {t.h1TugasAgain && (
