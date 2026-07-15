@@ -10,6 +10,70 @@
   </a>
 </p>
 
+
+---
+
+# REAL INSTRUCTION (for developer):
+
+```
+git clone https://github.com/irfanhifzha/simple-taskmanager-test.git
+```
+
+```
+cd simple-taskmanager-test
+```
+
+```
+npm install
+```
+
+```
+npm run build
+```
+
+
+1. ganti file faviocon.svg, dengan logo anda. Ganti nama dan tipe file, contoh. Logo.PNG / image.jpeg
+2. dalam index.html ganti title:
+
+```
+<title>Simple Task Manager</title>
+```
+
+ganti "Simple Task Manager" dengan nama title website anda.
+
+3. Lalu ganti config firebaserc dengan nama proyek anda (bisa dilihat pada console.firebase.google.com > Settings > General > Your apps [kalau belum ada maka buat web app] )
+
+4. Ganti key dari firebase-config.json dengan apiKey yang anda punya.
+
+5. donwload firebase-cli, dan login, kemudian deploy, dengan cara berikut:
+```
+firebase login
+
+firebase login:ci
+
+firebase login --reauth
+```
+
+```
+firebase use
+```
+>> untuk sekedar melihat apakah project app sudah benar apa tidak.
+
+```
+firebase deploy
+```
+
+6. Jangan lupa create database pada console.firebase.google.com pada click arrow ">", Lalu ke "Database & Storage", Lalu ke "Firestore" yang dibawah tulisan NoSQL, Kemudian klik "Create Database". Buat database dengan location "asia-southeast2", buat sampe beres.
+
+7. Jangan lupa juga untuk buat akun pada console.firebase.google.com pada click arrow ">", Llau ke "Security", Lalu ke "Authentication", Kemudian buat Users klik tomboh "Add user" dan isi email dan password. Kika belum ada maka buat sign-in method "Email/Password".
+
+8. done.
+
+
+
+
+
+
 ---
 
 ## ✨ Features
@@ -49,6 +113,8 @@ Available downloads:
 1. Download the latest release.
 2. Extract if needed.
 3. Run the application.
+
+
 
 ---
 

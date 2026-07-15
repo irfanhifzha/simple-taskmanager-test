@@ -54,12 +54,12 @@ export default function AuthButton() {
                 <>
                     <span className="px-4 py-2 border border-gray-200 bg-white rounded-2xl text-sm">
                         {user.email} </span>
-                    <button className="px-4 py-2 border border-gray-200 outline-none select-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer bg-white active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    <button className="px-4 py-2 border border-gray-200 outline-none select-none rounded-2xl hover:shadow-md! hover:-translate-y-0.5 transition duration-200 ease cursor-pointer bg-white active:bg-gray-100 active:scale-95 text-sm font-semibold"
                         onClick={handleLogout}>Logout</button>
                 </>
             ) : (
                 <>
-                    <button className="px-4 py-2 border border-gray-200 outline-none select-none rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer bg-white active:bg-gray-100 active:scale-95 text-sm font-semibold"
+                    <button className="px-4 py-2 border border-gray-200 outline-none select-none rounded-2xl hover:shadow-md! hover:-translate-y-0.5 transition duration-200 ease cursor-pointer bg-white active:bg-gray-100 active:scale-95 text-sm font-semibold"
                         onClick={() => setOpen(true)}>Login</button>
 
                     <Modal open={open} onClose={() => setOpen(false)}>
@@ -72,6 +72,7 @@ export default function AuthButton() {
                                 placeholder="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                autoComplete="email"
                             />
 
                             <label htmlFor="password">Password</label>
@@ -82,6 +83,7 @@ export default function AuthButton() {
                                     placeholder="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="current-password"
                                 />
 
                                 <button type="button"

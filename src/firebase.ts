@@ -1,32 +1,34 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth }  from "firebase/auth";
-import { 
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import {
   initializeFirestore,
   persistentLocalCache,
-  persistentMultipleTabManager
- } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  persistentMultipleTabManager,
+  Firestore,
+} from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCz4PQvJQCws_xzFCNt0dkXyC8UBUZ8-3I",
-  authDomain: "simple-taskmanager-test-11509.firebaseapp.com",
-  projectId: "simple-taskmanager-test-11509",
-  storageBucket: "simple-taskmanager-test-11509.firebasestorage.app",
-  messagingSenderId: "433976136484",
-  appId: "1:433976136484:web:00944a6f624263f62299b1"
-};
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export async function initializeFirebase() {
+  const response = await fetch("/firebase-config.json");
 
-export const auth = getAuth(app);
+  if (!response.ok) {
+    throw new Error("Failed to load Firebase config");
+  }
 
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+  const firebaseConfig = await response.json();
+
+  app = initializeApp(firebaseConfig);
+
+  auth = getAuth(app);
+
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager(),
+    }),
+  });
+}
+
+export { app, auth, db };
