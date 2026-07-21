@@ -507,7 +507,7 @@ export default function TodoModal({ open, onClose, data }: any) {
 
                         <div className="grid grid-cols-2 gap-4 mt-2">
                             <div>
-                                <label>✒️ Target Progress</label>
+                                <label>🎯 Target Progress</label>
                                 <div className="mt-1 py-1">
                                     <p className="text-gray-400 text-xs">
                                         {data?.task.progressTarget ? (() => {
@@ -527,7 +527,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                             </div>
 
                             <div>
-                                <label>✒️ Target Done</label>
+                                <label>🎯 Target Done</label>
                                 <div className="mt-1 py-1">
                                     <p className="text-gray-400 text-xs">
                                         {data?.task.doneTarget ? (() => {
