@@ -28,7 +28,7 @@ export default function TodoModal({ open, onClose, category }: any) {
             ...prev,
             people:"",
             desc:"",
-            notes:"",
+            note:"",
             title: "",
             subtitle: "",
             tipe: "",

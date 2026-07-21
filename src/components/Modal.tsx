@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 
 type Props = {
     open: boolean;
@@ -8,6 +9,20 @@ type Props = {
 
 export default function Modal({ open, onClose, children}: Props) {
     if (!open) return null;
+    
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+            onClose();
+        }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [onClose]);
 
     return (
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-10 bg-black/30 animate-[fadeOverlay_100ms_ease-out_forwards]`}

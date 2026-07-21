@@ -1,8 +1,8 @@
 {
-  "apiKey": "x",
-  "authDomain": "x",
-  "projectId": "x",
-  "storageBucket": "x",
-  "messagingSenderId": "x",
-  "appId": "x"
+  "apiKey": "AIzaSyCz4PQvJQCws_xzFCNt0dkXyC8UBUZ8-3I",
+  "authDomain": "simple-taskmanager-test-11509.firebaseapp.com",
+  "projectId": "simple-taskmanager-test-11509",
+  "storageBucket": "simple-taskmanager-test-11509.firebasestorage.app",
+  "messagingSenderId": "433976136484",
+  "appId": "1:433976136484:web:00944a6f624263f62299b1"
 }

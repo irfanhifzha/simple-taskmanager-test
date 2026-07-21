@@ -444,7 +444,7 @@ export default function TodoModal({ open, onClose, data }: any) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4">
                             <div>
-                                <label htmlFor="progressTarget">✒️ Target Progress</label>
+                                <label htmlFor="progressTarget">🎯 Target Progress</label>
 
                                 <input
                                     id="progressTarget"
@@ -456,14 +456,20 @@ export default function TodoModal({ open, onClose, data }: any) {
                                     }
                                     onChange={(e) => setProgressTargetLocal(e.target.value)}
                                 />
-                                <p className="text-xs text-gray-500 mb-1">
-                                    Tap to select a date and time.
-                                </p>
+                                {data.task?.status === "todo" ? (
+                                    <p className="text-xs text-gray-500 mb-1">
+                                        Tap to select a date and time.
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-gray-500 mb-1">
+                                        Tidak bisa diubah
+                                    </p>
+                                )}
                             </div>
 
 
                             <div>
-                                <label htmlFor="doneTarget">✒️ Target Done</label>
+                                <label htmlFor="doneTarget">🎯 Target Done</label>
 
                                 <input
                                     id="doneTarget"
