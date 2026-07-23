@@ -232,7 +232,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                             const visibleSessions =
                                                 isValidKategori ? sessions.slice(0, 1) : sessions;
 
-                                            const truncate = (text: string, max = 900) =>
+                                            const truncate = (text: string, max = 1500) =>
                                                 text.length > max ? text.slice(0, max).trimEnd() + "..." : text;
 
                                             return (
