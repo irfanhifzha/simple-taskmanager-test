@@ -277,7 +277,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                                             {s.peoples.length > 0 && (
                                                                 <div className="flex flex-wrap gap-1">
                                                                     {s.peoples.map((person, idx) => (
-                                                                        <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit">
+                                                                        <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit overflow-hidden">
                                                                             {truncate(person)}
                                                                         </div>
                                                                     ))}
