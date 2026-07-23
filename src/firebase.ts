@@ -12,7 +12,7 @@ let auth: Auth;
 let db: Firestore;
 
 export async function initializeFirebase() {
-  const response = await fetch("/firebase-config.json");
+  const response = await fetch("./firebase-config.json");
 
   if (!response.ok) {
     throw new Error("Failed to load Firebase config");
