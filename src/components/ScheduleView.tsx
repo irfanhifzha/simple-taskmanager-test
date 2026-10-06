@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { type ChangeEvent } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -14,6 +15,7 @@ import {
     statusStyles,
     colorClasses,
     colorOutline,
+    StatusColor,
 } from "../types/ListTypes";
 
 type Selected = {
@@ -125,16 +127,227 @@ export default function ScheduleTable({ kategori, user, onPrint }: Props) {
     };
 
 
+    // const exportScheduleCSV = (schedules: Schedule[]) => {
+    //     const headers = [
+    //         "id",
+    //         "dayIndex",
+    //         "slots",
+    //         "course",
+    //         "room",
+    //         "peoples",
+    //         "type",
+    //         "note",
+    //         "desc",
+    //         "tugasAgain",
+    //         "kategori",
+    //     ];
+
+    //     const escapeCSV = (value: unknown) => {
+    //         const stringValue =
+    //         typeof value === "string"
+    //             ? value
+    //             : JSON.stringify(value);
+
+    //         return `"${String(stringValue).replace(/"/g, '""')}"`;
+    //     };
+
+    //     const rows = schedules.map((schedule) =>
+    //         [
+    //         schedule.id,
+    //         schedule.dayIndex,
+    //         schedule.slots,
+    //         schedule.course,
+    //         schedule.room,
+    //         schedule.peoples,
+    //         schedule.type,
+    //         schedule.note,
+    //         schedule.desc,
+    //         schedule.tugasAgain,
+    //         schedule.kategori,
+    //         ]
+    //         .map(escapeCSV)
+    //         .join(",")
+    //     );
+
+    //     const csv = [
+    //         headers.join(","),
+    //         ...rows,
+    //     ].join("\n");
+
+    //     const blob = new Blob([csv], {
+    //         type: "text/csv;charset=utf-8;",
+    //     });
+
+    //     const url = URL.createObjectURL(blob);
+
+    //     const link = document.createElement("a");
+    //     link.href = url;
+    //     link.download = "schedule.csv";
+    //     link.click();
+
+    //     URL.revokeObjectURL(url);
+    // };
+
+
+    // const parseCSV = (text: string): string[][] => {
+    //     const rows: string[][] = [];
+
+    //     let row: string[] = [];
+    //     let value = "";
+    //     let insideQuotes = false;
+
+    //     for (let i = 0; i < text.length; i++) {
+    //         const char = text[i];
+    //         const next = text[i + 1];
+
+    //         if (char === '"' && insideQuotes && next === '"') {
+    //         value += '"';
+    //         i++;
+    //         } else if (char === '"') {
+    //         insideQuotes = !insideQuotes;
+    //         } else if (char === "," && !insideQuotes) {
+    //         row.push(value);
+    //         value = "";
+    //         } else if (char === "\n" && !insideQuotes) {
+    //         row.push(value);
+    //         rows.push(row);
+    //         row = [];
+    //         value = "";
+    //         } else if (char !== "\r") {
+    //         value += char;
+    //         }
+    //     }
+
+    //     // Last row
+    //     if (value !== "" || row.length > 0) {
+    //         row.push(value);
+    //         rows.push(row);
+    //     }
+
+    //     return rows;
+    // };
+
+
+    
+
+    // const parseScheduleCSV = (text: string): Schedule[] => {
+    //     const rows = parseCSV(text);
+
+    //     if (rows.length < 2) {
+    //         throw new Error("CSV is empty.");
+    //     }
+
+    //     const headers = rows[0].map((header) => header.trim());
+
+    //     const requiredHeaders = [
+    //         "id",
+    //         "dayIndex",
+    //         "slots",
+    //         "course",
+    //         "room",
+    //         "peoples",
+    //         "type",
+    //         "note",
+    //         "desc",
+    //         "tugasAgain",
+    //         "kategori",
+    //     ];
+
+    //     for (const header of requiredHeaders) {
+    //         if (!headers.includes(header)) {
+    //         throw new Error(`Missing CSV column: ${header}`);
+    //         }
+    //     }
+
+    //     return rows
+    //         .slice(1)
+    //         .filter((row) => row.some((value) => value.trim() !== ""))
+    //         .map((row, index) => {
+    //         const data: Record<string, string> = {};
+
+    //         headers.forEach((header, i) => {
+    //             data[header] = row[i] ?? "";
+    //         });
+
+    //         try {
+    //             return {
+    //             id: data.id,
+    //             dayIndex: Number(data.dayIndex),
+
+    //             slots: JSON.parse(data.slots || "[]"),
+
+    //             course: data.course,
+    //             room: data.room,
+
+    //             peoples: JSON.parse(data.peoples || "[]"),
+
+    //             type: data.type as StatusColor,
+
+    //             note: data.note,
+    //             desc: data.desc,
+
+    //             tugasAgain: JSON.parse(data.tugasAgain || "[]"),
+
+    //             kategori: data.kategori,
+    //             };
+    //         } catch (error) {
+    //             throw new Error(
+    //             `Invalid data on CSV row ${index + 2}: ${error}`
+    //             );
+    //         }
+    //         });
+    // };
+
+
+
+    // const handleImportSchedule = (
+    //     event: ChangeEvent<HTMLInputElement>
+    //     ) => {
+    //     const file = event.target.files?.[0];
+
+    //     if (!file) return;
+
+    //     const reader = new FileReader();
+
+    //     reader.onload = (e) => {
+    //         const text = e.target?.result;
+
+    //         if (typeof text !== "string") return;
+
+    //         try {
+    //         const importedSchedules = parseScheduleCSV(text);
+
+    //         const confirmed = window.confirm(
+    //             "Importing this file will replace all existing schedules. Continue?"
+    //         );
+
+    //         if (!confirmed) return;
+
+    //         setSchedule(importedSchedules);
+    //         } catch (error) {
+    //         console.error("Failed to import schedule:", error);
+    //         alert("Failed to import schedule. Please check your CSV file.");
+    //         }
+    //     };
+
+    //     reader.readAsText(file);
+    //     event.target.value = "";
+    // };
+
+
+
+
+
 
     return (
         <>
-            <div id="schedule-print" className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden print:border-0">
+            <div id="schedule-print" className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
                 <p className="text-black text-md font-bold">Jadwal Harian</p>
 
                 
 
                 <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
                         <button
                             className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                             onClick={() => setTugasVisibility((prev) => !prev)}
@@ -186,7 +399,32 @@ export default function ScheduleTable({ kategori, user, onPrint }: Props) {
                             </div>
                         )}
                     </div>
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
+
+                        {/* <input
+                        type="file"
+                        accept=".csv"
+                        id="schedule-csv-input"
+                        onChange={handleImportSchedule}
+                        className="hidden"
+                        />
+
+                        <label
+                        htmlFor="schedule-csv-input"
+                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        >
+                        Import Schedule CSV
+                        </label>
+
+                        
+                        <button
+                            onClick={() => exportScheduleCSV(schedule)}
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                        >
+                        Unduh CSV
+                        </button> */}
+                        
+
                         <button
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={onPrint}

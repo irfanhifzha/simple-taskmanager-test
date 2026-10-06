@@ -168,7 +168,7 @@ export default function CalendarView({ kategori, user, onPrint }: Props) {
                 </p>
 
                 <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
                         <button
                             className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
                             onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
@@ -198,7 +198,7 @@ export default function CalendarView({ kategori, user, onPrint }: Props) {
                             </button>
                         )}
                     </div>
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
                         <button
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={onPrint}

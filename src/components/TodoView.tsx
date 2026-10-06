@@ -485,7 +485,7 @@ export default function TodoBoard({ kategori, user, onPrint }: Props) {
                 <p className="text-black text-md font-bold">Kanban Board</p>
 
                 <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
 
                         <button
                             className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
@@ -514,7 +514,7 @@ export default function TodoBoard({ kategori, user, onPrint }: Props) {
 
                             </>)}
                     </div>
-                    <div>
+                    <div className="flex gap-3 flex-wrap">
                         <button
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
                             onClick={onPrint}
