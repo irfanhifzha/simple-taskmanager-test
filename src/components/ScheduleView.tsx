@@ -503,7 +503,7 @@ export default function ScheduleTable({ kategori, user, onPrint }: Props) {
                                                             }
                                                         >
                                                             {liveMatkul.some(live => live.id === s.id) &&  (
-                                                                <div className="flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none transition ease">
+                                                                <div className="print:hidden flex justify-center items-center gap-1 mt-2 rounded-lg border border-green-300 bg-white p-2 text-green-700 text-[8px] w-fit select-none transition ease">
                                                                     <div className="inline-block w-2 h-2 me-[1px] align-middle rounded-full bg-current transition-all duration-200 animate-[pulse_0.75s_infinite]"></div>
                                                                     <span>
                                                                         {" "}
