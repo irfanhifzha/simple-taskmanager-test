@@ -28,13 +28,28 @@ export default function AuthButton() {
 
         setLoading(true);
 
+        // Check browser's connection status first
+        if (!navigator.onLine) {
+        alert("Tidak ada koneksi internet, Coba lagi nanti");
+        setLoading(false);
+        return;
+        }
+
+        // Cancel the request after 5 seconds
+        const timeout = setTimeout(() => {
+        alert("Koneksi buruk, Coba lagi");
+        setLoading(false);
+        return;
+        }, 5000);
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
             setOpen(false); // close modal after login
         } catch (err) {
             console.error(err);
-            alert("Login failed");
+            alert("Akun tidak ditemukan / Sandi salah");
         } finally {
+            clearTimeout(timeout);
             setLoading(false);
         }
     };

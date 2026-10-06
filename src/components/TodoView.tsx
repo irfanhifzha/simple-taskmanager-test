@@ -16,12 +16,12 @@ import {
     TodoStatus,
     colorClasses,
     Props,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
-import TodoModal from "./TodoModal";
-import TodoModalView from "./TodoModalUpdate";
+import TodoModal from "./AddTodoModal";
+import TodoModalView from "./EditTodoModal";
 
-import TodoGantt from "../components/TodoGantt";
+import TodoGantt from "./TodoGantt";
 
 import {
     DndContext,

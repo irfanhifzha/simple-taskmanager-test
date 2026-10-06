@@ -14,7 +14,7 @@ import {
     statusStyles,
     colorClasses,
     colorOutline,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
 type Selected = {
     schedule: Schedule;
@@ -46,9 +46,9 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
     const [selected, setSelected] = useState<Selected | null>(null);
 
-    const [filterKelas, setFilterKelas] = useState<"ALL" | "TRPL" | "BISDIG" | "BISDIGeks">("ALL");
+    const [filterKelas, setFilterKelas] = useState<"ALL">("ALL");
 
-    const [filterTahun, setFilterTahun] = useState<"ALL" | "24" | "25">("ALL");
+    const [filterTahun, setFilterTahun] = useState<"ALL">("ALL");
 
     const filteredSchedule = useMemo(() => {
         return schedule.filter(s => {
@@ -164,9 +164,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                 className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
                             >
                                 <option value="ALL">All Kelas</option>
-                                <option value="TRPL">TRPL</option>
-                                <option value="BISDIG">BISDIG</option>
-                                <option value="BISDIGeks">BISDIG EKSEKUTIF</option>
+                                {/* <option value="ALL">Add new filter kelas here</option> */}
                             </select>
 
                             <select
@@ -175,8 +173,7 @@ export default function ScheduleTable({ kategori, user }: Props) {
                                 className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
                             >
                                 <option value="ALL">All Tahun</option>
-                                <option value="24">24</option>
-                                <option value="25">25</option>
+                                {/* <option value="ALL">Add new filter tahun here</option> */}
                             </select>
                         </div>
                     )}

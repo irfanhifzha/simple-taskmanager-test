@@ -3,9 +3,9 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 
 import AddRencanaModal from "./AddRencanaModal";
-import ViewRencanaModal from "./ViewRencanaModal";
+import ViewRencanaModal from "./EditRencanaModal";
 
-import { Props, CalendarEvent, statusStyles, statusBorder } from "../types/scheduleTypes";
+import { Props, CalendarEvent, statusStyles, statusBorder } from "../types/ListTypes";
 
 type Selected = {
     item: CalendarEvent;

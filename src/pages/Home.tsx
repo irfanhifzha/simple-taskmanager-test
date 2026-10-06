@@ -6,9 +6,8 @@ import { auth } from "../firebase";
 import Navbar from "../components/Navbar";
 
 import CalendarView from "../components/CalendarView";
-import ScheduleTable from "../components/ScheduleTable";
-import Todo from "../components/Todo";
-
+import ScheduleView from "../components/ScheduleView";
+import TodoView from "../components/TodoView";
 
 export default function Home() {
 
@@ -22,7 +21,7 @@ export default function Home() {
     return (
         <>
 
-            <Navbar />
+            {/* <Navbar /> */}
 
             <div className="m-0 p-0 flex flex-col">
                 <div className="flex flex-col h-fit rounded-2xl gap-2 px-4 pb-5 overflow-hidden mx-5 bg-white">
@@ -30,10 +29,9 @@ export default function Home() {
                         <p className="font-bold text-lg"></p>
                     </div>
 
-                    <Todo kategori="ClassA" user={user}/>
-                    
+                    <TodoView kategori="ClassA" user={user}/>
                     <CalendarView kategori="ClassA" user={user} />
-                    <ScheduleTable kategori="ClassA" user={user} />
+                    <ScheduleView kategori="ClassA" user={user} />
                 </div>
             </div>
         </>

@@ -10,7 +10,7 @@ import { db } from "../firebase";
 
 import {
   statusStyles,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
 const months = [
   { label: "Januari", value: 1 },
@@ -194,6 +194,18 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
   const handleDelete = async () => {
     if (!data?.item.id) return;
 
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      alert("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      alert("Koneksi buruk, Coba lagi");
+      return;
+    }, 5000);
+
 
     const confirmed = window.confirm(
       `Delete "${data?.item?.task?.length > 13 ? `${data.item.task.slice(0, 13)}...` : data.item?.task || "null"} [${data?.item?.tanggal?.length > 1 ? `${startTanggal}-${endTanggal}` : `${startTanggal}` || "null"} ${monthLabel} ${tahun}]" dari rencana?`
@@ -202,6 +214,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     if (confirmed) {
       await deleteDoc(doc(db, "calendars", data.item.id));
 
+      clearTimeout(timeout);
       onSuccess();
       onClose();
     }
@@ -225,6 +238,19 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
 
   const handleUpdate = async () => {
     if (loading) return;
+
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      setFormError("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      setFormError("Koneksi buruk, Coba lagi");
+      setLoading(false);
+      return;
+    }, 5000);
 
     const validationErrors = validateForm();
 
@@ -263,6 +289,7 @@ export default function ViewRencanaModal({ open, data, onClose, onSuccess }: any
     } catch (err) {
       setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

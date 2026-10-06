@@ -53,6 +53,19 @@ export default function AddTugasModalAgain({
   const handleSubmit = async () => {
     if (loading) return;
 
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      setFormError("Tidak ada koneksi internet, Coba lagi nanti");
+      setLoading(false);
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      setFormError("Koneksi buruk, Coba lagi");
+      return;
+    }, 5000);
+
     const validationErrors = validateForm();
 
     if (Object.keys(validationErrors).length > 0) {
@@ -83,6 +96,7 @@ export default function AddTugasModalAgain({
     } catch (err) {
       setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

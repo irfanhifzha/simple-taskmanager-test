@@ -14,7 +14,7 @@ import Modal from "./Modal";
 import {
     statusStyles,
     statusStylesStatus,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
 
 export default function TodoModal({ open, onClose, data }: any) {
@@ -43,6 +43,18 @@ export default function TodoModal({ open, onClose, data }: any) {
     const handleDelete = async () => {
         if (!data?.task.id) return;
 
+        // Check browser's connection status first
+        if (!navigator.onLine) {
+        alert("Tidak ada koneksi internet, Coba lagi nanti");
+        return;
+        }
+
+        // Cancel the request after 5 seconds
+        const timeout = setTimeout(() => {
+        alert("Koneksi buruk, Coba lagi");
+        return;
+        }, 5000);
+
 
         const confirmed = window.confirm(
             `Delete "${data?.task?.title.length > 13 ? `${data.task.title.slice(0, 13)}...` : data?.task.title || "null"} [${data?.task?.status ? data.task.status : "null"}]" dari kanban?`
@@ -51,6 +63,7 @@ export default function TodoModal({ open, onClose, data }: any) {
         if (confirmed) {
             await deleteDoc(doc(db, "todos", data.task.id));
 
+            clearTimeout(timeout);
             onClose();
         }
     };
@@ -72,6 +85,19 @@ export default function TodoModal({ open, onClose, data }: any) {
 
     const handleUpdate = async () => {
         if (loading) return;
+
+        // Check browser's connection status first
+        if (!navigator.onLine) {
+        setFormError("Tidak ada koneksi internet, Coba lagi nanti");
+        return;
+        }
+
+        // Cancel the request after 5 seconds
+        const timeout = setTimeout(() => {
+        setFormError("Koneksi buruk, Coba lagi");
+        setLoading(false);
+        return;
+        }, 5000);
 
         const validationErrors = validateForm();
 
@@ -115,6 +141,7 @@ export default function TodoModal({ open, onClose, data }: any) {
         } catch (err) {
             setFormError(`(${err})\n\nGagal menyimpan data`);
         } finally {
+            clearTimeout(timeout);
             setLoading(false);
         }
     };

@@ -7,7 +7,7 @@ const dayLabels = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu
 
 import {
   statusStyles,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
 export default function EditTugasModalAgain({
   open,
@@ -47,6 +47,18 @@ export default function EditTugasModalAgain({
   const handleDelete = async () => {
     if (!data?.schedule?.id || !data?.tugas?.id) return;
 
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      alert("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      alert("Koneksi buruk, Coba lagi");
+      return;
+    }, 5000);
+
     const confirmed = window.confirm(
       `Delete task "${data?.tugas.titleTugasAgain?.length > 20 ? `${data.tugas.titleTugasAgain.slice(0, 20)}...` : data?.tugas?.titleTugasAgain || "null"}" dari jadwal '${data?.schedule.course?.length > 20 ? `${data.schedule?.course.slice(0, 15)}...` : data?.schedule?.course || "null"}'?`
     );
@@ -59,6 +71,7 @@ export default function EditTugasModalAgain({
         tugasAgain: arrayRemove(data.tugas)
       });
 
+      clearTimeout(timeout);
       onSuccess();
       onClose();
     }
@@ -88,6 +101,19 @@ export default function EditTugasModalAgain({
   // ===== SUBMIT =====
   const handleUpdate = async () => {
     if (loading) return;
+
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      setFormError("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      setFormError("Koneksi buruk, Coba lagi");
+      setLoading(false);
+      return;
+    }, 5000);
 
     const validationErrors = validateForm();
 
@@ -129,6 +155,7 @@ export default function EditTugasModalAgain({
     } catch (err) {
       setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };

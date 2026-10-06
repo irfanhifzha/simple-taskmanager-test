@@ -1,9 +1,7 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import {
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
+  getFirestore,
   Firestore,
 } from "firebase/firestore";
 
@@ -24,11 +22,7 @@ export async function initializeFirebase() {
 
   auth = getAuth(app);
 
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager(),
-    }),
-  });
+  db = getFirestore(app);
 }
 
 export { app, auth, db };

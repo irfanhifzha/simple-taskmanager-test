@@ -20,7 +20,7 @@ const days = [
 
 import {
   statusStyles,
-} from "../types/scheduleTypes";
+} from "../types/ListTypes";
 
 export default function EditScheduleModal({
   open,
@@ -265,6 +265,18 @@ export default function EditScheduleModal({
   const handleDelete = async () => {
     if (!data?.schedule?.id) return;
 
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      alert("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      alert("Koneksi buruk, Coba lagi");
+      return;
+    }, 5000);
+
     const confirmed = window.confirm(
       `Delete "${data?.schedule?.course?.length > 13
         ? `${data.schedule.course.slice(0, 13)}...`
@@ -279,6 +291,7 @@ export default function EditScheduleModal({
     if (confirmed) {
       await deleteDoc(doc(db, "schedules", data.schedule.id));
 
+      clearTimeout(timeout);
       onSuccess();
       onClose();
     }
@@ -302,6 +315,20 @@ export default function EditScheduleModal({
   const handleUpdate = async () => {
     if (loading) return;
 
+    // Check browser's connection status first
+    if (!navigator.onLine) {
+      setFormError("Tidak ada koneksi internet, Coba lagi nanti");
+      return;
+    }
+
+    // Cancel the request after 5 seconds
+    const timeout = setTimeout(() => {
+      setFormError("Koneksi buruk, Coba lagi");
+      setLoading(false);
+      return;
+    }, 5000);
+    
+
     const validationErrors = validateForm();
 
     if (Object.keys(validationErrors).length > 0) {
@@ -313,6 +340,7 @@ export default function EditScheduleModal({
     setErrors({});
     setFormError(null);
     setLoading(true);
+
 
     try {
       const payload = {
@@ -338,6 +366,7 @@ export default function EditScheduleModal({
     } catch (err) {
       setFormError(`(${err})\n\nGagal menyimpan data`);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
