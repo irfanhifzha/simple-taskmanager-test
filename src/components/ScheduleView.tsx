@@ -25,7 +25,7 @@ type Selected = {
 
 const HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 
-export default function ScheduleTable({ kategori, user }: Props) {
+export default function ScheduleTable({ kategori, user, onPrint }: Props) {
 
     const isValidKategori = !!kategori;
 
@@ -128,61 +128,78 @@ export default function ScheduleTable({ kategori, user }: Props) {
 
     return (
         <>
-            <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
+            <div id="schedule-print" className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden print:border-0">
                 <p className="text-black text-md font-bold">Jadwal Harian</p>
 
-                <div className="flex gap-3 mb-[10px] flex-wrap">
-                    <button
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setTugasVisibility((prev) => !prev)}
-                    >
-                        {tugasVisibility ? "👀 Hide Task" : "🔍 Show Task"}
-                    </button>
+                
 
-                    <button
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setWeekendVisibility((prev) => !prev)}
-                    >
-                        {weekendVisibility ? "💼 Hide Weekend" : "🗓️ Show Weekend"}
-                    </button>
+                <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
+                    <div>
+                        <button
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                            onClick={() => setTugasVisibility((prev) => !prev)}
+                        >
+                            {tugasVisibility ? "👀 Hide Task" : "🔍 Show Task"}
+                        </button>
 
-                    {user && (
+                        <button
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                            onClick={() => setWeekendVisibility((prev) => !prev)}
+                        >
+                            {weekendVisibility ? "💼 Hide Weekend" : "🗓️ Show Weekend"}
+                        </button>
+
+                        {user && (
+                        <>
+                            <button
+                                className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
+                                onClick={() => setOpenAdd(true)}
+                            >
+                                + Tambah Jadwal
+                            </button>
+
+                                            
+
+                        </>
+                        )}
+
+                        {/* PROGRAM FILTER */}
+                        {!isValidKategori && (
+                            <div className="flex gap-3 h-14">
+                                <select
+                                    value={filterKelas}
+                                    onChange={(e) => setFilterKelas(e.target.value as any)}
+                                    className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
+                                >
+                                    <option value="ALL">All Kelas</option>
+                                    {/* <option value="ALL">Add new filter kelas here</option> */}
+                                </select>
+
+                                <select
+                                    value={filterTahun}
+                                    onChange={(e) => setFilterTahun(e.target.value as any)}
+                                    className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
+                                >
+                                    <option value="ALL">All Tahun</option>
+                                    {/* <option value="ALL">Add new filter tahun here</option> */}
+                                </select>
+                            </div>
+                        )}
+                    </div>
+                    <div>
                         <button
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
-                            onClick={() => setOpenAdd(true)}
+                            onClick={onPrint}
                         >
-                            + Tambah Jadwal
-                        </button>
-                    )}
-
-                    {/* PROGRAM FILTER */}
-                    {!isValidKategori && (
-                        <div className="flex gap-3 h-14">
-                            <select
-                                value={filterKelas}
-                                onChange={(e) => setFilterKelas(e.target.value as any)}
-                                className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
-                            >
-                                <option value="ALL">All Kelas</option>
-                                {/* <option value="ALL">Add new filter kelas here</option> */}
-                            </select>
-
-                            <select
-                                value={filterTahun}
-                                onChange={(e) => setFilterTahun(e.target.value as any)}
-                                className="px-3 pe-8! border rounded-md bg-white shadow-sm py-0!"
-                            >
-                                <option value="ALL">All Tahun</option>
-                                {/* <option value="ALL">Add new filter tahun here</option> */}
-                            </select>
-                        </div>
-                    )}
+                            Cetak / PDF
+                        </button>     
+                    </div>
                 </div>
 
                 <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">
                     <table
-                        className={`relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200
-                        [&_td]:h-[36px] [&_td]:p-2 ${weekendVisibility ? "max-2xl:w-[1700px]" : "max-xl:w-[1200px]"}`}
+                        className={`relative w-full print:w-[100%] table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200
+                        [&_td]:h-[36px] [&_td]:p-2 [&_tr]:print:break-inside-avoid ${weekendVisibility ? "max-2xl:w-[1700px]" : "max-xl:w-[1200px]"}`}
                     >
                         <thead>
                             <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">

@@ -16,7 +16,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between mt-7 gap-4 mx-5 px-4">
+      <div className="flex flex-wrap items-center justify-between mt-7 gap-4 mx-5 px-4 print:hidden">
 
         <div className="flex gap-3 items-center">
 

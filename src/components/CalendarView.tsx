@@ -50,7 +50,7 @@ function buildCalendar(year: number, month: number): (number | null)[][] {
     return weeks;
 }
 
-export default function CalendarView({ kategori, user }: Props) {
+export default function CalendarView({ kategori, user, onPrint }: Props) {
     const isValidKategori = !!kategori;
     const isLoggedIn = !!user;
 
@@ -167,35 +167,45 @@ export default function CalendarView({ kategori, user }: Props) {
                     {currentDate.toLocaleString("id-ID", { month: "long" })} {year}
                 </p>
 
-                <div className="flex gap-3 mb-[10px] flex-wrap">
-                    <button
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-                    >
-                        {"<-"} Prev
-                    </button>
+                <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
+                    <div>
+                        <button
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+                        >
+                            {"<-"} Prev
+                        </button>
 
-                    <button
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-                    >
-                        Next {"->"}
-                    </button>
+                        <button
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+                        >
+                            Next {"->"}
+                        </button>
 
-                    <button onClick={() => setCurrentDate(new Date())} disabled={currentDate.toDateString() === new Date().toDateString()}
-                        className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                        📅 Today
-                    </button>
+                        <button onClick={() => setCurrentDate(new Date())} disabled={currentDate.toDateString() === new Date().toDateString()}
+                            className="px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        >
+                            📅 Today
+                        </button>
 
-                    {user && (
+                        {user && (
+                            <button
+                                className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
+                                onClick={() => setOpenAddRencana(true)}
+                            >
+                                + Tambah Rencana
+                            </button>
+                        )}
+                    </div>
+                    <div>
                         <button
                             className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
-                            onClick={() => setOpenAddRencana(true)}
+                            onClick={onPrint}
                         >
-                            + Tambah Rencana
-                        </button>
-                    )}
+                            Cetak / PDF
+                        </button>     
+                    </div>
                 </div>
 
                 <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards]">

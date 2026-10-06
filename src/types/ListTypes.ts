@@ -122,4 +122,5 @@ export const statusStylesStatus: Record<string, string> = {
 export type Props = {
     kategori?: string;
     user: User | null;
+    onPrint: () => void;
 };

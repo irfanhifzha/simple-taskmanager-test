@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+@media print {
+  
+  body {
+    background: white;
+    zoom: 0.6;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-full-width {
+    width: 100% !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+
+}
+
+
 
 /* === for remove user-agent stylesheet === */
 

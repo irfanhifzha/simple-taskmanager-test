@@ -80,7 +80,7 @@ function TaskCardContent({ task, theme, editMode, isValidKategori }: { isValidKa
             <div className="flex items-center gap-2">
                 {!isValidKategori && (<div className="text-xs text-red-700 bg-white px-2 py-1 rounded-lg">[{task.kategori}]</div>)}
                 <div className={`h-2 w-full rounded-md ${theme.card}`} />
-                {editMode && (<div className={`h-2 w-2 rounded-md ${theme.card} animate-[pulse_0.75s_infinite]`} />)}
+                {editMode && (<span className={`h-2 w-2 rounded-md ${theme.card} animate-[pulse_0.75s_infinite]`} />)}
             </div>
 
             {task.title && (
@@ -282,7 +282,7 @@ function DroppableColumn({ id, children, isEmpty }: { id: string; children: Reac
     );
 }
 
-export default function TodoBoard({ kategori, user }: Props) {
+export default function TodoBoard({ kategori, user, onPrint }: Props) {
     const isValidKategori = !!kategori;
     const isLoggedIn = !!user;
 
@@ -484,34 +484,44 @@ export default function TodoBoard({ kategori, user }: Props) {
             <div className="mt-3 flex flex-col h-fit w-full rounded-2xl gap-[10px] px-[26px] py-[14px] border border-gray-200 bg-white overflow-hidden">
                 <p className="text-black text-md font-bold">Kanban Board</p>
 
-                <div className="flex gap-3 mb-[10px] flex-wrap">
+                <div className="flex gap-3 mb-[10px] flex-wrap justify-between print:hidden">
+                    <div>
 
-                    <button
-                        className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                        onClick={() => setViewRoad((prev) => !prev)}
-                    >
-                        {viewRoad ? "👀 Hide Timeline" : "🔍 Show Timeline"}
-                    </button>
+                        <button
+                            className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                            onClick={() => setViewRoad((prev) => !prev)}
+                        >
+                            {viewRoad ? "👀 Hide Timeline" : "🔍 Show Timeline"}
+                        </button>
 
-                    {user && (
-                        <>
+                        {user && (
+                            <>
 
-                            <button
-                                className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
-                                onClick={() => setEditMode((prev) => !prev)}
-                            >
-                                {editMode ? "🗃️ Ubah Urutan" : "📋 View Mode"}
-                            </button>
+                                <button
+                                    className="p-3 py-2 border border-gray-200 rounded-full shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-gray-100 active:scale-95 text-xs font-semibold"
+                                    onClick={() => setEditMode((prev) => !prev)}
+                                >
+                                    {editMode ? "🗃️ Ubah Urutan" : "📋 View Mode"}
+                                </button>
 
-                            <button
-                                onClick={() => setIsOpen(true)}
-                                className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold w-fit"
-                            >
-                                + Tambah Todo
-                            </button>
+                                <button
+                                    onClick={() => setIsOpen(true)}
+                                    className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold w-fit"
+                                >
+                                    + Tambah Todo
+                                </button>
 
 
-                        </>)}
+                            </>)}
+                    </div>
+                    <div>
+                        <button
+                            className="bg-blue-600 text-white px-3 py-2 border border-gray-200 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition duration-200 ease cursor-pointer active:bg-blue-500 active:scale-95 text-xs font-semibold"
+                            onClick={onPrint}
+                        >
+                            Cetak / PDF
+                        </button>
+                    </div>
 
                 </div>
 
@@ -529,7 +539,7 @@ export default function TodoBoard({ kategori, user }: Props) {
                     }}
                 >
                     <div className="w-full overflow-auto rounded-2xl border border-gray-200 animate-[fadeUp_0.5s_ease-out_forwards] max-h-[1200px]">
-                        <table className={`relative w-full table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200  ${editMode ? "max-lg:w-[1000px]" : " max-lg:w-[850px]"}`}>
+                        <table className={`relative w-full print:w-[100%] table-fixed border-separate border-spacing-0 text-xs [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200  ${editMode ? "max-lg:w-[1000px]" : " max-lg:w-[850px]"}`}>
                             <thead>
                                 <tr className="h-[36px] px-2 items-center text-center [&_th]:font-semibold">
                                     {visibleColumns.map((col) => {
