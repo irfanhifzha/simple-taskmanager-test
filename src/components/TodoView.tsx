@@ -98,7 +98,7 @@ function TaskCardContent({ task, theme, editMode, isValidKategori }: { isValidKa
             {task.peoples.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                     {task.peoples.map((person, idx) => (
-                        <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white w-fit">
+                        <div key={idx} className="text-black px-2 py-1 rounded-lg bg-white !w-fit">
                             {editMode ? truncate(person) : truncateVIEW(person)}
                         </div>
                     ))}
@@ -145,7 +145,7 @@ function TaskCardContent({ task, theme, editMode, isValidKategori }: { isValidKa
 
                 {task.status === "progress" && task.startAt &&
                     (<div className="flex items-center bg-white px-2 py-1 rounded-md">
-                        <span className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite]"/>
+                        <span className="inline-block w-2 h-2 me-1 align-middle rounded-full bg-blue-600! transition-all duration-200 animate-[pulse_0.75s_infinite] print:animate-none"/>
                         <p className="text-gray-700">
                             Dimulai dari - {" "}
                             {(() => {

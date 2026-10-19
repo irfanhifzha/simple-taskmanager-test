@@ -120,6 +120,7 @@ export default function EditTugasModalAgain({
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setFormError("Mohon lengkapi form terlebih dahulu");
+      clearTimeout(timeout);
       return;
     }
 

@@ -181,6 +181,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       setFormError("Mohon lengkapi form terlebih dahulu");
+      clearTimeout(timeout);
       return;
     }
 
@@ -323,7 +324,7 @@ export default function AddRencanaModal({ open, onClose, onSuccess, category }: 
               id="tanggalStart"
               className="w-full"
               value={startTanggal}
-              onChange={(e) => setStartTanggal(e.target.value)}
+              onChange={(e) => {setStartTanggal(e.target.value); setEndTanggal("");}}
             >
               <option value="" disabled hidden>Pilih Start</option>
               {availableDates.map((d) => (

@@ -273,7 +273,7 @@ export default function TodoGantt({ category }: any) {
             <div className="flex flex-col gap-4">
                 <p className="text-black text-md font-bold">Gantt Chart / Timeline Overview</p>
 
-                <div className="flex items-center gap-3 flex-wrap mb-[10px]">
+                <div className="flex items-center gap-3 flex-wrap mb-[10px] print:hidden">
 
 
                     <div className="flex items-center gap-2 text-xs border border-gray-200 rounded-lg py-2 px-4">
