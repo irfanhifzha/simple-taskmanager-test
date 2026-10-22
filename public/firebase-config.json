@@ -1,8 +1,8 @@
 {
-  "apiKey": "AIzaSyA2M23s8sZX423b8i9JcTNoW7szHXQNjIY",
-  "authDomain": "test-belajar-awesome-116.firebaseapp.com",
-  "projectId": "test-belajar-awesome-116",
-  "storageBucket": "test-belajar-awesome-116.firebasestorage.app",
-  "messagingSenderId": "45048693674",
-  "appId": "1:45048693674:web:dfc59ac97b730a45a121d3"
+  "apiKey": "API_KEY_KAMU",
+  "authDomain": "PROJECT_ID_KAMU.firebaseapp.com",
+  "projectId": "PROJECT_ID_KAMU",
+  "storageBucket": "PROJECT_ID_KAMU.firebasestorage.app",
+  "messagingSenderId": "MESSAGING_SENDER_ID_KAMU",
+  "appId": "APP_ID_KAMU"
 }
